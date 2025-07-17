@@ -1,5 +1,7 @@
 package org.example.hugmeexp.global.auth.service;
 
+import org.example.hugmeexp.global.infra.auth.dto.RegisterResponse;
+
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.domain.user.enums.UserRole;
 import org.example.hugmeexp.global.infra.auth.dto.request.LoginRequest;
@@ -38,18 +40,17 @@ class AuthServiceTest {
         User mockUser = User.createUser("testuser", "encodedPw", "홍길동", "010-1234-5678");
 
         given(credentialService.registerNewUser(request)).willReturn(mockUser);
-        given(tokenService.createAccessToken("testuser", mockUser.getRole())).willReturn("access-token");
-        given(tokenService.createRefreshToken("testuser", mockUser.getRole())).willReturn("refresh-token");
-        given(tokenService.getTokenRemainingTimeMillis("refresh-token")).willReturn(3600000L);
 
         // when
-        AuthResponse response = authService.registerAndAuthenticate(request);
+        RegisterResponse response = authService.registerAndAuthenticate(request);
 
         // then
-        assertThat(response.getAccessToken()).isEqualTo("access-token");
-        assertThat(response.getRefreshToken()).isEqualTo("refresh-token");
+        assertThat(response.getUsername()).isEqualTo("testuser");
+        assertThat(response.getName()).isEqualTo("홍길동");
+        assertThat(response.getRole()).isEqualTo(mockUser.getRole().toString());
 
-        verify(tokenService).saveRefreshToken("testuser", "refresh-token", 3600000L);
+        // 토큰 저장은 회원가입 이후 로그인에서 검증하거나, 별도 테스트에서 검증
+        // verify(tokenService).saveRefreshToken("testuser", "refresh-token", 3600000L);
     }
 
     @Test
