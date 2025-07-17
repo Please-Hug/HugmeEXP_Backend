@@ -3,6 +3,7 @@ package org.example.hugmeexp.global.infra.auth.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.user.entity.User;
+import org.example.hugmeexp.global.infra.auth.dto.RegisterResponse;
 import org.example.hugmeexp.global.infra.auth.dto.request.LoginRequest;
 import org.example.hugmeexp.global.infra.auth.dto.request.RegisterRequest;
 import org.example.hugmeexp.global.infra.auth.dto.request.RefreshRequest;
@@ -24,21 +25,14 @@ public class AuthService
 
     // 회원가입
     @Transactional
-    public AuthResponse registerAndAuthenticate(RegisterRequest request)
+    public RegisterResponse registerAndAuthenticate(RegisterRequest request)
     {
         // 1. 사용자 등록
         User user = credentialService.registerNewUser(request);
 
-        // 2. 토큰 생성 및 저장
-        String accessToken = tokenService.createAccessToken(user.getUsername(), user.getRole());
-        String refreshToken = tokenService.createRefreshToken(user.getUsername(), user.getRole());
-
-        // 3. 리프레시 토큰 저장
-        tokenService.saveRefreshToken(user.getUsername(), refreshToken, tokenService.getTokenRemainingTimeMillis(refreshToken));
-
-        // 4. 액세스 토큰, 리프레시 토큰 리턴
+        // 2. 회원가입 성공 정보 반환
         log.info("Sign-up successful - user: {}({})", user.getUsername(), user.getName());
-        return new AuthResponse(accessToken, refreshToken);
+        return RegisterResponse.from(user);
     }
 
     // 로그인
