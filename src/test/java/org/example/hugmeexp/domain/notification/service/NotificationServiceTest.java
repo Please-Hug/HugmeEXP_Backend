@@ -39,6 +39,7 @@ public class NotificationServiceTest {
     private User testUser;
     private Long testPraiseId;
     private Long testDiaryId;
+    private Long testCommentId;
     private String testDiaryTitle;
 
     @BeforeEach
@@ -134,7 +135,7 @@ public class NotificationServiceTest {
         when(notificationRepository.save(any(Notification.class))).thenReturn(savedNotification);
 
         // when
-        notificationService.sendDiaryCommentNotification(testUser, testDiaryTitle, testDiaryId);
+        notificationService.sendDiaryCommentNotification(testUser, testDiaryTitle, testCommentId, testDiaryId);
 
         // then
         ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
@@ -161,7 +162,7 @@ public class NotificationServiceTest {
         when(notificationRepository.save(any(Notification.class))).thenReturn(savedNotification);
 
         // when
-        notificationService.sendDiaryCommentNotification(testUser, null, testDiaryId);
+        notificationService.sendDiaryCommentNotification(testUser, null, testCommentId, testDiaryId);
 
         // then
         ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
@@ -187,7 +188,7 @@ public class NotificationServiceTest {
         when(notificationRepository.save(any(Notification.class))).thenReturn(savedNotification);
 
         // when
-        notificationService.sendDiaryCommentNotification(testUser, testDiaryTitle, testDiaryId);
+        notificationService.sendDiaryCommentNotification(testUser, testDiaryTitle, testCommentId,testDiaryId);
 
         // then
         verify(sseService).sendNotification(eq(testUser.getId()), any(NotificationResponseDTO.class));
@@ -206,7 +207,7 @@ public class NotificationServiceTest {
         doThrow(new RuntimeException("SSE 전송 실패")).when(sseService).sendNotification(any(), any());
 
         // when
-        notificationService.sendDiaryCommentNotification(testUser, testDiaryTitle, testDiaryId);
+        notificationService.sendDiaryCommentNotification(testUser, testDiaryTitle, testCommentId,testDiaryId);
 
         // then
         verify(notificationRepository).save(any(Notification.class));
