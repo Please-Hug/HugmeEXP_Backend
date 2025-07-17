@@ -107,18 +107,26 @@ public class StudyDiaryService {
     }
 
     public Page<StudyDiaryFindAllResponse> getStudyDiaries(Pageable pageable) {
-        Page<StudyDiary> studyDiaries = studyDiaryRepository.findByIsCreatedTrueOrderByCreatedAtDesc(pageable);
+        Page<Object[]> studyDiaries = studyDiaryRepository.findByIsCreatedTrueOrderByCreatedAtDesc(pageable);
 
         //response로 전환
-        Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaries.map(studyDiary -> {    //Page map으로 조작할때에는 stream 없이
+        Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaries.map(result -> {
+            Long id = (Long) result[0];
+            User user = (User) result[1];
+            String title = (String) result[2];
+            String content = (String) result[3];
+            Integer likeCount = (Integer) result[4];
+            Long commentCount = (Long) result[5];
+            LocalDateTime createdAt = (LocalDateTime) result[6];
+            
             return StudyDiaryFindAllResponse.builder()
-                    .id(studyDiary.getId())
-                    .name(studyDiary.getUser().getName())
-                    .title(studyDiary.getTitle())
-                    .content(studyDiary.getContent())
-                    .likeNum(studyDiary.getLikeCount())
-                    .commentNum(studyDiary.getComments().size())
-                    .createdAt(studyDiary.getCreatedAt())
+                    .id(id)
+                    .name(user.getName())
+                    .title(title)
+                    .content(content)
+                    .likeNum(likeCount)
+                    .commentNum(commentCount.intValue())
+                    .createdAt(createdAt)
                     .build();
         });
 
@@ -131,18 +139,26 @@ public class StudyDiaryService {
         LocalDateTime startOfDay = today.atStartOfDay();
         LocalDateTime endOfDay = today.plusDays(1).atStartOfDay();
 
-        Page<StudyDiary> studyDiaries = studyDiaryRepository.findTodayPopularStudyDiaries(startOfDay, endOfDay, pageable);
+        Page<Object[]> studyDiaries = studyDiaryRepository.findTodayPopularStudyDiaries(startOfDay, endOfDay, pageable);
 
         //response로 전환
-        Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaries.map(studyDiary -> {
+        Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaries.map(result -> {
+            Long id = (Long) result[0];
+            User user = (User) result[1];
+            String title = (String) result[2];
+            String content = (String) result[3];
+            Integer likeCount = (Integer) result[4];
+            Long commentCount = (Long) result[5];
+            LocalDateTime createdAt = (LocalDateTime) result[6];
+            
             return StudyDiaryFindAllResponse.builder()
-                    .id(studyDiary.getId())
-                    .name(studyDiary.getUser().getName())
-                    .title(studyDiary.getTitle())
-                    .content(studyDiary.getContent())
-                    .likeNum(studyDiary.getLikeCount())
-                    .commentNum(studyDiary.getComments().size())
-                    .createdAt(studyDiary.getCreatedAt())
+                    .id(id)
+                    .name(user.getName())
+                    .title(title)
+                    .content(content)
+                    .likeNum(likeCount)
+                    .commentNum(commentCount.intValue())
+                    .createdAt(createdAt)
                     .build();
         });
 
@@ -214,7 +230,7 @@ public class StudyDiaryService {
     }
 
     public StudyDiaryDetailResponse getStudyDiary(Long id) {
-        StudyDiary studyDiary = studyDiaryRepository.findById(id)
+        StudyDiary studyDiary = studyDiaryRepository.findByIdWithUser(id)
                 .orElseThrow(StudyDiaryNotFoundException::new);
 
         StudyDiaryDetailResponse studyDiaryDetailResponse = StudyDiaryDetailResponse.builder()
@@ -235,17 +251,25 @@ public class StudyDiaryService {
 
     public List<StudyDiaryFindAllResponse> getUserStudyDiaries(Long userId, Pageable pageable) {
         User findUser = userRepository.findById(userId).orElseThrow(UserNotFoundForStudyDiaryException::new);
-        List<StudyDiary> byUser = studyDiaryRepository.findByUser(findUser.getId());
+        List<Object[]> byUser = studyDiaryRepository.findByUser(findUser.getId());
 
-        List<StudyDiaryFindAllResponse> studyDiaryFindAllResponses = byUser.stream().map(studyDiary -> {    //Page map으로 조작할때에는 stream 없이
+        List<StudyDiaryFindAllResponse> studyDiaryFindAllResponses = byUser.stream().map(result -> {
+            Long id = (Long) result[0];
+            User user = (User) result[1];
+            String title = (String) result[2];
+            String content = (String) result[3];
+            Integer likeCount = (Integer) result[4];
+            Long commentCount = (Long) result[5];
+            LocalDateTime createdAt = (LocalDateTime) result[6];
+            
             return StudyDiaryFindAllResponse.builder()
-                    .id(studyDiary.getId())
-                    .name(studyDiary.getUser().getName())
-                    .title(studyDiary.getTitle())
-                    .content(studyDiary.getContent())
-                    .likeNum(studyDiary.getLikeCount())
-                    .commentNum(studyDiary.getComments().size())
-                    .createdAt(studyDiary.getCreatedAt())
+                    .id(id)
+                    .name(user.getName())
+                    .title(title)
+                    .content(content)
+                    .likeNum(likeCount)
+                    .commentNum(commentCount.intValue())
+                    .createdAt(createdAt)
                     .build();
         }).toList();
 
@@ -254,17 +278,25 @@ public class StudyDiaryService {
 
     public List<StudyDiaryFindAllResponse> getMyStudyDiaries(UserDetails userDetails, Pageable pageable) {
         User findUser = userRepository.findByUsername(userDetails.getUsername()).orElseThrow(UserNotFoundForStudyDiaryException::new);
-        List<StudyDiary> byUser = studyDiaryRepository.findByUser(findUser.getId());
+        List<Object[]> byUser = studyDiaryRepository.findByUser(findUser.getId());
 
-        List<StudyDiaryFindAllResponse> studyDiaryFindAllResponses = byUser.stream().map(studyDiary -> {    //Page map으로 조작할때에는 stream 없이
+        List<StudyDiaryFindAllResponse> studyDiaryFindAllResponses = byUser.stream().map(result -> {
+            Long id = (Long) result[0];
+            User user = (User) result[1];
+            String title = (String) result[2];
+            String content = (String) result[3];
+            Integer likeCount = (Integer) result[4];
+            Long commentCount = (Long) result[5];
+            LocalDateTime createdAt = (LocalDateTime) result[6];
+            
             return StudyDiaryFindAllResponse.builder()
-                    .id(studyDiary.getId())
-                    .name(studyDiary.getUser().getName())
-                    .title(studyDiary.getTitle())
-                    .content(studyDiary.getContent())
-                    .likeNum(studyDiary.getLikeCount())
-                    .commentNum(studyDiary.getComments().size())
-                    .createdAt(studyDiary.getCreatedAt())
+                    .id(id)
+                    .name(user.getName())
+                    .title(title)
+                    .content(content)
+                    .likeNum(likeCount)
+                    .commentNum(commentCount.intValue())
+                    .createdAt(createdAt)
                     .build();
         }).toList();
 

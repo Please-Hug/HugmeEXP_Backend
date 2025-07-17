@@ -18,15 +18,6 @@ import java.util.Optional;
 @Repository
 public interface StudyDiaryRepository extends JpaRepository<StudyDiary, Long> {
 
-    // 사용자별 배움일기 조회 (페이징)
-    Page<StudyDiary> findByUserOrderByCreatedAtDesc(User user, Pageable pageable);
-
-    // 사용자별 배움일기 조회 (페이징)
-    Page<StudyDiary> findByUser_IdOrderByCreatedAtDesc(Long userId, Pageable pageable);
-
-    // 제목이나 내용으로 검색 (페이징)
-    @Query("SELECT s FROM StudyDiary s WHERE s.title LIKE %:keyword% OR s.content LIKE %:keyword% ORDER BY s.createdAt DESC")
-    Page<StudyDiary> findByTitleOrContentContaining(@Param("keyword") String keyword, Pageable pageable);
 
     // 최적화된 검색 쿼리 - Full-text index 사용
     @Query(
@@ -42,16 +33,18 @@ public interface StudyDiaryRepository extends JpaRepository<StudyDiary, Long> {
     )
     Page<StudyDiarySearchResponse> searchOptimized(@Param("keyword") String keyword, Pageable pageable);
 
-    // 최신순 정렬 조회 (페이징)
-    Page<StudyDiary> findByIsCreatedTrueOrderByCreatedAtDesc(Pageable pageable);
+    // 최신순 정렬 조회 (페이징) - User fetch join + Comment COUNT
+    @Query("SELECT s.id as id, s.user as user, s.title as title, s.content as content, " +
+           "s.likeCount as likeCount, COUNT(c.id) as commentCount, s.createdAt as createdAt " +
+           "FROM StudyDiary s LEFT JOIN s.user LEFT JOIN s.comments c " +
+           "WHERE s.isCreated = true " +
+           "GROUP BY s.id, s.user.id, s.user.name, s.title, s.content, s.likeCount, s.createdAt " +
+           "ORDER BY s.createdAt DESC")
+    Page<Object[]> findByIsCreatedTrueOrderByCreatedAtDesc(Pageable pageable);
 
     // 임시저장 목록 조회 (페이징)
     @Query("SELECT s FROM StudyDiary s WHERE s.user.id = :userId AND s.isCreated = false")
     List<StudyDiary> findByIsCreatedFalse(@Param("userId") Long userId);
-
-
-    // 좋아요순 정렬 조회 (페이징)  
-    Page<StudyDiary> findAllByOrderByLikeCountDesc(Pageable pageable);
 
     // 특정 사용자의 이번 주 작성한 일기 조회
     @Query("SELECT s FROM StudyDiary s WHERE s.user.id = :userId AND s.createdAt BETWEEN :startOfWeek AND :endOfWeek")
@@ -62,22 +55,23 @@ public interface StudyDiaryRepository extends JpaRepository<StudyDiary, Long> {
     // 사용자의 전체 일기 개수
     long countByUser_Id(Long userId);
 
-    //사용자가 쓴 전체일기 조회
-    @Query("SELECT s FROM StudyDiary s WHERE s.user.id = :findUserId ORDER BY s.createdAt DESC")
-    List<StudyDiary> findByUser(Long findUserId);
+    // 사용자가 쓴 전체일기 조회 - User fetch join + Comment COUNT
+    @Query("SELECT s.id as id, s.user as user, s.title as title, s.content as content, " +
+           "s.likeCount as likeCount, COUNT(c.id) as commentCount, s.createdAt as createdAt " +
+           "FROM StudyDiary s LEFT JOIN s.user LEFT JOIN s.comments c " +
+           "WHERE s.user.id = :findUserId " +
+           "GROUP BY s.id, s.user.id, s.user.name, s.title, s.content, s.likeCount, s.createdAt " +
+           "ORDER BY s.createdAt DESC")
+    List<Object[]> findByUser(@Param("findUserId") Long findUserId);
 
-    // 댓글과 함께 조회
-
-    @Query("SELECT s FROM StudyDiary s LEFT JOIN FETCH s.comments WHERE s.id = :id")
-    Optional<StudyDiary> findByIdWithComments(@Param("id") Long id);
-    // 인기 일기 조회 (좋아요 많은 순)
-
-    @Query("SELECT s FROM StudyDiary s WHERE s.likeCount >= :minLikes ORDER BY s.likeCount DESC")
-    List<StudyDiary> findPopularStudyDiaries(@Param("minLikes") int minLikes, Pageable pageable);
-
-    // 오늘 하루 인기 일기 조회 (오늘 작성된 글 중 좋아요 많은 순)
-    @Query("SELECT s FROM StudyDiary s WHERE s.isCreated = true AND s.createdAt BETWEEN :startOfDay AND :endOfDay ORDER BY s.likeCount DESC")
-    Page<StudyDiary> findTodayPopularStudyDiaries(@Param("startOfDay") LocalDateTime startOfDay, 
+    // 오늘 하루 인기 일기 조회 (오늘 작성된 글 중 좋아요 많은 순) - User fetch join + Comment COUNT
+    @Query("SELECT s.id as id, s.user as user, s.title as title, s.content as content, " +
+           "s.likeCount as likeCount, COUNT(c.id) as commentCount, s.createdAt as createdAt " +
+           "FROM StudyDiary s LEFT JOIN s.user LEFT JOIN s.comments c " +
+           "WHERE s.isCreated = true AND s.createdAt BETWEEN :startOfDay AND :endOfDay " +
+           "GROUP BY s.id, s.user.id, s.user.name, s.title, s.content, s.likeCount, s.createdAt " +
+           "ORDER BY s.likeCount DESC")
+    Page<Object[]> findTodayPopularStudyDiaries(@Param("startOfDay") LocalDateTime startOfDay, 
                                                   @Param("endOfDay") LocalDateTime endOfDay, 
                                                   Pageable pageable);
 
@@ -91,4 +85,8 @@ public interface StudyDiaryRepository extends JpaRepository<StudyDiary, Long> {
     Page<StudyDiary> findByUserIdAndCreatedAtAfterOrderByCreatedAtDesc(@Param("userId") Long userId, 
                                                                       @Param("oneMonthAgo") LocalDateTime oneMonthAgo, 
                                                                       Pageable pageable);
+
+    // 상세 조회용 - User fetch join (Comments는 BatchSize 활용)
+    @Query("SELECT s FROM StudyDiary s LEFT JOIN FETCH s.user WHERE s.id = :id")
+    Optional<StudyDiary> findByIdWithUser(@Param("id") Long id);
 }
