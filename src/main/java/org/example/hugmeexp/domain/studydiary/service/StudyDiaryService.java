@@ -14,6 +14,7 @@ import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiaryDetailRespo
 import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiaryFindAllResponse;
 import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiaryMyHomeResponse;
 import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiaryWeekStatusResponse;
+import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiarySearchResponse;
 import org.example.hugmeexp.domain.studydiary.entity.StudyDiary;
 import org.example.hugmeexp.domain.studydiary.entity.StudyDiaryComment;
 import org.example.hugmeexp.domain.studydiary.exception.StudyDiaryNotFoundException;
@@ -195,19 +196,20 @@ public class StudyDiaryService {
         return studyDiaryFindAllResponsePage;
     }
 
-    public Page<StudyDiaryFindAllResponse> searchStudyDiaries(String keyword, Pageable pageable) {
-        Page<StudyDiary> studyDiaries = studyDiaryRepository.findByTitleOrContentContaining(keyword, pageable);
-
-        //response로 전환
-        Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaries.map(studyDiary -> {    //Page map으로 조작할때에는 stream 없이
+    public Object searchStudyDiaries(String keyword, Pageable pageable) {
+        // 최적화된 검색 쿼리 사용
+        Page<StudyDiarySearchResponse> searchResults = studyDiaryRepository.searchOptimized(keyword, pageable);
+        
+        // StudyDiarySearchResponse를 StudyDiaryFindAllResponse로 변환
+        Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = searchResults.map(searchResult -> {
             return StudyDiaryFindAllResponse.builder()
-                    .id(studyDiary.getId())
-                    .name(studyDiary.getUser().getName())
-                    .title(studyDiary.getTitle())
-                    .content(studyDiary.getContent())
-                    .likeNum(studyDiary.getLikeCount())
-                    .commentNum(studyDiary.getComments().size())
-                    .createdAt(studyDiary.getCreatedAt())
+                    .id(searchResult.getId())
+                    .name(searchResult.getName())
+                    .title(searchResult.getTitle())
+                    .content(searchResult.getContentPreview())  // 미리보기만 반환
+                    .likeNum(searchResult.getLikeNum())
+                    .commentNum(searchResult.getCommentNum().intValue())  // Long을 int로 변환
+                    .createdAt(searchResult.getCreatedAt())
                     .build();
         });
 

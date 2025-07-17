@@ -1,6 +1,8 @@
 package org.example.hugmeexp.domain.studydiary.repository;
 
 import org.example.hugmeexp.domain.studydiary.entity.StudyDiary;
+import org.example.hugmeexp.domain.studydiary.entity.StudyDiaryComment;
+import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiarySearchResponse;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +27,15 @@ public interface StudyDiaryRepository extends JpaRepository<StudyDiary, Long> {
     // 제목이나 내용으로 검색 (페이징)
     @Query("SELECT s FROM StudyDiary s WHERE s.title LIKE %:keyword% OR s.content LIKE %:keyword% ORDER BY s.createdAt DESC")
     Page<StudyDiary> findByTitleOrContentContaining(@Param("keyword") String keyword, Pageable pageable);
+
+    // 최적화된 검색 쿼리 - 댓글 수를 서브쿼리로 가져오기
+    @Query("SELECT new org.example.hugmeexp.domain.studydiary.dto.response.StudyDiarySearchResponse(" +
+           "s.id, s.user.name, s.title, SUBSTRING(s.content, 1, 200), s.likeCount, " +
+           "(SELECT COUNT(c) FROM StudyDiaryComment c WHERE c.studyDiary = s), s.createdAt) " +
+           "FROM StudyDiary s " +
+           "WHERE s.isCreated = true AND (s.title LIKE %:keyword% OR s.content LIKE %:keyword%) " +
+           "ORDER BY s.createdAt DESC")
+    Page<StudyDiarySearchResponse> searchOptimized(@Param("keyword") String keyword, Pageable pageable);
 
     // 최신순 정렬 조회 (페이징)
     Page<StudyDiary> findByIsCreatedTrueOrderByCreatedAtDesc(Pageable pageable);
