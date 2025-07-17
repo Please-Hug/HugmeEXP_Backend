@@ -28,13 +28,18 @@ public interface StudyDiaryRepository extends JpaRepository<StudyDiary, Long> {
     @Query("SELECT s FROM StudyDiary s WHERE s.title LIKE %:keyword% OR s.content LIKE %:keyword% ORDER BY s.createdAt DESC")
     Page<StudyDiary> findByTitleOrContentContaining(@Param("keyword") String keyword, Pageable pageable);
 
-    // 최적화된 검색 쿼리 - 댓글 수를 서브쿼리로 가져오기
-    @Query("SELECT new org.example.hugmeexp.domain.studydiary.dto.response.StudyDiarySearchResponse(" +
-           "s.id, s.user.name, s.title, SUBSTRING(s.content, 1, 200), s.likeCount, " +
-           "(SELECT COUNT(c) FROM StudyDiaryComment c WHERE c.studyDiary = s), s.createdAt) " +
-           "FROM StudyDiary s " +
-           "WHERE s.isCreated = true AND (s.title LIKE %:keyword% OR s.content LIKE %:keyword%) " +
-           "ORDER BY s.createdAt DESC")
+    // 최적화된 검색 쿼리 - Full-text index 사용
+    @Query(
+        value = "SELECT s.id as id, u.name as name, s.title as title, " +
+                "SUBSTRING(s.content, 1, 200) as contentPreview, s.like_count as likeNum, " +
+                "(SELECT COUNT(*) FROM study_diary_comment c WHERE c.study_diary_id = s.id) as commentNum, " +
+                "s.created_at as createdAt " +
+                "FROM study_diary s JOIN user u ON s.user_id = u.id " +
+                "WHERE s.is_created = true AND MATCH(s.title, s.content) AGAINST(:keyword IN BOOLEAN MODE) " +
+                "ORDER BY s.created_at DESC",
+        countQuery = "SELECT COUNT(*) FROM study_diary s WHERE s.is_created = true AND MATCH(s.title, s.content) AGAINST(:keyword IN BOOLEAN MODE)",
+        nativeQuery = true
+    )
     Page<StudyDiarySearchResponse> searchOptimized(@Param("keyword") String keyword, Pageable pageable);
 
     // 최신순 정렬 조회 (페이징)
