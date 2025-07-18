@@ -21,11 +21,11 @@ public interface StudyDiaryRepository extends JpaRepository<StudyDiary, Long> {
 
     // 최적화된 검색 쿼리 - Full-text index 사용
     @Query(
-        value = "SELECT s.id as id, u.name as name, s.title as title, " +
+        value = "SELECT s.studydiary_id as id, u.name as name, s.title as title, " +
                 "SUBSTRING(s.content, 1, 200) as contentPreview, s.like_count as likeNum, " +
-                "(SELECT COUNT(*) FROM study_diary_comment c WHERE c.study_diary_id = s.id) as commentNum, " +
+                "(SELECT COUNT(*) FROM study_diary_comment c WHERE c.studydiary_id = s.studydiary_id) as commentNum, " +
                 "s.created_at as createdAt " +
-                "FROM study_diary s JOIN user u ON s.user_id = u.id " +
+                "FROM study_diary s JOIN users u ON s.user_id = u.id " +
                 "WHERE s.is_created = true AND MATCH(s.title, s.content) AGAINST(:keyword IN BOOLEAN MODE) " +
                 "ORDER BY s.created_at DESC",
         countQuery = "SELECT COUNT(*) FROM study_diary s WHERE s.is_created = true AND MATCH(s.title, s.content) AGAINST(:keyword IN BOOLEAN MODE)",
@@ -71,7 +71,7 @@ public interface StudyDiaryRepository extends JpaRepository<StudyDiary, Long> {
            "WHERE s.isCreated = true AND s.createdAt BETWEEN :startOfDay AND :endOfDay " +
            "GROUP BY s.id, s.user.id, s.user.name, s.title, s.content, s.likeCount, s.createdAt " +
            "ORDER BY s.likeCount DESC")
-    Page<Object[]> findTodayPopularStudyDiaries(@Param("startOfDay") LocalDateTime startOfDay, 
+    Page<Object[]> findTodayPopularStudyDiaries(@Param("startOfDay") LocalDateTime startOfDay,
                                                   @Param("endOfDay") LocalDateTime endOfDay, 
                                                   Pageable pageable);
 
