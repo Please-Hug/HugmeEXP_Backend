@@ -51,10 +51,11 @@ class RegisterControllerTest {
     }
 
     @Test
-    @DisplayName("회원가입에 성공하면 200 상태코드와 토큰 정보를 반환한다.")
-    void shouldReturnOkAndTokens_whenRegisterUserSuccessfully() throws Exception {
+    @DisplayName("회원가입에 성공하면 201 상태코드와 회원 정보만 반환한다.")
+    void shouldReturnCreatedAndUserInfo_whenRegisterUserSuccessfully() throws Exception {
         // given
-        RegisterRequest request = new RegisterRequest(username, "validPass1!", "홍길동", phone);
+        String name= "홍길동";
+        RegisterRequest request = new RegisterRequest(username, "validPass1!", name, phone);
 
         // when
         ResultActions result = mockMvc.perform(post("/api/register")
@@ -62,9 +63,11 @@ class RegisterControllerTest {
                 .content(objectMapper.writeValueAsString(request)));
 
         // then
-        result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.accessToken").isNotEmpty())
-                .andExpect(jsonPath("$.data.refreshToken").isNotEmpty());
+        result.andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.id").isNumber())
+                .andExpect(jsonPath("$.data.username").value(username))
+                .andExpect(jsonPath("$.data.name").value(name))
+                .andExpect(jsonPath("$.data.role").isNotEmpty());
     }
 
     @Test

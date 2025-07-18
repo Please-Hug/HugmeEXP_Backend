@@ -481,7 +481,8 @@ public class StudyDiaryService {
             notificationService.sendDiaryCommentNotification(
                     studyDiary.getUser(),// 글 작성자
                     studyDiary.getTitle(), // 글 제목
-                    comment.getId() // 댓글 ID
+                    comment.getId(), // 댓글 ID
+                    studyDiary.getId() // 배움일기 ID
             );
         }
 

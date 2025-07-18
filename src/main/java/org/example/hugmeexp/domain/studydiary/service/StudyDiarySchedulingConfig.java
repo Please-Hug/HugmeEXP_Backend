@@ -1,5 +1,6 @@
 package org.example.hugmeexp.domain.studydiary.service;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiaryFindAllResponse;
@@ -21,9 +22,14 @@ public class StudyDiarySchedulingConfig {
     private final StudyDiaryRepository studyDiaryRepository;
     private final StudyDiaryRedisService studyDiaryRedisService;
 
+    @PostConstruct
+    public void init() {
+        log.info("==StudyDiarySchedulingConfig== initialized");
+    }
+
     @Scheduled(fixedRate = 1800000) // 30분 = 1800000ms
     public void cacheTodayPopularStudyDiaries() {
-        log.info("일주일간 인기 배움일기 캐싱 작업 시작");
+        log.info("caching weekly studyDiaries");
 
         // 이번 주 월요일~일요일 범위 계산
         LocalDateTime startOfWeek = LocalDateTime.now().with(DayOfWeek.MONDAY).withHour(0).withMinute(0).withSecond(0);
