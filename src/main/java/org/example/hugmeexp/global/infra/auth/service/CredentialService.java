@@ -10,6 +10,7 @@ import org.example.hugmeexp.global.infra.auth.dto.request.LoginRequest;
 import org.example.hugmeexp.global.infra.auth.dto.request.ModifyPasswordRequest;
 import org.example.hugmeexp.global.infra.auth.dto.request.RegisterRequest;
 import org.example.hugmeexp.global.infra.auth.exception.LoginFailedException;
+import org.example.hugmeexp.global.infra.auth.exception.PasswordMismatchException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,7 +68,7 @@ public class CredentialService {
                 .orElseThrow(UserNotFoundException::new);
 
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
-            throw new LoginFailedException(); // PASSWORD_MISMATCH와 같은 더 구체적인 예외를 사용할 수 있습니다.
+            throw new PasswordMismatchException();
         }
 
         String newEncodedPassword = passwordEncoder.encode(request.getNewPassword());
