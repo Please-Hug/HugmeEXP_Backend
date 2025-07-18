@@ -20,9 +20,10 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import org.example.hugmeexp.global.infra.auth.exception.PasswordMismatchException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -65,7 +66,7 @@ class AuthControllerTest {
         void modifyPassword_Success() throws Exception {
             // Given
             ModifyPasswordRequest request = ModifyPasswordRequest.of("oldPassword1!", "newPassword1!");
-            given(authService.modifyPassword(anyString(), any(ModifyPasswordRequest.class))).willReturn(true);
+
 
             // When & Then
             mockMvc.perform(put(BASE_URL + "/password")
@@ -81,7 +82,7 @@ class AuthControllerTest {
         void modifyPassword_Failure() throws Exception {
             // Given
             ModifyPasswordRequest request = ModifyPasswordRequest.of("wrongPassword1!", "newPassword1!");
-            given(authService.modifyPassword(anyString(), any(ModifyPasswordRequest.class))).willReturn(false);
+            doThrow(new PasswordMismatchException()).when(authService).modifyPassword(anyString(), any(ModifyPasswordRequest.class));
 
             // When & Then
             mockMvc.perform(put(BASE_URL + "/password")
