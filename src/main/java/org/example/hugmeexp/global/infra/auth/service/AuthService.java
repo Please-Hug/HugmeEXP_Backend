@@ -9,7 +9,6 @@ import org.example.hugmeexp.global.infra.auth.dto.request.ModifyPasswordRequest;
 import org.example.hugmeexp.global.infra.auth.dto.request.RegisterRequest;
 import org.example.hugmeexp.global.infra.auth.dto.request.RefreshRequest;
 import org.example.hugmeexp.global.infra.auth.dto.response.*;
-import org.example.hugmeexp.global.infra.auth.exception.LoginFailedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,15 +19,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AuthService
-{
+public class AuthService {
+
     private final CredentialService credentialService;
     private final TokenService tokenService;
 
     // 회원가입
     @Transactional
-    public RegisterResponse registerAndAuthenticate(RegisterRequest request)
-    {
+    public RegisterResponse registerAndAuthenticate(RegisterRequest request) {
         // 1. 사용자 등록
         User user = credentialService.registerNewUser(request);
 
@@ -51,7 +49,8 @@ public class AuthService
         // 3. 토큰 생성 및 저장
         String accessToken = tokenService.createAccessToken(user.getUsername(), user.getRole());
         String refreshToken = tokenService.createRefreshToken(user.getUsername(), user.getRole());
-        tokenService.saveRefreshToken(user.getUsername(), refreshToken, tokenService.getTokenRemainingTimeMillis(refreshToken));
+        tokenService.saveRefreshToken(user.getUsername(), refreshToken,
+            tokenService.getTokenRemainingTimeMillis(refreshToken));
 
         // 4. 액세스 토큰, 리프레시 토큰 리턴
         log.info("Login successful - user: {}({})", user.getUsername(), user.getName());
@@ -80,19 +79,8 @@ public class AuthService
 
     // 비밀번호 변경
     @Transactional
-    public Boolean modifyPassword(String username, ModifyPasswordRequest request) {
-        
-        // TODO: 로그인 실패시 예외 처리 변경
-        try {
-            LoginRequest loginRequest = new LoginRequest(username, request.getOldPassword());
-            credentialService.login(loginRequest);
-
-           
-        }catch (LoginFailedException e){
-            throw  new RuntimeException("현재 비밀번호가 틀렸습니다.");
-        }
+    public void modifyPassword(String username, ModifyPasswordRequest request) {
         credentialService.updatePassword(username, request);
         log.info("Password changed successfully for user: {}", username);
-        return true;
     }
 }

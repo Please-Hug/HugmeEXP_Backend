@@ -25,13 +25,10 @@ public class AuthController {
 
     @Operation(summary = "비밀번호 변경", description = "기존 비밀번호를 확인하고 새 비밀번호로 변경합니다.")
     @PutMapping("/password")
-    public ResponseEntity<Response> modifyPassword(@AuthenticationPrincipal UserDetails userDetails, @Valid @RequestBody ModifyPasswordRequest request) {
-      Boolean result = authService.modifyPassword(userDetails.getUsername(), request);
-
-      // TODO: 예외 처리 변경
-      if (result != true) {
-        return ResponseEntity.badRequest().build();
-      }
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Response> modifyPassword(@AuthenticationPrincipal UserDetails userDetails,
+        @Valid @RequestBody ModifyPasswordRequest request) {
+        // TODO: 예외 처리 변경
+        authService.modifyPassword(userDetails.getUsername(), request);
+        return ResponseEntity.ok(Response.builder().message("비밀번호가 성공적으로 변경되었습니다.").build());
     }
 }
