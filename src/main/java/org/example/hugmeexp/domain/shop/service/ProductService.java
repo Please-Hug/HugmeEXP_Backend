@@ -39,20 +39,26 @@ public class ProductService {
      * @return
      */
     public List<ProductResponse> getAllProducts(User user) {
+        return productRepository.findAllByIsDeletedFalse().stream()
+                .map(product -> {
+                    // DTO를 생성하는 시점에 'available' 값을 결정합니다.
+                    boolean isAvailable = product.getPrice() <= user.getPoint();
 
-        log.info("전체 상품 조회 요청");
+                    // Mapper를 통해 기본 DTO를 생성한 후,
+                    ProductResponse basicResponse = productMapper.toResponse(product);
 
-        // 삭제되지 않은 상품들에 대해 Product -> ProductResonse 변환
-        List<ProductResponse> response = productRepository.findAllByIsDeletedFalse().stream()
-                .map(productMapper::toResponse)
+                    // 새로운 DTO를 생성하여 최종적으로 반환합니다.
+                    return new ProductResponse(
+                            basicResponse.getId(),
+                            basicResponse.getName(),
+                            basicResponse.getBrand(),
+                            basicResponse.getQuantity(),
+                            basicResponse.getPrice(),
+                            basicResponse.getImageUrl(),
+                            isAvailable // 계산된 값을 생성자에 전달
+                    );
+                })
                 .collect(Collectors.toList());
-
-        // 로그인한 사용자가 구매 가능한 상품인지 설정
-        for (ProductResponse productResponse : response) {
-            if (productResponse.getPrice() <= user.getPoint()) productResponse.setAvailable(true);
-        }
-
-        return response;
     }
 
     /**
@@ -108,8 +114,6 @@ public class ProductService {
         product.decreaseQuantity();
 
         orderRepository.save(order);
-        userRepository.save(purchaser);
-        productRepository.save(product);
 
         PurchaseResponse response = PurchaseResponse.builder()
                 .purchaserName(purchaser.getName())
