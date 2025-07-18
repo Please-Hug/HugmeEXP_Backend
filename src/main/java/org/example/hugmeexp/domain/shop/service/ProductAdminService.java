@@ -33,6 +33,7 @@ public class ProductAdminService {
     private final ProductImageRepository productImageRepository;
     private final UserRepository userRepository;
     private final ProductMapper productMapper;
+    private final FileUploadService fileUploadService;
 
     /**
      * 상품 등록 메서드
@@ -54,14 +55,13 @@ public class ProductAdminService {
         // 이미지 정보가 있는 경우 이미지 등록
         MultipartFile image = request.getImage();
         if (image != null && !image.isEmpty()) {
-
-            // Product에 대한 ProductImage 생성 후 연결
-            createImage(product, image);
+            //파일 처리 로직을 FileUploadService에 위임
+            fileUploadService.uploadProductImage(product, image);
         }
 
         Product savedProduct = productRepository.save(product);
         log.info("Product saved with ID: {}", savedProduct.getId());
-        return product;
+        return savedProduct;
     }
 
     /**
@@ -118,76 +118,15 @@ public class ProductAdminService {
 
             // product 엔티티에 이미지가 있었으면 기존 ProductImage 삭제 후 재생성
             if (product.isRegisterProductImage()) {
-                deleteImage(product);
+                log.info("Existing image for product {} will be replaced.", productId);
             }
-            createImage(product, image);
+            // 파일 처리 로직을 FileUploadService에 위임
+            fileUploadService.uploadProductImage(product, image);
         }
 
         Product savedProduct = productRepository.save(product);
         log.info("Product saved with ID: {}", savedProduct.getId());
-        ProductResponse response = productMapper.toResponse(savedProduct);
-        return response;
-    }
-
-
-    // ===== private methods =====
-    private String getExtension(String fileName) {
-        return fileName.substring(fileName.lastIndexOf('.') + 1);
-    }
-
-    private void createImage(Product product, MultipartFile image) {
-
-        // 확장자 추출
-        String extension = getExtension(image.getOriginalFilename());
-
-        // 파일 저장 경로
-        String uploadDir = FileUploadUtils.getUploadPath(FileUploadType.PRODUCT_IMAGES).toString();
-        Path uploadDirPath = Paths.get(uploadDir);
-
-        // 확장자와 저장 경로를 통해 ProductImage 엔티티 생성 및 Product 엔티티와 매핑
-        try {
-
-            // 파일을 저장할 디렉터리가 없으면 생성
-            if (!Files.exists(uploadDirPath)) {
-                Files.createDirectories(uploadDirPath);
-            }
-
-            // 확장자와 저장 경로를 통해 ProductImage 생성
-            // 해당 ProductImage를 Product와 연결
-            ProductImage productImage = product.registerProductImage("/application/" + FileUploadType.PRODUCT_IMAGES.value(), extension);
-
-            // \AppData\Local\Temp\app-uploads\ 경로에 uuid.extension 형식으로 파일 저장
-            String savedFileName = productImage.getUuid() + "." + productImage.getExtension();
-            Path savePath = uploadDirPath.resolve(savedFileName);
-            image.transferTo(savePath.toFile());
-
-            // 파일 저장 성공 여부에 따른 로그 출력
-            if (Files.exists(savePath)) {
-                log.info("File saved successfully: {}", savePath);
-            } else {
-                log.error("File was not saved: {}", savePath);
-            }
-
-        } catch (IOException e) {
-            log.error("Error occurred while saving file", e);
-        }
-    }
-
-    private void deleteImage(Product product) {
-
-        // product와 연관된 ProductImage 및 이미지 파일 삭제
-        try {
-            ProductImage productImage = product.getProductImage();
-            Path imagePath = Paths.get(productImage.getPath(),
-                    productImage.getUuid() + "." + productImage.getExtension());
-            Files.deleteIfExists(imagePath);
-            log.info("Deleted image file: {}", imagePath);
-
-            // 이미지 삭제 후 ProductImage 엔티티 삭제
-            productImageRepository.delete(productImage);
-        } catch (IOException e) {
-            log.error("Failed to delete image file for product ID: {}", product.getId(), e);
-        }
+        return productMapper.toResponse(savedProduct);
     }
 
     // ===== 테스트용 =====
