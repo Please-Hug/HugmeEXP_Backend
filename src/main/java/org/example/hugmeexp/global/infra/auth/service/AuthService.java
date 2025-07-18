@@ -5,9 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.global.infra.auth.dto.RegisterResponse;
 import org.example.hugmeexp.global.infra.auth.dto.request.LoginRequest;
+import org.example.hugmeexp.global.infra.auth.dto.request.ModifyPasswordRequest;
 import org.example.hugmeexp.global.infra.auth.dto.request.RegisterRequest;
 import org.example.hugmeexp.global.infra.auth.dto.request.RefreshRequest;
 import org.example.hugmeexp.global.infra.auth.dto.response.*;
+import org.example.hugmeexp.global.infra.auth.exception.LoginFailedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,5 +76,23 @@ public class AuthService
     // 액세스 또는 리프레시 토큰에서 username을 추출하는 메서드
     public String getUsernameFromToken(String token) {
         return tokenService.getUsernameFromToken(token);
+    }
+
+    // 비밀번호 변경
+    @Transactional
+    public Boolean modifyPassword(String username, ModifyPasswordRequest request) {
+        
+        // TODO: 로그인 실패시 예외 처리 변경
+        try {
+            LoginRequest loginRequest = new LoginRequest(username, request.getOldPassword());
+            credentialService.login(loginRequest);
+
+           
+        }catch (LoginFailedException e){
+            throw  new RuntimeException("현재 비밀번호가 틀렸습니다.");
+        }
+        credentialService.updatePassword(username, request);
+        log.info("Password changed successfully for user: {}", username);
+        return true;
     }
 }
