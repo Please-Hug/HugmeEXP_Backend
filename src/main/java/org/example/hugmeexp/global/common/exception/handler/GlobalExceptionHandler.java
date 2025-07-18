@@ -22,7 +22,7 @@ import java.util.Map;
  * 어플리케이션 전역에서 발생하는 예외를 처리하는 핸들러
  */
 @Slf4j
-@RestControllerAdvice
+//@RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(BaseException.class)
