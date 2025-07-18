@@ -315,6 +315,7 @@ public class SubmissionServiceTest {
         submissionService.updateSubmissionFeedback(userMissionId, request);
 
         // Then
+        verify(notificationService).sendMissionFeedbackNotification(user, mission.getName(), userMissionId);
         // save 메서드로 전달된 submission 객체를 캡처
         ArgumentCaptor<Submission> submissionCaptor = ArgumentCaptor.forClass(Submission.class);
         verify(userMissionSubmissionRepository).save(submissionCaptor.capture());
