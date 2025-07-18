@@ -30,6 +30,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -192,24 +193,25 @@ public class StudyDiaryService {
     }
 
     public Object searchStudyDiaries(String keyword, Pageable pageable) {
-        // 최적화된 검색 쿼리 사용
-        Page<StudyDiarySearchResponse> searchResults = studyDiaryRepository.searchOptimized(keyword, pageable);
         
         // StudyDiarySearchResponse를 StudyDiaryFindAllResponse로 변환
-        Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = searchResults.map(searchResult -> {
-            return StudyDiaryFindAllResponse.builder()
-                    .id(searchResult.getId())
-                    .name(searchResult.getName())
-                    .title(searchResult.getTitle())
-                    .content(searchResult.getContentPreview())  // 전체 내용이 아닌 200자까지만 반환
-                    .likeNum(searchResult.getLikeNum())
-                    .commentNum(searchResult.getCommentNum().intValue())
-                    // Long을 int로 변환, 기존에는 Comment List를 돌아보며, Like Query를 발생하는 것을 COUNT로 줄임
-                    .createdAt(searchResult.getCreatedAt())
-                    .build();
-        });
+        Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaryRepository.searchOptimized(keyword, pageable)
+                .map(this::convertToStudyDiaryFindAllResponse);
 
         return studyDiaryFindAllResponsePage;
+    }
+
+    private StudyDiaryFindAllResponse convertToStudyDiaryFindAllResponse(Object[] obj) {
+        return StudyDiaryFindAllResponse.builder()
+                .id((Long)obj[0])
+                .name((String)obj[1])
+                .title((String)obj[2])
+                .content((String)obj[3])  // 전체 내용이 아닌 200자까지만 반환
+                .likeNum(((Number)obj[4]).intValue())
+                .commentNum(((Number)obj[5]).intValue())
+                // Long을 int로 변환, 기존에는 Comment List를 돌아보며, Like Query를 발생하는 것을 COUNT로 줄임
+                .createdAt(((Timestamp)obj[6]).toLocalDateTime())
+                .build();
     }
 
     public StudyDiaryDetailResponse getStudyDiary(Long id) {
@@ -561,5 +563,18 @@ public class StudyDiaryService {
             
             return totalDays;
         }
+    }
+
+    private StudyDiary objToStudyDiary(Object[] obj){
+        return StudyDiary.builder()
+                .id((Long)obj[0])
+                .user((User)obj[1])
+                .title((String)obj[2])
+                .content((String)obj[3])  // 전체 내용이 아닌 200자까지만 반환
+                .likeNum(((Number)obj[4]).intValue())
+                .commentNum(((Number)obj[5]).intValue())
+                // Long을 int로 변환, 기존에는 Comment List를 돌아보며, Like Query를 발생하는 것을 COUNT로 줄임
+                .createdAt(((Timestamp)obj[6]).toLocalDateTime())
+                .build();
     }
 }
