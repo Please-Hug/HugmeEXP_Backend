@@ -20,7 +20,6 @@ import org.example.hugmeexp.domain.studydiary.exception.UserNotFoundForStudyDiar
 import org.example.hugmeexp.domain.studydiary.exception.CommentNotFoundException;
 import org.example.hugmeexp.domain.studydiary.repository.StudyDiaryCommentRepository;
 import org.example.hugmeexp.domain.studydiary.repository.StudyDiaryRepository;
-import org.example.hugmeexp.domain.studydiary.repository.StudyDiaryLikeRepository;
 import org.example.hugmeexp.domain.studydiary.entity.StudyDiaryLike;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.domain.user.enums.UserRole;
@@ -107,26 +106,18 @@ public class StudyDiaryService {
     }
 
     public Page<StudyDiaryFindAllResponse> getStudyDiaries(Pageable pageable) {
-        Page<Object[]> studyDiaries = studyDiaryRepository.findByIsCreatedTrueOrderByCreatedAtDesc(pageable);
+        Page<StudyDiary> studyDiaries = studyDiaryRepository.findByIsCreatedTrueOrderByCreatedAtDesc(pageable);
 
         //response로 전환
-        Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaries.map(result -> {
-            Long id = (Long) result[0];
-            User user = (User) result[1];
-            String title = (String) result[2];
-            String content = (String) result[3];
-            Integer likeCount = (Integer) result[4];
-            Long commentCount = (Long) result[5];
-            LocalDateTime createdAt = (LocalDateTime) result[6];
-            
+        Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaries.map(studyDiary -> {    //Page map으로 조작할때에는 stream 없이
             return StudyDiaryFindAllResponse.builder()
-                    .id(id)
-                    .name(user.getName())
-                    .title(title)
-                    .content(content)
-                    .likeNum(likeCount)
-                    .commentNum(commentCount.intValue())
-                    .createdAt(createdAt)
+                    .id(studyDiary.getId())
+                    .name(studyDiary.getUser().getName())
+                    .title(studyDiary.getTitle())
+                    .content(studyDiary.getContent())
+                    .likeNum(studyDiary.getLikeCount())
+                    .commentNum(studyDiary.getComments().size())
+                    .createdAt(studyDiary.getCreatedAt())
                     .build();
         });
 
@@ -139,26 +130,18 @@ public class StudyDiaryService {
         LocalDateTime startOfDay = today.atStartOfDay();
         LocalDateTime endOfDay = today.plusDays(1).atStartOfDay();
 
-        Page<Object[]> studyDiaries = studyDiaryRepository.findTodayPopularStudyDiaries(startOfDay, endOfDay, pageable);
+        Page<StudyDiary> studyDiaries = studyDiaryRepository.findTodayPopularStudyDiaries(startOfDay, endOfDay, pageable);
 
         //response로 전환
-        Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaries.map(result -> {
-            Long id = (Long) result[0];
-            User user = (User) result[1];
-            String title = (String) result[2];
-            String content = (String) result[3];
-            Integer likeCount = (Integer) result[4];
-            Long commentCount = (Long) result[5];
-            LocalDateTime createdAt = (LocalDateTime) result[6];
-            
+        Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaries.map(studyDiary -> {
             return StudyDiaryFindAllResponse.builder()
-                    .id(id)
-                    .name(user.getName())
-                    .title(title)
-                    .content(content)
-                    .likeNum(likeCount)
-                    .commentNum(commentCount.intValue())
-                    .createdAt(createdAt)
+                    .id(studyDiary.getId())
+                    .name(studyDiary.getUser().getName())
+                    .title(studyDiary.getTitle())
+                    .content(studyDiary.getContent())
+                    .likeNum(studyDiary.getLikeCount())
+                    .commentNum(studyDiary.getComments().size())
+                    .createdAt(studyDiary.getCreatedAt())
                     .build();
         });
 
@@ -230,7 +213,7 @@ public class StudyDiaryService {
     }
 
     public StudyDiaryDetailResponse getStudyDiary(Long id) {
-        StudyDiary studyDiary = studyDiaryRepository.findByIdWithUser(id)
+        StudyDiary studyDiary = studyDiaryRepository.findById(id)
                 .orElseThrow(StudyDiaryNotFoundException::new);
 
         StudyDiaryDetailResponse studyDiaryDetailResponse = StudyDiaryDetailResponse.builder()
@@ -251,28 +234,17 @@ public class StudyDiaryService {
 
     public List<StudyDiaryFindAllResponse> getUserStudyDiaries(Long userId, Pageable pageable) {
         User findUser = userRepository.findById(userId).orElseThrow(UserNotFoundForStudyDiaryException::new);
-        List<Object[]> byUser = studyDiaryRepository.findByUser(findUser.getId());
+        List<StudyDiary> byUser = studyDiaryRepository.findByUser(findUser.getId());
 
-        // Object[] 배열의 각 인덱스별 타입 매핑:
-        // [0]: id (Long), [1]: user (User), [2]: title (String), [3]: content (String),
-        // [4]: likeCount (Integer), [5]: commentCount (Long), [6]: createdAt (LocalDateTime)
-        List<StudyDiaryFindAllResponse> studyDiaryFindAllResponses = byUser.stream().map(result -> {
-            Long id = (Long) result[0];
-            User user = (User) result[1];
-            String title = (String) result[2];
-            String content = (String) result[3];
-            Integer likeCount = (Integer) result[4];
-            Long commentCount = (Long) result[5];
-            LocalDateTime createdAt = (LocalDateTime) result[6];
-            
+        List<StudyDiaryFindAllResponse> studyDiaryFindAllResponses = byUser.stream().map(studyDiary -> {    //Page map으로 조작할때에는 stream 없이
             return StudyDiaryFindAllResponse.builder()
-                    .id(id)
-                    .name(user.getName())
-                    .title(title)
-                    .content(content)
-                    .likeNum(likeCount)
-                    .commentNum(commentCount.intValue())
-                    .createdAt(createdAt)
+                    .id(studyDiary.getId())
+                    .name(studyDiary.getUser().getName())
+                    .title(studyDiary.getTitle())
+                    .content(studyDiary.getContent())
+                    .likeNum(studyDiary.getLikeCount())
+                    .commentNum(studyDiary.getComments().size())
+                    .createdAt(studyDiary.getCreatedAt())
                     .build();
         }).toList();
 
@@ -281,28 +253,17 @@ public class StudyDiaryService {
 
     public List<StudyDiaryFindAllResponse> getMyStudyDiaries(UserDetails userDetails, Pageable pageable) {
         User findUser = userRepository.findByUsername(userDetails.getUsername()).orElseThrow(UserNotFoundForStudyDiaryException::new);
-        List<Object[]> byUser = studyDiaryRepository.findByUser(findUser.getId());
+        List<StudyDiary> byUser = studyDiaryRepository.findByUser(findUser.getId());
 
-        // Object[] 배열의 각 인덱스별 타입 매핑:
-        // [0]: id (Long), [1]: user (User), [2]: title (String), [3]: content (String),
-        // [4]: likeCount (Integer), [5]: commentCount (Long), [6]: createdAt (LocalDateTime)
-        List<StudyDiaryFindAllResponse> studyDiaryFindAllResponses = byUser.stream().map(result -> {
-            Long id = (Long) result[0];
-            User user = (User) result[1];
-            String title = (String) result[2];
-            String content = (String) result[3];
-            Integer likeCount = (Integer) result[4];
-            Long commentCount = (Long) result[5];
-            LocalDateTime createdAt = (LocalDateTime) result[6];
-            
+        List<StudyDiaryFindAllResponse> studyDiaryFindAllResponses = byUser.stream().map(studyDiary -> {    //Page map으로 조작할때에는 stream 없이
             return StudyDiaryFindAllResponse.builder()
-                    .id(id)
-                    .name(user.getName())
-                    .title(title)
-                    .content(content)
-                    .likeNum(likeCount)
-                    .commentNum(commentCount.intValue())
-                    .createdAt(createdAt)
+                    .id(studyDiary.getId())
+                    .name(studyDiary.getUser().getName())
+                    .title(studyDiary.getTitle())
+                    .content(studyDiary.getContent())
+                    .likeNum(studyDiary.getLikeCount())
+                    .commentNum(studyDiary.getComments().size())
+                    .createdAt(studyDiary.getCreatedAt())
                     .build();
         }).toList();
 
@@ -398,8 +359,10 @@ public class StudyDiaryService {
                 response.setTodayStudyDiaryNum(response.getTodayStudyDiaryNum() + 1);
         });
 
+        //총 Like 갯수 계산
+        List<StudyDiary> byUserAllStudyDiaryList = studyDiaryRepository.findByUser(userId);
         //stream 내부에서는 외부 변수 수정 불가, 아래와 같은 방법이 정석이라고 함
-        int likeCount = weekStudyDiaries.stream()
+        int likeCount = byUserAllStudyDiaryList.stream()
                 .mapToInt(StudyDiary::getLikeCount)
                 .sum();
         response.setTotalLike(likeCount);
@@ -448,10 +411,8 @@ public class StudyDiaryService {
                 response.setTodayStudyDiaryNum(response.getTodayStudyDiaryNum() + 1);
         });
 
-        //총 Like 갯수 계산 - 전체 기간의 사용자 일기 조회
-        LocalDateTime tenYearsAgo = LocalDateTime.now().minusYears(10);
-        LocalDateTime now = LocalDateTime.now();
-        List<StudyDiary> byUserAllStudyDiaryList = studyDiaryRepository.findByUserIdAndCreatedAtBetween(user.getId(), tenYearsAgo, now);
+        //총 Like 갯수 계산
+        List<StudyDiary> byUserAllStudyDiaryList = studyDiaryRepository.findByUser(user.getId());
         //stream 내부에서는 외부 변수 수정 불가, 아래와 같은 방법이 정석이라고 함
         int likeCount = byUserAllStudyDiaryList.stream()
                 .mapToInt(StudyDiary::getLikeCount)

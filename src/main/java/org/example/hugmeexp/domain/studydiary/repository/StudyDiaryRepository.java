@@ -1,9 +1,6 @@
 package org.example.hugmeexp.domain.studydiary.repository;
 
 import org.example.hugmeexp.domain.studydiary.entity.StudyDiary;
-import org.example.hugmeexp.domain.studydiary.entity.StudyDiaryComment;
-import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiarySearchResponse;
-import org.example.hugmeexp.domain.user.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -31,7 +28,7 @@ public interface StudyDiaryRepository extends JpaRepository<StudyDiary, Long> {
         countQuery = "SELECT COUNT(*) FROM study_diary s WHERE s.is_created = true AND MATCH(s.title, s.content) AGAINST(:keyword IN BOOLEAN MODE)",
         nativeQuery = true
     )
-    Page<StudyDiarySearchResponse> searchOptimized(@Param("keyword") String keyword, Pageable pageable);
+    Page<Object[]> searchOptimized(@Param("keyword") String keyword, Pageable pageable);
 
     // 최신순 정렬 조회 (페이징) - User fetch join + Comment COUNT
     @Query("SELECT s.id as id, s.user as user, s.title as title, s.content as content, " +
