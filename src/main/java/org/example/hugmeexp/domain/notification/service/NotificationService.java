@@ -36,10 +36,10 @@ public class NotificationService {
 
     // 배움일기에 댓글이 달렸을 때 알림을 생성하고 SSE로 전송
     @Transactional
-    public void sendDiaryCommentNotification(User user, String diaryTitle, Long targetId) {
+    public void sendDiaryCommentNotification(User user, String diaryTitle, Long commentId, Long diaryId) {
         String title = diaryTitle == null ? "새 배움일기" : diaryTitle;
         String message = title + "에 댓글이 달렸어요";
-        createAndSend(user, NotificationType.DIARY_COMMENT, message, targetId);
+        createAndSend(user, NotificationType.DIARY_COMMENT, message, diaryId);
     }
 
     // 배움일기에 댓글이 삭제되었을 때 알림 제거
