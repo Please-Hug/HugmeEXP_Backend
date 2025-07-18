@@ -1,10 +1,7 @@
 package org.example.hugmeexp.domain.user.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.attendance.entity.Attendance;
 import org.example.hugmeexp.domain.missionGroup.entity.UserMissionGroup;
@@ -20,7 +17,9 @@ import static jakarta.persistence.CascadeType.*;
 @Getter
 @Entity
 @Table(name = "users")
+@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class User extends BaseEntity {
 
     @Id
