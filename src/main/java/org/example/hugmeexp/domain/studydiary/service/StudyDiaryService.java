@@ -253,6 +253,9 @@ public class StudyDiaryService {
         User findUser = userRepository.findById(userId).orElseThrow(UserNotFoundForStudyDiaryException::new);
         List<Object[]> byUser = studyDiaryRepository.findByUser(findUser.getId());
 
+        // Object[] 배열의 각 인덱스별 타입 매핑:
+        // [0]: id (Long), [1]: user (User), [2]: title (String), [3]: content (String),
+        // [4]: likeCount (Integer), [5]: commentCount (Long), [6]: createdAt (LocalDateTime)
         List<StudyDiaryFindAllResponse> studyDiaryFindAllResponses = byUser.stream().map(result -> {
             Long id = (Long) result[0];
             User user = (User) result[1];
@@ -280,6 +283,9 @@ public class StudyDiaryService {
         User findUser = userRepository.findByUsername(userDetails.getUsername()).orElseThrow(UserNotFoundForStudyDiaryException::new);
         List<Object[]> byUser = studyDiaryRepository.findByUser(findUser.getId());
 
+        // Object[] 배열의 각 인덱스별 타입 매핑:
+        // [0]: id (Long), [1]: user (User), [2]: title (String), [3]: content (String),
+        // [4]: likeCount (Integer), [5]: commentCount (Long), [6]: createdAt (LocalDateTime)
         List<StudyDiaryFindAllResponse> studyDiaryFindAllResponses = byUser.stream().map(result -> {
             Long id = (Long) result[0];
             User user = (User) result[1];
@@ -392,8 +398,10 @@ public class StudyDiaryService {
                 response.setTodayStudyDiaryNum(response.getTodayStudyDiaryNum() + 1);
         });
 
-        //총 Like 갯수 계산
-        List<StudyDiary> byUserAllStudyDiaryList = studyDiaryRepository.findByUser(userId);
+        //총 Like 갯수 계산 - 전체 기간의 사용자 일기 조회
+        LocalDateTime tenYearsAgo = LocalDateTime.now().minusYears(10);
+        LocalDateTime now = LocalDateTime.now();
+        List<StudyDiary> byUserAllStudyDiaryList = studyDiaryRepository.findByUserIdAndCreatedAtBetween(userId, tenYearsAgo, now);
         //stream 내부에서는 외부 변수 수정 불가, 아래와 같은 방법이 정석이라고 함
         int likeCount = byUserAllStudyDiaryList.stream()
                 .mapToInt(StudyDiary::getLikeCount)
@@ -444,8 +452,10 @@ public class StudyDiaryService {
                 response.setTodayStudyDiaryNum(response.getTodayStudyDiaryNum() + 1);
         });
 
-        //총 Like 갯수 계산
-        List<StudyDiary> byUserAllStudyDiaryList = studyDiaryRepository.findByUser(user.getId());
+        //총 Like 갯수 계산 - 전체 기간의 사용자 일기 조회
+        LocalDateTime tenYearsAgo = LocalDateTime.now().minusYears(10);
+        LocalDateTime now = LocalDateTime.now();
+        List<StudyDiary> byUserAllStudyDiaryList = studyDiaryRepository.findByUserIdAndCreatedAtBetween(user.getId(), tenYearsAgo, now);
         //stream 내부에서는 외부 변수 수정 불가, 아래와 같은 방법이 정석이라고 함
         int likeCount = byUserAllStudyDiaryList.stream()
                 .mapToInt(StudyDiary::getLikeCount)
