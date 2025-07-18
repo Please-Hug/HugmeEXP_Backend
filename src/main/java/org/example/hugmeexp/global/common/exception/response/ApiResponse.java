@@ -18,7 +18,7 @@ public class ApiResponse<T> {
     private final String message;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private  T result;
+    private final T result;
 
     private ApiResponse(boolean isSuccess, BaseCode code, T result) {
         this.isSuccess = isSuccess;
