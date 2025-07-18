@@ -398,12 +398,8 @@ public class StudyDiaryService {
                 response.setTodayStudyDiaryNum(response.getTodayStudyDiaryNum() + 1);
         });
 
-        //총 Like 갯수 계산 - 전체 기간의 사용자 일기 조회
-        LocalDateTime tenYearsAgo = LocalDateTime.now().minusYears(10);
-        LocalDateTime now = LocalDateTime.now();
-        List<StudyDiary> byUserAllStudyDiaryList = studyDiaryRepository.findByUserIdAndCreatedAtBetween(userId, tenYearsAgo, now);
         //stream 내부에서는 외부 변수 수정 불가, 아래와 같은 방법이 정석이라고 함
-        int likeCount = byUserAllStudyDiaryList.stream()
+        int likeCount = weekStudyDiaries.stream()
                 .mapToInt(StudyDiary::getLikeCount)
                 .sum();
         response.setTotalLike(likeCount);
