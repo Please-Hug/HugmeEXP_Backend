@@ -19,7 +19,7 @@ import org.springframework.web.multipart.support.MissingServletRequestPartExcept
 
 @Slf4j
 @RequiredArgsConstructor
-@RestControllerAdvice
+//@RestControllerAdvice
 public class ExceptionController {
 
 
