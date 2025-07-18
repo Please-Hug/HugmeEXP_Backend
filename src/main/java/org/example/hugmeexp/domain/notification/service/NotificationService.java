@@ -169,4 +169,11 @@ public class NotificationService {
             notification.markAsRead();
         }
     }
+
+    // 미션 피드백 도착 알림 생성 및 전송
+    @Transactional
+    public void sendMissionFeedbackNotification(User user, String missionTitle, Long targetId) {
+        String message = missionTitle + "에 피드백이 도착했어요!";
+        createAndSend(user, NotificationType.MISSION_FEEDBACK, message, targetId);
+    }
 }

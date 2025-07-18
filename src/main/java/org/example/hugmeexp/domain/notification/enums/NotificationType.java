@@ -12,7 +12,8 @@ public enum NotificationType {
     PRAISE_RECEIVED("칭찬을 받았어요", Category.ACTIVITY),
     DIARY_COMMENT("내 배움일기에 댓글이 달렸어요", Category.ACTIVITY),
     DIARY_LIKE("내 배움일기에 좋아요가 달렸어요", Category.ACTIVITY),
-    LEVEL_UP("레벨 업 했어요", Category.REWARD),;
+    LEVEL_UP("레벨 업 했어요", Category.REWARD),
+    MISSION_FEEDBACK("미션 피드백이 도착했어요", Category.ACTIVITY);
 
     private final String description;
     private final Category category;
