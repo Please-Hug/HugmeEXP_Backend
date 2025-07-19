@@ -30,7 +30,7 @@ public class StudyDiarySchedulingConfig {
 
     @Scheduled(fixedRate = 1800000) // 30분 = 1800000ms
     @Transactional(readOnly = true)
-    public void cacheTodayPopularStudyDiaries() {
+    public void cacheWeeklyPopularStudyDiaries() {
         log.info("caching weekly studyDiaries");
 
         // 이번 주 월요일~일요일 범위 계산
