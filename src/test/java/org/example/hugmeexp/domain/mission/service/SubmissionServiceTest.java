@@ -62,6 +62,8 @@ public class SubmissionServiceTest {
     private MissionRewardExpLogRepository userMissionRewardExpRepository;
     @Mock
     private MissionRewardPointLogRepository userMissionRewardPointRepository;
+    @Mock
+    private org.example.hugmeexp.domain.notification.service.NotificationService notificationService;
 
     @InjectMocks
     private SubmissionServiceImpl submissionService;
@@ -292,16 +294,28 @@ public class SubmissionServiceTest {
         String feedbackContent = "피드백 내용입니다.";
         SubmissionFeedbackRequest request = new SubmissionFeedbackRequest(feedbackContent);
 
-        UserMission userMission = UserMission.builder().id(userMissionId).build();
+        User user = User.builder()
+                .username(USERNAME)
+                .build();
+        Mission mission = Mission.builder()
+                .name("테스트 미션")
+                .build();
+        UserMission userMission = UserMission.builder()
+                .id(userMissionId)
+                .user(user)
+                .mission(mission)
+                .build();
         Submission submission = Submission.builder().id(10L).feedback("기존 피드백").build();
 
         when(userMissionRepository.findById(userMissionId)).thenReturn(Optional.of(userMission));
         when(userMissionSubmissionRepository.findByUserMission(userMission)).thenReturn(Optional.of(submission));
+        doNothing().when(notificationService).sendMissionFeedbackNotification(user, mission.getName(), userMissionId);
 
         // When
         submissionService.updateSubmissionFeedback(userMissionId, request);
 
         // Then
+        verify(notificationService).sendMissionFeedbackNotification(user, mission.getName(), userMissionId);
         // save 메서드로 전달된 submission 객체를 캡처
         ArgumentCaptor<Submission> submissionCaptor = ArgumentCaptor.forClass(Submission.class);
         verify(userMissionSubmissionRepository).save(submissionCaptor.capture());

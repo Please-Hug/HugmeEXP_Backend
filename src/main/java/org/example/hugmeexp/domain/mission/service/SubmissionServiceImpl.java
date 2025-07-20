@@ -13,6 +13,7 @@ import org.example.hugmeexp.domain.mission.mapper.UserMissionSubmissionMapper;
 import org.example.hugmeexp.domain.mission.repository.*;
 import org.example.hugmeexp.domain.mission.util.FileUploadUtils;
 import org.example.hugmeexp.domain.missionGroup.exception.UserNotFoundException;
+import org.example.hugmeexp.domain.notification.service.NotificationService;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
 import org.example.hugmeexp.domain.user.service.UserService;
@@ -34,6 +35,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final MissionRewardPointLogRepository missionRewardPointLogRepository;
     private final UserMissionStateLogRepository userMissionStateLogRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
 
     @Override
@@ -110,6 +112,8 @@ public class SubmissionServiceImpl implements SubmissionService {
         userMission.setProgress(UserMissionState.FEEDBACK_COMPLETED);
         userMissionRepository.save(userMission);
         userMissionSubmissionRepository.save(submission);
+
+        notificationService.sendMissionFeedbackNotification(userMission.getUser(), userMission.getMission().getName(), userMissionId);
     }
 
     @Override
