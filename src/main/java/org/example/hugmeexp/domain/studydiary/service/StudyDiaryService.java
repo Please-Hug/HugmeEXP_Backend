@@ -1,14 +1,11 @@
 package org.example.hugmeexp.domain.studydiary.service;
 
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.notification.service.NotificationService;
 import org.example.hugmeexp.domain.studydiary.dto.request.CommentCreateRequest;
 import org.example.hugmeexp.domain.studydiary.dto.request.StudyDiaryCreateRequest;
 import org.example.hugmeexp.domain.studydiary.dto.request.StudyDiaryUpdateRequest;
-import org.example.hugmeexp.domain.studydiary.dto.request.MarkdownPreviewRequest;
-import org.example.hugmeexp.domain.studydiary.dto.response.MarkdownPreviewResponse;
 import org.example.hugmeexp.domain.studydiary.dto.response.CommentDetailResponse;
 import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiaryDetailResponse;
 import org.example.hugmeexp.domain.studydiary.dto.response.StudyDiaryFindAllResponse;
@@ -22,7 +19,6 @@ import org.example.hugmeexp.domain.studydiary.exception.UserNotFoundForStudyDiar
 import org.example.hugmeexp.domain.studydiary.exception.CommentNotFoundException;
 import org.example.hugmeexp.domain.studydiary.repository.StudyDiaryCommentRepository;
 import org.example.hugmeexp.domain.studydiary.repository.StudyDiaryRepository;
-import org.example.hugmeexp.domain.studydiary.repository.StudyDiaryLikeRepository;
 import org.example.hugmeexp.domain.studydiary.entity.StudyDiaryLike;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.domain.user.enums.UserRole;
@@ -33,6 +29,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -48,7 +45,6 @@ public class StudyDiaryService {
     private final UserRepository userRepository;
     private final StudyDiaryRepository studyDiaryRepository;
     private final StudyDiaryCommentRepository studyDiaryCommentRepository;
-    private final StudyDiaryLikeRepository studyDiaryLikeRepository;
     private final NotificationService notificationService;
 
     @Transactional
@@ -110,20 +106,10 @@ public class StudyDiaryService {
     }
 
     public Page<StudyDiaryFindAllResponse> getStudyDiaries(Pageable pageable) {
-        Page<StudyDiary> studyDiaries = studyDiaryRepository.findByIsCreatedTrueOrderByCreatedAtDesc(pageable);
+        Page<Object[]> studyDiaries = studyDiaryRepository.findByIsCreatedTrueOrderByCreatedAtDesc(pageable);
 
         //response로 전환
-        Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaries.map(studyDiary -> {    //Page map으로 조작할때에는 stream 없이
-            return StudyDiaryFindAllResponse.builder()
-                    .id(studyDiary.getId())
-                    .name(studyDiary.getUser().getName())
-                    .title(studyDiary.getTitle())
-                    .content(studyDiary.getContent())
-                    .likeNum(studyDiary.getLikeCount())
-                    .commentNum(studyDiary.getComments().size())
-                    .createdAt(studyDiary.getCreatedAt())
-                    .build();
-        });
+        Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaries.map(this::convertObjectToStudyDiaryFindAllResponse);
 
         return studyDiaryFindAllResponsePage;
     }
@@ -134,20 +120,10 @@ public class StudyDiaryService {
         LocalDateTime startOfDay = today.atStartOfDay();
         LocalDateTime endOfDay = today.plusDays(1).atStartOfDay();
 
-        Page<StudyDiary> studyDiaries = studyDiaryRepository.findTodayPopularStudyDiaries(startOfDay, endOfDay, pageable);
+        Page<Object[]> studyDiaries = studyDiaryRepository.findTodayPopularStudyDiaries(startOfDay, endOfDay, pageable);
 
         //response로 전환
-        Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaries.map(studyDiary -> {
-            return StudyDiaryFindAllResponse.builder()
-                    .id(studyDiary.getId())
-                    .name(studyDiary.getUser().getName())
-                    .title(studyDiary.getTitle())
-                    .content(studyDiary.getContent())
-                    .likeNum(studyDiary.getLikeCount())
-                    .commentNum(studyDiary.getComments().size())
-                    .createdAt(studyDiary.getCreatedAt())
-                    .build();
-        });
+        Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaries.map(this::convertObjectToStudyDiaryFindAllResponse);
 
         return studyDiaryFindAllResponsePage;
     }
@@ -195,23 +171,39 @@ public class StudyDiaryService {
         return studyDiaryFindAllResponsePage;
     }
 
-    public Page<StudyDiaryFindAllResponse> searchStudyDiaries(String keyword, Pageable pageable) {
-        Page<StudyDiary> studyDiaries = studyDiaryRepository.findByTitleOrContentContaining(keyword, pageable);
-
-        //response로 전환
-        Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaries.map(studyDiary -> {    //Page map으로 조작할때에는 stream 없이
-            return StudyDiaryFindAllResponse.builder()
-                    .id(studyDiary.getId())
-                    .name(studyDiary.getUser().getName())
-                    .title(studyDiary.getTitle())
-                    .content(studyDiary.getContent())
-                    .likeNum(studyDiary.getLikeCount())
-                    .commentNum(studyDiary.getComments().size())
-                    .createdAt(studyDiary.getCreatedAt())
-                    .build();
-        });
+    public Object searchStudyDiaries(String keyword, Pageable pageable) {
+        
+        // StudyDiarySearchResponse를 StudyDiaryFindAllResponse로 변환
+        Page<StudyDiaryFindAllResponse> studyDiaryFindAllResponsePage = studyDiaryRepository.searchOptimized(keyword, pageable)
+                .map(this::convertToStudyDiaryFindAllResponse);
 
         return studyDiaryFindAllResponsePage;
+    }
+
+    private StudyDiaryFindAllResponse convertToStudyDiaryFindAllResponse(Object[] obj) {
+        return StudyDiaryFindAllResponse.builder()
+                .id((Long)obj[0])
+                .name((String)obj[1])
+                .title((String)obj[2])
+                .content((String)obj[3])  // 전체 내용이 아닌 200자까지만 반환
+                .likeNum(((Number)obj[4]).intValue())
+                .commentNum(((Number)obj[5]).intValue())
+                // Long을 int로 변환, 기존에는 Comment List를 돌아보며, Like Query를 발생하는 것을 COUNT로 줄임
+                .createdAt(((Timestamp)obj[6]).toLocalDateTime())
+                .build();
+    }
+
+    private StudyDiaryFindAllResponse convertObjectToStudyDiaryFindAllResponse(Object[] obj) {
+        User user = (User)obj[1];
+        return StudyDiaryFindAllResponse.builder()
+                .id((Long)obj[0])
+                .name(user.getName())
+                .title((String)obj[2])
+                .content((String)obj[3])
+                .likeNum(((Number)obj[4]).intValue())
+                .commentNum(((Number)obj[5]).intValue())
+                .createdAt((LocalDateTime)obj[6])
+                .build();
     }
 
     public StudyDiaryDetailResponse getStudyDiary(Long id) {
@@ -236,38 +228,22 @@ public class StudyDiaryService {
 
     public List<StudyDiaryFindAllResponse> getUserStudyDiaries(Long userId, Pageable pageable) {
         User findUser = userRepository.findById(userId).orElseThrow(UserNotFoundForStudyDiaryException::new);
-        List<StudyDiary> byUser = studyDiaryRepository.findByUser(findUser.getId());
+        List<Object[]> byUser = studyDiaryRepository.findByUser(findUser.getId());
 
-        List<StudyDiaryFindAllResponse> studyDiaryFindAllResponses = byUser.stream().map(studyDiary -> {    //Page map으로 조작할때에는 stream 없이
-            return StudyDiaryFindAllResponse.builder()
-                    .id(studyDiary.getId())
-                    .name(studyDiary.getUser().getName())
-                    .title(studyDiary.getTitle())
-                    .content(studyDiary.getContent())
-                    .likeNum(studyDiary.getLikeCount())
-                    .commentNum(studyDiary.getComments().size())
-                    .createdAt(studyDiary.getCreatedAt())
-                    .build();
-        }).toList();
+        List<StudyDiaryFindAllResponse> studyDiaryFindAllResponses = byUser.stream()
+                .map(this::convertObjectToStudyDiaryFindAllResponse)
+                .toList();
 
         return studyDiaryFindAllResponses;
     }
 
     public List<StudyDiaryFindAllResponse> getMyStudyDiaries(UserDetails userDetails, Pageable pageable) {
         User findUser = userRepository.findByUsername(userDetails.getUsername()).orElseThrow(UserNotFoundForStudyDiaryException::new);
-        List<StudyDiary> byUser = studyDiaryRepository.findByUser(findUser.getId());
+        List<Object[]> byUser = studyDiaryRepository.findByUser(findUser.getId());
 
-        List<StudyDiaryFindAllResponse> studyDiaryFindAllResponses = byUser.stream().map(studyDiary -> {    //Page map으로 조작할때에는 stream 없이
-            return StudyDiaryFindAllResponse.builder()
-                    .id(studyDiary.getId())
-                    .name(studyDiary.getUser().getName())
-                    .title(studyDiary.getTitle())
-                    .content(studyDiary.getContent())
-                    .likeNum(studyDiary.getLikeCount())
-                    .commentNum(studyDiary.getComments().size())
-                    .createdAt(studyDiary.getCreatedAt())
-                    .build();
-        }).toList();
+        List<StudyDiaryFindAllResponse> studyDiaryFindAllResponses = byUser.stream()
+                .map(this::convertObjectToStudyDiaryFindAllResponse)
+                .toList();
 
         return studyDiaryFindAllResponses;
     }
@@ -362,10 +338,10 @@ public class StudyDiaryService {
         });
 
         //총 Like 갯수 계산
-        List<StudyDiary> byUserAllStudyDiaryList = studyDiaryRepository.findByUser(userId);
+        List<Object[]> byUserAllStudyDiaryList = studyDiaryRepository.findByUser(userId);
         //stream 내부에서는 외부 변수 수정 불가, 아래와 같은 방법이 정석이라고 함
         int likeCount = byUserAllStudyDiaryList.stream()
-                .mapToInt(StudyDiary::getLikeCount)
+                .mapToInt(obj -> ((Number)obj[4]).intValue()) // likeCount는 4번째 인덱스
                 .sum();
         response.setTotalLike(likeCount);
 
@@ -414,10 +390,10 @@ public class StudyDiaryService {
         });
 
         //총 Like 갯수 계산
-        List<StudyDiary> byUserAllStudyDiaryList = studyDiaryRepository.findByUser(user.getId());
+        List<Object[]> byUserAllStudyDiaryList = studyDiaryRepository.findByUser(user.getId());
         //stream 내부에서는 외부 변수 수정 불가, 아래와 같은 방법이 정석이라고 함
         int likeCount = byUserAllStudyDiaryList.stream()
-                .mapToInt(StudyDiary::getLikeCount)
+                .mapToInt(obj -> ((Number)obj[4]).intValue()) // likeCount는 4번째 인덱스
                 .sum();
         response.setTotalLike(likeCount);
 
@@ -565,67 +541,4 @@ public class StudyDiaryService {
         }
     }
 
-    /**
-     * 마크다운 미리보기 생성
-     */
-    public MarkdownPreviewResponse previewMarkdown(MarkdownPreviewRequest request) {
-        String markdownContent = request.getMarkdownContent();
-        
-        // 간단한 마크다운 -> HTML 변환 (실제 구현시에는 마크다운 라이브러리 사용 권장)
-        String htmlContent = convertMarkdownToHtml(markdownContent);
-        
-        // 글자 수 계산
-        int characterCount = markdownContent.length();
-        
-        // 단어 수 계산 (공백 기준)
-        int wordCount = markdownContent.trim().isEmpty() ? 0 : markdownContent.trim().split("\\s+").length;
-        
-        return MarkdownPreviewResponse.builder()
-                .markdownContent(markdownContent)
-                .htmlContent(htmlContent)
-                .characterCount(characterCount)
-                .wordCount(wordCount)
-                .build();
-    }
-
-    /**
-     * 간단한 마크다운 -> HTML 변환
-     * 실제 운영시에는 commonmark, flexmark 등의 라이브러리 사용 권장
-     */
-    private String convertMarkdownToHtml(String markdown) {
-        if (markdown == null || markdown.trim().isEmpty()) {
-            return "";
-        }
-        
-        String html = markdown;
-        
-        // 헤딩 변환
-        html = html.replaceAll("^### (.*$)", "<h3>$1</h3>");
-        html = html.replaceAll("^## (.*$)", "<h2>$1</h2>");
-        html = html.replaceAll("^# (.*$)", "<h1>$1</h1>");
-        
-        // 굵은 글씨
-        html = html.replaceAll("\\*\\*(.*?)\\*\\*", "<strong>$1</strong>");
-        
-        // 기울임 글씨
-        html = html.replaceAll("\\*(.*?)\\*", "<em>$1</em>");
-        
-        // 코드 블록 (간단한 버전)
-        html = html.replaceAll("```java([\\s\\S]*?)```", "<pre><code class=\"language-java\">$1</code></pre>");
-        html = html.replaceAll("```([\\s\\S]*?)```", "<pre><code>$1</code></pre>");
-        
-        // 인라인 코드
-        html = html.replaceAll("`(.*?)`", "<code>$1</code>");
-        
-        // 이미지
-        html = html.replaceAll("!\\[(.*?)\\]\\((.*?)\\)", "<img src=\"$2\" alt=\"$1\" />");
-        
-        // 링크
-        html = html.replaceAll("\\[(.*?)\\]\\((.*?)\\)", "<a href=\"$2\">$1</a>");
-        
-        // 줄바꿈 처리
-        html = html.replace("\n", "<br/>");
-        
-        return html;
-    }
 }

@@ -9,6 +9,7 @@ import org.example.hugmeexp.domain.studydiary.repository.StudyDiaryRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
@@ -28,7 +29,8 @@ public class StudyDiarySchedulingConfig {
     }
 
     @Scheduled(fixedRate = 1800000) // 30분 = 1800000ms
-    public void cacheTodayPopularStudyDiaries() {
+    @Transactional(readOnly = true)
+    public void cacheWeeklyPopularStudyDiaries() {
         log.info("caching weekly studyDiaries");
 
         // 이번 주 월요일~일요일 범위 계산
