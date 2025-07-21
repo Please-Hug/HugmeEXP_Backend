@@ -45,5 +45,3 @@ out/
 /logs/
 SYSTEM_ARCHITECTURE.md
 doc/
-*.sql
-*.md
