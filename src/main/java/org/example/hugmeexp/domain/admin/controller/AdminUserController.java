@@ -3,6 +3,7 @@ package org.example.hugmeexp.domain.admin.controller;
 import org.example.hugmeexp.domain.admin.dto.request.RoleChangeRequest;
 import org.example.hugmeexp.domain.admin.dto.response.AdminUserAllResponse;
 import org.example.hugmeexp.domain.admin.dto.response.AdminUserInfoResponse;
+import org.example.hugmeexp.domain.admin.dto.response.MonthlyRegistrationStatsResponse;
 import org.example.hugmeexp.domain.admin.service.AdminUserService;
 import org.example.hugmeexp.domain.user.dto.request.UserUpdateRequest;
 import org.example.hugmeexp.global.common.response.Response;
@@ -21,6 +22,8 @@ import org.springframework.web.bind.annotation.*;
 
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+
 @Tag(name = "Admin", description = "관리자 전용 사용자 관리 API")
 @RestController
 @RequestMapping(
@@ -35,7 +38,7 @@ public class AdminUserController {
     @Operation(summary = "회원 목록 조회", description = "전체 회원 목록을 페이징하여 조회")
     @GetMapping
     public ResponseEntity<Response<Page<AdminUserAllResponse>>> listUsers(
-            @PageableDefault(size = 20) Pageable pageable) {
+            @PageableDefault(size = 100) Pageable pageable) {
         Page<AdminUserAllResponse> page = adminUserService.getAllUsers(pageable);
         return ResponseEntity.ok(Response.<Page<AdminUserAllResponse>>builder()
                 .message("회원 목록을 조회했습니다.")
@@ -86,6 +89,39 @@ public class AdminUserController {
         return ResponseEntity.ok(Response.<AdminUserInfoResponse>builder()
                 .message("회원 권한이 변경되었습니다.")
                 .data(result)
+                .build());
+    }
+
+    @Operation(
+            summary = "월별 가입자 통계 조회",
+            description = "최근 12개월간의 월별 신규 가입자 수를 조회합니다. 전월 대비 증감률도 포함됩니다."
+    )
+    @GetMapping("/monthly-stats")
+    public ResponseEntity<Response<List<MonthlyRegistrationStatsResponse>>> getMonthlyRegistrationStats() {
+        List<MonthlyRegistrationStatsResponse> stats = adminUserService.getMonthlyRegistrationStats();
+        return ResponseEntity.ok(Response.<List<MonthlyRegistrationStatsResponse>>builder()
+                .message("월별 가입자 통계를 조회했습니다.")
+                .data(stats)
+                .build());
+    }
+
+    @Operation(
+            summary = "월별 가입자 통계 조회 (기간 지정)",
+            description = "지정된 개월 수만큼의 월별 신규 가입자 수를 조회합니다."
+    )
+    @GetMapping("/monthly-stats/{months}")
+    public ResponseEntity<Response<List<MonthlyRegistrationStatsResponse>>> getMonthlyRegistrationStats(
+            @PathVariable int months) {
+
+        // 최대 24개월로 제한
+        if (months > 24) {
+            months = 24;
+        }
+
+        List<MonthlyRegistrationStatsResponse> stats = adminUserService.getMonthlyRegistrationStats(months);
+        return ResponseEntity.ok(Response.<List<MonthlyRegistrationStatsResponse>>builder()
+                .message(months + "개월간 가입자 통계를 조회했습니다.")
+                .data(stats)
                 .build());
     }
 }

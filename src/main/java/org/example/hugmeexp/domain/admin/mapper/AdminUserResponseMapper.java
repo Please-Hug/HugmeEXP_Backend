@@ -8,13 +8,15 @@ import org.example.hugmeexp.domain.user.entity.User;
 public class AdminUserResponseMapper {
 
     /** 목록 조회용 매핑 */
-    public static AdminUserAllResponse toProfileResponse(User u) {
+    public static AdminUserAllResponse toProfileResponse(User u, UserInfoResponse base) {
         return new AdminUserAllResponse(
                 u.getId(),
                 u.getPublicProfileImageUrl() != null ? u.getPublicProfileImageUrl() : null,
                 u.getUsername(),
                 u.getName(),
-                u.getRole()
+                u.getRole(),
+                base.getLevel(),
+                base.getPoint()
         );
     }
 
