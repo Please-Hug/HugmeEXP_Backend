@@ -37,6 +37,10 @@ public class StudyHall extends BaseEntity {
 
     private LocalDateTime closeTime;
 
-    @OneToMany(mappedBy = "studyRoom", cascade = CascadeType.ALL, orphanRemoval = true)
+//    @OneToMany(mappedBy = "studyHall")
+//    ➡️ "This relationship is mapped by the studyHall field over in the StudyRoom entity."
+//    ➡️ "이 관계는 StudyRoom 엔티티에 있는 studyHall 필드에 의해서 매핑됩니다."
+
+    @OneToMany(mappedBy = "studyHall", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StudyRoom> studyRooms;
 }
