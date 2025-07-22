@@ -3,11 +3,14 @@ package org.example.hugmeexp.global.infra.auth.service;
 import lombok.RequiredArgsConstructor;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.domain.user.exception.PhoneNumberDuplicatedException;
+import org.example.hugmeexp.domain.user.exception.UserNotFoundException;
 import org.example.hugmeexp.domain.user.exception.UsernameDuplicatedException;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
 import org.example.hugmeexp.global.infra.auth.dto.request.LoginRequest;
+import org.example.hugmeexp.global.infra.auth.dto.request.ModifyPasswordRequest;
 import org.example.hugmeexp.global.infra.auth.dto.request.RegisterRequest;
 import org.example.hugmeexp.global.infra.auth.exception.LoginFailedException;
+import org.example.hugmeexp.global.infra.auth.exception.PasswordMismatchException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,5 +59,20 @@ public class CredentialService {
     private void validateDuplicateUser(String username, String phoneNumber) {
         if (userRepository.existsByUsername(username)) throw new UsernameDuplicatedException();
         if (userRepository.existsByPhoneNumber(phoneNumber)) throw new PhoneNumberDuplicatedException();
+    }
+
+    // 비밀번호 변경
+    @Transactional
+    public void updatePassword(String username, ModifyPasswordRequest request) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(UserNotFoundException::new);
+
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new PasswordMismatchException();
+        }
+
+        String newEncodedPassword = passwordEncoder.encode(request.getNewPassword());
+        user.changePassword(newEncodedPassword);
+        // @Transactional에 의해 변경 감지(dirty checking)가 일어나므로 명시적인 save 호출은 필요 없습니다.
     }
 }
