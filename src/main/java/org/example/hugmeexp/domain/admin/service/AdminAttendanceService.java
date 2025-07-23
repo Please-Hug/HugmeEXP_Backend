@@ -45,8 +45,8 @@ public class AdminAttendanceService {
         double activeUserRate = totalUsers > 0 ? (double) activeUsers / totalUsers : 0.0;
 
         return ActiveUsersStatsResponse.builder()
-                .totalUsers((int) totalUsers)
-                .activeUsers((int) activeUsers)
+                .totalUsers(Math.toIntExact(totalUsers))
+                .activeUsers(Math.toIntExact(activeUsers))
                 .activeUserRate(activeUserRate)
                 .baseDate(today.toString())
                 .build();

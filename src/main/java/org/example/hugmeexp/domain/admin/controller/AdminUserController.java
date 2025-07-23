@@ -34,6 +34,7 @@ import java.util.List;
 public class AdminUserController {
 
     private final AdminUserService adminUserService;
+    private final int MAX_MONTHS_LIMIT = 24; // 월별 가입자 통계에서 최대 조회 가능한 개월 수
 
     @Operation(summary = "회원 목록 조회", description = "전체 회원 목록을 페이징하여 조회")
     @GetMapping
@@ -113,10 +114,10 @@ public class AdminUserController {
     public ResponseEntity<Response<List<MonthlyRegistrationStatsResponse>>> getMonthlyRegistrationStats(
             @PathVariable int months) {
 
-        // 최대 24개월로 제한
-        if (months > 24) {
-            months = 24;
-        }
+        if (months <= 0) {
+            months = 1;
+        } else if (months > MAX_MONTHS_LIMIT) {
+            months = MAX_MONTHS_LIMIT;}
 
         List<MonthlyRegistrationStatsResponse> stats = adminUserService.getMonthlyRegistrationStats(months);
         return ResponseEntity.ok(Response.<List<MonthlyRegistrationStatsResponse>>builder()

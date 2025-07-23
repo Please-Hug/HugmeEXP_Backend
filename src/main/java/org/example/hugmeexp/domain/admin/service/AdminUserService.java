@@ -5,19 +5,6 @@ import org.example.hugmeexp.domain.admin.dto.response.AdminUserAllResponse;
 import org.example.hugmeexp.domain.admin.dto.response.AdminUserInfoResponse;
 import org.example.hugmeexp.domain.admin.dto.response.MonthlyRegistrationStatsResponse;
 import org.example.hugmeexp.domain.admin.mapper.AdminUserResponseMapper;
-import org.example.hugmeexp.domain.attendance.service.AttendanceService;
-import org.example.hugmeexp.domain.bookmark.service.BookmarkService;
-import org.example.hugmeexp.domain.mission.service.MissionServiceImpl;
-import org.example.hugmeexp.domain.mission.service.SubmissionServiceImpl;
-import org.example.hugmeexp.domain.missionGroup.service.MissionGroupServiceImpl;
-import org.example.hugmeexp.domain.missionTask.service.MissionTaskServiceImpl;
-import org.example.hugmeexp.domain.praise.service.CommentEmojiReactionService;
-import org.example.hugmeexp.domain.praise.service.CommentService;
-import org.example.hugmeexp.domain.praise.service.PraiseEmojiReactionService;
-import org.example.hugmeexp.domain.praise.service.PraiseService;
-import org.example.hugmeexp.domain.qeust.service.QuestService;
-import org.example.hugmeexp.domain.shop.service.ProductService;
-import org.example.hugmeexp.domain.studydiary.service.StudyDiaryService;
 import org.example.hugmeexp.domain.user.dto.request.UserUpdateRequest;
 import org.example.hugmeexp.domain.user.dto.response.UserInfoResponse;
 import org.example.hugmeexp.domain.user.entity.User;
@@ -44,19 +31,6 @@ public class AdminUserService {
 
     private final UserRepository userRepository;
     private final UserService userService;
-    private final AttendanceService attendanceService;
-    private final BookmarkService bookmarkService;
-    private final MissionServiceImpl missionService;
-    private final SubmissionServiceImpl submissionService;
-    private final MissionGroupServiceImpl missionGroupService;
-    private final MissionTaskServiceImpl missionTaskService;
-    private final PraiseService praiseService;
-    private final CommentEmojiReactionService commentEmojiReactionService;
-    private final CommentService commentService;
-    private final PraiseEmojiReactionService praiseEmojiReactionService;
-    private final QuestService questService;
-    private final ProductService productService;
-    private final StudyDiaryService studyDiaryService;
 
     /** 1) 회원 목록 페이징 조회 */
     @Transactional(readOnly = true)
@@ -97,7 +71,6 @@ public class AdminUserService {
             @CacheEvict(value = "adminUserInfo", key = "#username"),
             @CacheEvict(value = "adminUserList", allEntries = true),
             @CacheEvict(value = "userInfo", key = "#username"),
-            @CacheEvict(value = "monthlyRegistrationStats", allEntries = true) // 추가
     })
     public AdminUserInfoResponse deleteUserByAdmin(String username) {
         User u = userService.findByUsername(username);
@@ -170,6 +143,9 @@ public class AdminUserService {
     @Transactional(readOnly = true)
     @Cacheable(value = "monthlyRegistrationStats", key = "#months", unless = "#result.isEmpty()")
     public List<MonthlyRegistrationStatsResponse> getMonthlyRegistrationStats(int months) {
+        if (months <= 0 || months > 24) {
+            throw new IllegalArgumentException("조회 기간은 1~24개월 사이여야 합니다.");
+        }
         // months 파라미터로 조회할 개월 수 지정 가능
         List<MonthlyRegistrationStatsResponse> stats = new ArrayList<>();
 
