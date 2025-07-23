@@ -11,7 +11,7 @@ import java.util.Optional;
 
 @Getter
 @Entity
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class StudyHall extends BaseEntity {
