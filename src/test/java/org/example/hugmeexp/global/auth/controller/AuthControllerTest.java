@@ -6,7 +6,6 @@ import org.example.hugmeexp.global.common.config.RedisConfig;
 import org.example.hugmeexp.global.infra.auth.controller.AuthController;
 import org.example.hugmeexp.global.infra.auth.dto.request.ModifyPasswordRequest;
 import org.example.hugmeexp.global.infra.auth.exception.PasswordMismatchException;
-import org.example.hugmeexp.global.infra.auth.jwt.JwtTokenProvider;
 import org.example.hugmeexp.global.infra.auth.service.AuthService;
 import org.example.hugmeexp.global.security.config.SecurityConfig;
 import org.junit.jupiter.api.DisplayName;
@@ -18,12 +17,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
+import org.example.hugmeexp.config.MockTestConfiguration;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.mockito.Mockito;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -45,15 +43,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("AuthController 테스트")
+@Import(MockTestConfiguration.class)
 class AuthControllerTest {
 
-    @TestConfiguration
-    static class TestConfig {
-        @Bean
-        public JwtTokenProvider jwtTokenProvider() {
-            return Mockito.mock(JwtTokenProvider.class);
-        }
-    }
+
 
     private static final String BASE_URL = "/api/auth";
 

@@ -53,7 +53,7 @@ public class JwtTokenProvider {
 
     public AuthResponse createToken(String email) {
         String accessToken = createToken(email, null, accessTokenExpiration);
-        String refreshToken = createToken(null, null, refreshTokenExpiration);
+        String refreshToken = createToken(email, null, refreshTokenExpiration);
 
         return AuthResponse.builder()
                 .accessToken(accessToken)
