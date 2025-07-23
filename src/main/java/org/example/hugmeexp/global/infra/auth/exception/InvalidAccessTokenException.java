@@ -1,10 +1,11 @@
 package org.example.hugmeexp.global.infra.auth.exception;
 
 import org.example.hugmeexp.global.common.exception.BaseCustomException;
-import org.springframework.http.HttpStatus;
+import org.example.hugmeexp.global.common.exception.ErrorCode;
 
 public class InvalidAccessTokenException extends BaseCustomException {
-    public InvalidAccessTokenException() {
-        super(HttpStatus.UNAUTHORIZED, "유효하지 않은 액세스 토큰입니다.", 401);
+    public InvalidAccessTokenException(ErrorCode errorCode) {
+        super(errorCode.getStatus(), errorCode.getMessage(), errorCode.getStatus().value());
     }
 }
+
