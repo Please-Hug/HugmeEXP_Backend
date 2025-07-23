@@ -29,7 +29,10 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -76,6 +79,7 @@ class AuthControllerTest {
         void modifyPassword_Success() throws Exception {
             // Given
             ModifyPasswordRequest request = ModifyPasswordRequest.of("oldPassword1!", "newPassword1!");
+            doNothing().when(authService).modifyPassword(anyString(), any(ModifyPasswordRequest.class));
 
             // When & Then
             mockMvc.perform(put(BASE_URL + "/password")
@@ -83,6 +87,9 @@ class AuthControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk());
+
+            // Verify
+            verify(authService).modifyPassword(eq("testuser@example.com"), any(ModifyPasswordRequest.class));
         }
 
         @Test
