@@ -13,6 +13,7 @@ import org.example.hugmeexp.domain.studyRoom.repository.StudyRoomReservationRepo
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.domain.user.exception.UserNotFoundException;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -32,8 +33,9 @@ public class StudyRoomReservationService {
     private final StudyRoomRepository studyRoomRepository;
     private final UserRepository userRepository;
 
+    // Lock test 비교용
     @Transactional
-    public Long createReservation(ReservationCreateDto createDto, UserDetails userDetails) {
+    public Long createReservationWithNoLock(ReservationCreateDto createDto, UserDetails userDetails) {
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(UserNotFoundException::new);
 
@@ -41,7 +43,7 @@ public class StudyRoomReservationService {
                 .orElseThrow(StudyRoomNotFoundException::new);
 
         validateReservationTime(createDto.getReservationStart(), createDto.getReservationEnd());
-        
+
         if (createDto.getPartyNum() > studyRoom.getMaxNum()) {
             throw new StudyRoomCapacityExceededException();
         }
@@ -57,9 +59,43 @@ public class StudyRoomReservationService {
                 .build();
 
         StudyRoomReservation savedReservation = studyRoomReservationRepository.save(reservation);
-        
+
         return savedReservation.getId();
     }
+
+    @Transactional
+    public Long createReservation(ReservationCreateDto createDto, UserDetails userDetails) {
+        try {
+            User user = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(UserNotFoundException::new);
+
+            StudyRoom studyRoom = studyRoomRepository.findByIdWithLock(createDto.getStudyRoomId())
+                    .orElseThrow(StudyRoomNotFoundException::new);
+
+            validateReservationTime(createDto.getReservationStart(), createDto.getReservationEnd());
+
+            if (createDto.getPartyNum() > studyRoom.getMaxNum()) {
+                throw new StudyRoomCapacityExceededException();
+            }
+            checkTimeConflict(studyRoom, createDto.getReservationStart(), createDto.getReservationEnd());
+
+            StudyRoomReservation reservation = StudyRoomReservation.builder()
+                    .user(user)
+                    .studyRoom(studyRoom)
+                    .reservationStart(createDto.getReservationStart())
+                    .reservationEnd(createDto.getReservationEnd())
+                    .partyNum(createDto.getPartyNum())
+                    .build();
+
+            StudyRoomReservation savedReservation = studyRoomReservationRepository.save(reservation);
+
+            return savedReservation.getId();
+        } catch (OptimisticLockingFailureException e){
+            log.debug("in StudyRoomReservation createReservation, optimistic exception occurred");
+            //재시도
+            return createReservation(createDto, userDetails);
+    }
+}
 
     public ReservationDetailDto getReservationDetail(Long reservationId, UserDetails userDetails) {
         User user = userRepository.findByUsername(userDetails.getUsername())
@@ -120,6 +156,11 @@ public class StudyRoomReservationService {
         studyRoomReservationRepository.delete(reservation);
     }
 
+    /*
+    예약을 할 때, 예약이 유효한지 검사
+    1. 예약시작(시작, 끝 포함)은 현재 시각보다 뒤 이어야 한다
+    2. 시작 시간과, 끝나는 시간은 같으면 안된다
+     */
     private void validateReservationTime(LocalDateTime start, LocalDateTime end) {
         LocalDateTime now = LocalDateTime.now();
         
@@ -132,6 +173,7 @@ public class StudyRoomReservationService {
         }
     }
 
+    //예약 시간이 다른 예약과 겹치는지 확인한다 (Lock 미활용, 비교용)
     private void checkTimeConflict(StudyRoom studyRoom, LocalDateTime start, LocalDateTime end) {
         List<StudyRoomReservation> existingReservations = 
                 studyRoomReservationRepository.findAllByStudyRoomAndEndTimeAfter(studyRoom, LocalDateTime.now());

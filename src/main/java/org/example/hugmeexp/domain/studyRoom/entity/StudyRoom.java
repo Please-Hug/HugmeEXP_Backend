@@ -25,4 +25,8 @@ public class StudyRoom extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "studyhall_id")
     private StudyHall studyHall;
+
+    // optimistic lock을 위해
+    @Version
+    private Long version;
 }
