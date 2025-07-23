@@ -18,6 +18,9 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import io.jsonwebtoken.JwtBuilder;
 
 @Slf4j
 @Component
@@ -49,19 +52,8 @@ public class JwtTokenProvider {
     }
 
     public AuthResponse createToken(String email) {
-        long now = (new Date()).getTime();
-        Date accessTokenExpiresIn = new Date(now + accessTokenExpiration);
-        String accessToken = Jwts.builder()
-                .setSubject(email)
-                .setExpiration(accessTokenExpiresIn)
-                .signWith(key)
-                .compact();
-
-        Date refreshTokenExpiresIn = new Date(now + refreshTokenExpiration);
-        String refreshToken = Jwts.builder()
-                .setExpiration(refreshTokenExpiresIn)
-                .signWith(key)
-                .compact();
+        String accessToken = createToken(email, null, accessTokenExpiration);
+        String refreshToken = createToken(null, null, refreshTokenExpiration);
 
         return AuthResponse.builder()
                 .accessToken(accessToken)
@@ -110,13 +102,7 @@ public class JwtTokenProvider {
     }
 
     public boolean validate(String token) {
-        try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
-            return true;
-        } catch (Exception e) {
-            log.info("Invalid JWT token: {}", e.getMessage());
-            return false;
-        }
+        return validateToken(token);
     }
 
     public long getTokenRemainingTimeMillis(String token) {
@@ -130,25 +116,33 @@ public class JwtTokenProvider {
     }
 
     public String createAccessToken(String username, String role) {
-        long now = (new Date()).getTime();
-        Date accessTokenExpiresIn = new Date(now + accessTokenExpiration);
-        return Jwts.builder()
-                .setSubject(username)
-                .claim("role", role)
-                .setExpiration(accessTokenExpiresIn)
-                .signWith(key)
-                .compact();
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", role);
+        return createToken(username, claims, accessTokenExpiration);
     }
 
     public String createRefreshToken(String username, UserRole role) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", "ROLE_" + role.name());
+        return createToken(username, claims, refreshTokenExpiration);
+    }
+
+    private String createToken(String subject, Map<String, Object> claims, long expiration) {
         long now = (new Date()).getTime();
-        Date refreshTokenExpiresIn = new Date(now + refreshTokenExpiration);
-        return Jwts.builder()
-                .setSubject(username)
-                .claim("role", "ROLE_" + role.name())
-                .setExpiration(refreshTokenExpiresIn)
-                .signWith(key)
-                .compact();
+        Date expiresIn = new Date(now + expiration);
+
+        JwtBuilder builder = Jwts.builder()
+                .setExpiration(expiresIn);
+
+        if (subject != null) {
+            builder.setSubject(subject);
+        }
+
+        if (claims != null) {
+            builder.addClaims(claims);
+        }
+
+        return builder.signWith(key).compact();
     }
 
     public void revokeRefreshToken(String token) {
