@@ -22,8 +22,8 @@ public class RecruitmentService {
         RecruitmentSearchConditionDTO enrichedCond = cond.toBuilder()
                 .techStacks((cond.getTechStacks() == null || cond.getTechStacks().isEmpty()) ? null : cond.getTechStacks())
                 .tags((cond.getTags() == null || cond.getTags().isEmpty()) ? null : cond.getTags())
-                .techStackCount((cond.getTechStacks() == null) ? null : (long) cond.getTechStacks().size())
-                .tagCount((cond.getTags() == null) ? null : (long) cond.getTags().size())
+                .techStackCount((cond.getTechStacks() == null || cond.getTechStacks().isEmpty()) ? null : (long) cond.getTechStacks().size())
+                .tagCount((cond.getTags() == null || cond.getTags().isEmpty()) ? null : (long) cond.getTags().size())
                 .build();
 
         return recruitmentRepository.findBySearchConditions(enrichedCond);
