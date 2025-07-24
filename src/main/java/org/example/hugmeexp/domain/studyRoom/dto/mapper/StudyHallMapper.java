@@ -1,8 +1,12 @@
 package org.example.hugmeexp.domain.studyRoom.dto.mapper;
 
+import org.example.hugmeexp.domain.studyRoom.dto.request.StudyHallRequest;
 import org.example.hugmeexp.domain.studyRoom.dto.response.StudyHallResponse;
 import org.example.hugmeexp.domain.studyRoom.entity.StudyHall;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import java.util.List;
 
@@ -14,4 +18,8 @@ public interface StudyHallMapper {
     StudyHallResponse toResponseDto(StudyHall studyHall);
 
     List<StudyHallResponse> toResponseDtos(List<StudyHall> studyHalls);
+
+    // DTO의 필드가 null일 경우, 엔티티의 해당 필드를 무시하도록 설정
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateFromDto(StudyHallRequest dto, @MappingTarget StudyHall entity);
 }

@@ -2,6 +2,7 @@ package org.example.hugmeexp.domain.studyRoom.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.example.hugmeexp.domain.studyRoom.dto.mapper.StudyHallMapper;
 import org.example.hugmeexp.domain.studyRoom.dto.request.StudyHallRequest;
 import org.example.hugmeexp.domain.studyRoom.entity.StudyHall;
 import org.example.hugmeexp.domain.studyRoom.repository.StudyHallRepository;
@@ -9,8 +10,6 @@ import org.example.hugmeexp.domain.studyRoom.exception.StudyHallNotFoundExceptio
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 /**
  * 회의실(스터디 홀) 관련 비즈니스 로직을 처리하는 서비스 클래스입니다.
@@ -20,6 +19,7 @@ import java.util.List;
 public class StudyHallService {
 
     private final StudyHallRepository studyHallRepository;
+    private final StudyHallMapper studyHallMapper;
 
     /**
      * 새로운 회의실(스터디 홀)을 생성하고 데이터베이스에 저장합니다.
@@ -76,7 +76,7 @@ public class StudyHallService {
     @Transactional
     public StudyHall updateStudyHall(Long studyHallId, StudyHallRequest requestDto) {
         StudyHall studyHall = findStudyHallById(studyHallId);
-        studyHall.update(requestDto);
+        studyHallMapper.updateFromDto(requestDto, studyHall);
         return studyHall;
     }
 

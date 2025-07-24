@@ -40,23 +40,8 @@ public class StudyHall extends BaseEntity {
 
     @OneToMany(mappedBy = "studyHall", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StudyRoom> studyRooms;
-    
-    private boolean isDeleted = false;
 
-    /**
-     * 스터디 홀 정보를 수정하는 메서드입니다.
-     */
-    public void update(StudyHallRequest requestDto) {
-        this.name = requestDto.getName();
-        this.description = requestDto.getDescription();
-        this.simpleAddress = requestDto.getSimpleAddress();
-        this.address = requestDto.getAddress();
-        this.latitude = requestDto.getLatitude();
-        this.longitude = requestDto.getLongitude();
-        this.thumbnail = requestDto.getThumbnail();
-        this.openTime = requestDto.getOpenTime();
-        this.closeTime = requestDto.getCloseTime();
-    }
+    private boolean isDeleted = false;
 
     /**
      * 스터디 홀을 논리적으로 삭제 처리하는 메서드입니다.
