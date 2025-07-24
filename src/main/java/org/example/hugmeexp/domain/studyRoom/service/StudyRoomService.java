@@ -21,14 +21,15 @@ public class StudyRoomService {
 
     /**
      * 특정 스터디 홀에 새로운 룸을 생성합니다.
+     *
      * @param studyHallId 룸을 추가할 부모 스터디 홀의 ID
-     * @param requestDto 생성할 룸의 정보
+     * @param requestDto  생성할 룸의 정보
      * @return 저장된 StudyRoom 엔티티
      */
     @Transactional
     public StudyRoom createStudyRoom(Long studyHallId, StudyRoomRequest requestDto) {
         StudyHall parentStudyHall = studyHallRepository.findById(studyHallId)
-                .orElseThrow(StudyHallNotFoundException::new);
+                .orElseThrow(() -> new StudyHallNotFoundException(studyHallId));
 
         StudyRoom studyRoom = StudyRoom.builder()
                 .name(requestDto.getName())
@@ -41,12 +42,14 @@ public class StudyRoomService {
 
     /**
      * 특정 스터디 홀에 속한 모든 룸 목록을 조회합니다.
+     *
      * @param studyHallId 조회할 스터디 홀의 ID
      * @return StudyRoom 엔티티 리스트
      */
     public List<StudyRoom> findAllRoomsInHall(Long studyHallId) {
-        if (!studyHallRepository.existsById(studyHallId)) {
-            throw new StudyHallNotFoundException();
-        }
-        return studyRoomRepository.findAllByStudyHallId(studyHallId);
-    }}
+        StudyHall parentHall = studyHallRepository.findById(studyHallId)
+                .orElseThrow(() -> new StudyHallNotFoundException(studyHallId));
+
+        return studyRoomRepository.findAllByStudyHall(parentHall);
+    }
+}
