@@ -17,6 +17,8 @@ import org.example.hugmeexp.domain.studyRoom.entity.StudyHall;
 import org.example.hugmeexp.domain.studyRoom.entity.StudyRoom;
 import org.example.hugmeexp.domain.studyRoom.service.StudyHallService;
 import org.example.hugmeexp.domain.studyRoom.service.StudyRoomService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -65,16 +67,13 @@ public class AdminStudyRoomController {
      * 등록된 모든 스터디 홀의 목록을 조회합니다.
      * @return 스터디 홀 목록과 HTTP 200 OK 상태 코드
      */
-    @Operation(summary = "전체 스터디 홀 조회", description = "시스템에 등록된 모든 스터디 홀 목록을 조회합니다.")
+    @Operation(summary = "전체 스터디 홀 조회", description = "시스템에 등록된 모든 스터디 홀 목록을 페이징하여 조회합니다.")
     @GetMapping
-    public ResponseEntity<List<StudyHallResponse>> getAllStudyHalls() {
-        List<StudyHall> studyHalls = studyHallService.findAllStudyHalls();
-        List<StudyHallResponse> responseDtos = studyHalls.stream()
-                .map(studyHallMapper::toResponseDto)
-                .toList();
+    public ResponseEntity<Page<StudyHallResponse>> getAllStudyHalls(Pageable pageable) {
+        Page<StudyHall> studyHallsPage = studyHallService.findAllStudyHalls(pageable);
+        Page<StudyHallResponse> responseDtos = studyHallsPage.map(studyHallMapper::toResponseDto);
         return ResponseEntity.ok(responseDtos);
     }
-
     /**
      * ID로 특정 스터디 홀의 상세 정보를 조회합니다.
      * @param studyHallId 조회할 스터디 홀의 ID
@@ -102,7 +101,7 @@ public class AdminStudyRoomController {
     @PostMapping("/{studyHallId}/rooms")
     public ResponseEntity<StudyRoomResponse> createStudyRoom(
             @PathVariable Long studyHallId,
-            @RequestBody StudyRoomRequest requestDto) {
+            @Valid @RequestBody StudyRoomRequest requestDto) {
 
         StudyRoom createdStudyRoom = studyRoomService.createStudyRoom(studyHallId, requestDto);
         StudyRoomResponse responseDto = studyRoomMapper.toResponseDto(createdStudyRoom);
@@ -122,7 +121,30 @@ public class AdminStudyRoomController {
         List<StudyRoom> rooms = studyRoomService.findAllRoomsInHall(studyHallId);
         List<StudyRoomResponse> responseDtos = rooms.stream()
                 .map(studyRoomMapper::toResponseDto)
-                .collect(Collectors.toList());
+                .toList();
         return ResponseEntity.ok(responseDtos);
+    }
+
+    /**
+     * 특정 스터디 홀의 정보를 수정합니다.
+     */
+    @Operation(summary = "스터디 홀 정보 수정", description = "ID로 특정 스터디 홀의 정보를 수정합니다.")
+    @PutMapping("/{studyHallId}")
+    public ResponseEntity<StudyHallResponse> updateStudyHall(
+            @PathVariable Long studyHallId,
+            @Valid @RequestBody StudyHallRequest requestDto) {
+
+        StudyHall updatedStudyHall = studyHallService.updateStudyHall(studyHallId, requestDto);
+        return ResponseEntity.ok(studyHallMapper.toResponseDto(updatedStudyHall));
+    }
+
+    /**
+     * 특정 스터디 홀을 삭제합니다.
+     */
+    @Operation(summary = "스터디 홀 삭제", description = "ID로 특정 스터디 홀을 삭제합니다.")
+    @DeleteMapping("/{studyHallId}")
+    public ResponseEntity<Void> deleteStudyHall(@PathVariable Long studyHallId) {
+        studyHallService.deleteStudyHall(studyHallId);
+        return ResponseEntity.noContent().build();
     }
 }
