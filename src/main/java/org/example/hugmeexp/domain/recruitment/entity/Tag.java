@@ -19,10 +19,10 @@ public class Tag {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recruitment_id")
+    @JoinColumn(name = "recruitment_id", nullable = false)
     private Recruitment recruitment;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tag_item_id")
+    @JoinColumn(name = "tag_item_id", nullable = false)
     private TagItem tagItem;
 }

@@ -6,38 +6,25 @@ import org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentSearchConditionDTO;
 import org.example.hugmeexp.domain.recruitment.repository.RecruitmentRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class RecruitmentService {
 
     private final RecruitmentRepository recruitmentRepository;
 
     public List<RecruitmentResponseDTO> listRecruitments(RecruitmentSearchConditionDTO cond) {
 
-        List<Long> techStacks = cond.getTechStacks();
-        List<Long> tags = cond.getTags();
+        RecruitmentSearchConditionDTO enrichedCond = cond.toBuilder()
+                .techStackCount(cond.getTechStacks() == null ? null : (long) cond.getTechStacks().size())
+                .tagCount(cond.getTags() == null ? null : (long) cond.getTags().size())
+                .build();
 
-        Long techStackCount = (techStacks == null) ? null : (long) techStacks.size();
-        Long tagCount = (tags == null) ? null : (long) tags.size();
-
-        return recruitmentRepository.findBySearchConditions(
-                cond.getSalaryMin(),
-                cond.getSalaryMax(),
-                cond.getExperience(),
-                cond.getEducation(),
-                cond.getWorkLocation(),
-                cond.getTopLeftLat(),
-                cond.getTopLeftLng(),
-                cond.getBottomRightLat(),
-                cond.getBottomRightLng(),
-                techStacks,
-                tags,
-                techStackCount,
-                tagCount
-        );
+        return recruitmentRepository.findBySearchConditions(enrichedCond);
     }
 }

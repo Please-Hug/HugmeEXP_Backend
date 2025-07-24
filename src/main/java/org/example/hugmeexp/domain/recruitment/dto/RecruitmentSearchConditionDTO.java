@@ -11,7 +11,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class RecruitmentSearchConditionDTO {
 
     private Integer salaryMin;
@@ -21,9 +21,12 @@ public class RecruitmentSearchConditionDTO {
     private List<Long> techStacks;
     private String workLocation;
     private List<Long> tags;
-    private BigDecimal topLeftLat;
-    private BigDecimal topLeftLng;
-    private BigDecimal bottomRightLat;
-    private BigDecimal bottomRightLng;
+    private BigDecimal topLeftLat; // 북쪽(큰 값)
+    private BigDecimal topLeftLng; // 서쪽(작은 값)
+    private BigDecimal bottomRightLat; // 남쪽(작은 값)
+    private BigDecimal bottomRightLng; // 동쪽(큰 값)
+
+    private Long techStackCount;
+    private Long tagCount;
 
 }

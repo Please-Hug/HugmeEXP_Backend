@@ -20,10 +20,10 @@ public class RecruitmentResponseDTO {
     private LocalDateTime dueDate;
     private Integer experience;
     private String workLocation;
-    private BigDecimal latitude;
-    private BigDecimal longitude;
+    private BigDecimal latitude; // 위도
+    private BigDecimal longitude; // 경도
 
-    // jpal에서 사용되는 생성자
+    // JPA 에서 사용되는 생성자
     public RecruitmentResponseDTO(Long id, String title, String companyName, String companyImageUrl,
                                   LocalDateTime dueDate, Integer experience, String workLocation,
                                   BigDecimal latitude, BigDecimal longitude) {
@@ -38,7 +38,7 @@ public class RecruitmentResponseDTO {
         this.longitude = longitude;
     }
 
-    // 서비스 단에서 REcruitment 엔티티를 DTO로 변환하는 메서드
+    // 서비스 단에서 Recruitment 엔티티를 DTO로 변환하는 메서드
     public static RecruitmentResponseDTO from(Recruitment recruitment) {
         return RecruitmentResponseDTO.builder()
                 .id(recruitment.getId())

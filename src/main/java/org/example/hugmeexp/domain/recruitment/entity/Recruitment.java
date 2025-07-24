@@ -27,9 +27,9 @@ public class Recruitment {
     private String title;
 
     @Column(nullable = false)
-    private int education;
+    private Integer education;
     @Column(nullable = false)
-    private int experience;
+    private Integer experience;
 
     private String qualification; // 자격 요건
     private String advantage; // 우대 사항
@@ -40,15 +40,15 @@ public class Recruitment {
     private BigDecimal longitude; // 경도
 
     @Column(name = "salary_min")
-    private int salaryMin;
+    private Integer salaryMin;
 
     @Column(name = "salary_max")
-    private int salaryMax;
+    private Integer salaryMax;
 
     private String link;
 
     @Enumerated(EnumType.STRING)
-    private SourceType source; // 0: 원티드, 1: 점핏
+    private SourceType source; // WANTED: 원티드, JUMPIT: 점핏
 
     private LocalDateTime dueDate;
 
@@ -57,13 +57,10 @@ public class Recruitment {
     private Company company;
 
     // 중간 테이블 관계
-    @OneToMany(mappedBy = "recruitment")
+    @OneToMany(mappedBy = "recruitment", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TechStack> techStacks;
 
-    @OneToMany(mappedBy = "recruitment")
+    @OneToMany(mappedBy = "recruitment", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Tag> tags;
-
-
-
 
 }

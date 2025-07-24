@@ -1,16 +1,13 @@
 package org.example.hugmeexp.domain.recruitment.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(toBuilder = true)
+@Builder(access = AccessLevel.PRIVATE)
 @Table(name = "tech_item")
 public class TechItem {
 
@@ -18,7 +15,10 @@ public class TechItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String englishName;
+    @Column(nullable = false)
     private String koreanName;
+    @Column(nullable = false)
     private String iconUrl;
 }
