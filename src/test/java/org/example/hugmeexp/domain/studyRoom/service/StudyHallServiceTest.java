@@ -11,6 +11,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -54,21 +58,27 @@ class StudyHallServiceTest {
     }
 
     @Test
-    @DisplayName("전체 스터디 홀 조회 성공")
+    @DisplayName("전체 스터디 홀 조회 성공 (페이징)")
     void findAllStudyHalls_success() {
         // given
-        StudyHall hall1 = StudyHall.builder().id(1L).build();
-        StudyHall hall2 = StudyHall.builder().id(2L).build();
-        List<StudyHall> studyHalls = List.of(hall1, hall2);
+        Pageable pageable = PageRequest.of(0, 10);
 
-        when(studyHallRepository.findAll()).thenReturn(studyHalls);
+        List<StudyHall> studyHallsList = List.of(
+                StudyHall.builder().id(1L).build(),
+                StudyHall.builder().id(2L).build()
+        );
+        Page<StudyHall> studyHallsPage = new PageImpl<>(studyHallsList, pageable, studyHallsList.size());
+
+        when(studyHallRepository.findAllByIsDeletedFalse(pageable)).thenReturn(studyHallsPage);
 
         // when
-        List<StudyHall> results = studyHallService.findAllStudyHalls();
+        Page<StudyHall> resultPage = studyHallService.findAllStudyHalls(pageable);
 
         // then
-        assertNotNull(results);
-        assertEquals(2, results.size());
+        assertNotNull(resultPage);
+        assertEquals(2, resultPage.getTotalElements()); // 전체 요소 개수 검증
+        assertEquals(2, resultPage.getContent().size()); // 현재 페이지의 콘텐츠 개수 검증
+        assertThat(resultPage.getContent()).isEqualTo(studyHallsList);
     }
 
     @Test
@@ -78,7 +88,7 @@ class StudyHallServiceTest {
         Long studyHallId = 1L;
         StudyHall studyHall = StudyHall.builder().id(studyHallId).name("테스트 홀").build();
 
-        when(studyHallRepository.findById(studyHallId)).thenReturn(Optional.of(studyHall));
+        when(studyHallRepository.findByIdAndIsDeletedFalse(studyHallId)).thenReturn(Optional.of(studyHall));
 
         // when
         StudyHall result = studyHallService.findStudyHallById(studyHallId);
@@ -95,12 +105,59 @@ class StudyHallServiceTest {
         // given
         Long nonExistentId = 999L;
 
-        when(studyHallRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+        when(studyHallRepository.findByIdAndIsDeletedFalse(nonExistentId)).thenReturn(Optional.empty());
 
         // when & then
         // findStudyHallById(999L)를 호출하면 StudyHallNotFoundException이 발생하는지 검증
         assertThrows(StudyHallNotFoundException.class, () -> {
             studyHallService.findStudyHallById(nonExistentId);
         });
+    }
+
+    @Test
+    @DisplayName("스터디 홀 정보 수정 성공")
+    void updateStudyHall_success() {
+        // given
+        Long studyHallId = 1L;
+        StudyHall originalHall = StudyHall.builder()
+                .id(studyHallId)
+                .name("수정 전 이름")
+                .build();
+
+        StudyHallRequest updateRequest = StudyHallRequest.builder()
+                .name("수정된 이름")
+                .description("수정된 설명입니다.")
+                .build();
+
+        when(studyHallRepository.findByIdAndIsDeletedFalse(studyHallId)).thenReturn(Optional.of(originalHall));
+
+        // when
+        studyHallService.updateStudyHall(studyHallId, updateRequest);
+
+        // then
+        verify(studyHallRepository).findByIdAndIsDeletedFalse(studyHallId);
+
+        assertThat(originalHall.getName()).isEqualTo("수정된 이름");
+        assertThat(originalHall.getDescription()).isEqualTo("수정된 설명입니다.");
+    }
+
+    @Test
+    @DisplayName("스터디 홀 삭제 성공 (논리적)")
+    void deleteStudyHall_success() {
+        // given
+        Long studyHallId = 1L;
+        StudyHall studyHallToDelete = StudyHall.builder()
+                .id(studyHallId)
+                .build(); // isDeleted는 기본적으로 false
+
+        when(studyHallRepository.findByIdAndIsDeletedFalse(studyHallId)).thenReturn(Optional.of(studyHallToDelete));
+
+        // when
+        studyHallService.deleteStudyHall(studyHallId);
+
+        // then
+        verify(studyHallRepository).findByIdAndIsDeletedFalse(studyHallId);
+
+        assertThat(studyHallToDelete.isDeleted()).isTrue();
     }
 }
