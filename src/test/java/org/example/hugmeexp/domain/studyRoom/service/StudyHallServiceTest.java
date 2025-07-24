@@ -7,6 +7,7 @@ import org.example.hugmeexp.domain.studyRoom.repository.StudyHallRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -16,7 +17,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,18 +33,24 @@ class StudyHallServiceTest {
     @DisplayName("스터디 홀 생성 성공")
     void createStudyHall_success() {
         // given
-        StudyHallRequest requestDto = new StudyHallRequest();
-        StudyHall studyHall = StudyHall.builder().id(1L).name("테스트 홀").build();
-
-        when(studyHallRepository.save(any(StudyHall.class))).thenReturn(studyHall);
+        StudyHallRequest requestDto = StudyHallRequest.builder()
+                .name("테스트 홀")
+                .description("테스트 설명입니다.")
+                .simpleAddress("서울시 강남구")
+                .build();
 
         // when
-        StudyHall result = studyHallService.createStudyHall(requestDto);
+        studyHallService.createStudyHall(requestDto);
 
         // then
-        assertNotNull(result);
-        assertEquals(1L, result.getId());
-        assertEquals("테스트 홀", result.getName());
+        ArgumentCaptor<StudyHall> captor = ArgumentCaptor.forClass(StudyHall.class);
+        verify(studyHallRepository).save(captor.capture());
+        StudyHall savedHall = captor.getValue();
+
+        assertNotNull(savedHall);
+        assertEquals("테스트 홀", savedHall.getName());
+        assertEquals("테스트 설명입니다.", savedHall.getDescription());
+        assertEquals("서울시 강남구", savedHall.getSimpleAddress());
     }
 
     @Test
