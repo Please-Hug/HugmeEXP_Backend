@@ -2,6 +2,7 @@ package org.example.hugmeexp.domain.recruitment.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO;
@@ -29,7 +30,7 @@ public class RecruitmentController {
     @Operation(summary = "채용 공고 목록 조회", description = "채용 공고 목록을 조회합니다")
     @GetMapping
     public ResponseEntity<Response<List<RecruitmentResponseDTO>>> listRecruitments(
-            @ModelAttribute RecruitmentSearchConditionDTO conditionDTO) {
+            @Valid @ModelAttribute RecruitmentSearchConditionDTO conditionDTO) {
 
         List<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(conditionDTO);
 
