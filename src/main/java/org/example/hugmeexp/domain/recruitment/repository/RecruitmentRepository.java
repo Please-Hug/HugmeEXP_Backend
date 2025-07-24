@@ -31,8 +31,8 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
               (:#{#cond.topLeftLng} IS NULL OR r.longitude >= :#{#cond.topLeftLng}) AND
               (:#{#cond.bottomRightLat} IS NULL OR r.latitude <= :#{#cond.bottomRightLat}) AND
               (:#{#cond.bottomRightLng} IS NULL OR r.longitude <= :#{#cond.bottomRightLng}) AND
-              (:#{#cond.techStacks == null or #cond.techStacks.isEmpty()} OR ts.id IN :#{#cond.techStacks}) AND
-              (:#{#cond.tags == null or #cond.tags.isEmpty()} OR t.id IN :#{#cond.tags})
+              (:#{#cond.techStacks} IS NULL OR ts.id IN :#{#cond.techStacks}) AND
+              (:#{#cond.tags} IS NULL OR t.id IN :#{#cond.tags})
         GROUP BY r.id, r.title, c.companyName, c.companyImageUrl, r.dueDate, r.experience,
                  r.workLocation, r.latitude, r.longitude
         HAVING (:#{#cond.techStacks} IS NULL OR COUNT(DISTINCT ts.id) = :#{#cond.techStackCount}) AND

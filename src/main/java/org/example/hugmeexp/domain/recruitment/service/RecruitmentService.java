@@ -19,10 +19,11 @@ public class RecruitmentService {
     private final RecruitmentRepository recruitmentRepository;
 
     public List<RecruitmentResponseDTO> listRecruitments(RecruitmentSearchConditionDTO cond) {
-
         RecruitmentSearchConditionDTO enrichedCond = cond.toBuilder()
-                .techStackCount(cond.getTechStacks() == null ? null : (long) cond.getTechStacks().size())
-                .tagCount(cond.getTags() == null ? null : (long) cond.getTags().size())
+                .techStacks((cond.getTechStacks() == null || cond.getTechStacks().isEmpty()) ? null : cond.getTechStacks())
+                .tags((cond.getTags() == null || cond.getTags().isEmpty()) ? null : cond.getTags())
+                .techStackCount((cond.getTechStacks() == null) ? null : (long) cond.getTechStacks().size())
+                .tagCount((cond.getTags() == null) ? null : (long) cond.getTags().size())
                 .build();
 
         return recruitmentRepository.findBySearchConditions(enrichedCond);
