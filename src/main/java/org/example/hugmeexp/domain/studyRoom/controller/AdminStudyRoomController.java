@@ -8,10 +8,15 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.studyRoom.dto.mapper.StudyHallMapper;
+import org.example.hugmeexp.domain.studyRoom.dto.mapper.StudyRoomMapper;
 import org.example.hugmeexp.domain.studyRoom.dto.request.StudyHallRequest;
+import org.example.hugmeexp.domain.studyRoom.dto.request.StudyRoomRequest;
 import org.example.hugmeexp.domain.studyRoom.dto.response.StudyHallResponse;
+import org.example.hugmeexp.domain.studyRoom.dto.response.StudyRoomResponse;
 import org.example.hugmeexp.domain.studyRoom.entity.StudyHall;
+import org.example.hugmeexp.domain.studyRoom.entity.StudyRoom;
 import org.example.hugmeexp.domain.studyRoom.service.StudyHallService;
+import org.example.hugmeexp.domain.studyRoom.service.StudyRoomService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,6 +37,9 @@ public class AdminStudyRoomController {
 
     private final StudyHallService studyHallService;
     private final StudyHallMapper studyHallMapper;
+    private final StudyRoomService studyRoomService;
+    private final StudyRoomMapper studyRoomMapper;
+
 
     /**
      * 새로운 회의실(스터디 홀)을 생성하는 API 엔드포인트입니다.
@@ -82,5 +90,39 @@ public class AdminStudyRoomController {
         StudyHall studyHall = studyHallService.findStudyHallById(studyHallId);
         StudyHallResponse responseDto = studyHallMapper.toResponseDto(studyHall);
         return ResponseEntity.ok(responseDto);
+    }
+
+    /**
+     * 특정 스터디 홀에 새로운 룸을 생성합니다.
+     * @param studyHallId 룸을 추가할 스터디 홀의 ID
+     * @param requestDto 생성할 룸의 정보
+     * @return 생성된 룸의 정보와 HTTP 201 Created
+     */
+    @Operation(summary = "개별 스터디 룸 생성", description = "특정 스터디 홀에 개별 스터디 룸을 추가합니다.")
+    @PostMapping("/{studyHallId}/rooms")
+    public ResponseEntity<StudyRoomResponse> createStudyRoom(
+            @PathVariable Long studyHallId,
+            @RequestBody StudyRoomRequest requestDto) {
+
+        StudyRoom createdStudyRoom = studyRoomService.createStudyRoom(studyHallId, requestDto);
+        StudyRoomResponse responseDto = studyRoomMapper.toResponseDto(createdStudyRoom);
+        URI location = URI.create(String.format("/api/v1/admin/studyhalls/%d/rooms/%d", studyHallId, createdStudyRoom.getId()));
+
+        return ResponseEntity.created(location).body(responseDto);
+    }
+
+    /**
+     * 특정 스터디 홀에 속한 모든 룸 목록을 조회합니다.
+     * @param studyHallId 조회할 스터디 홀의 ID
+     * @return 스터디 룸 목록과 HTTP 200 OK
+     */
+    @Operation(summary = "특정 홀의 룸 목록 조회", description = "특정 스터디 홀에 속한 모든 스터디 룸 목록을 조회합니다.")
+    @GetMapping("/{studyHallId}/rooms")
+    public ResponseEntity<List<StudyRoomResponse>> getAllRoomsInHall(@PathVariable Long studyHallId) {
+        List<StudyRoom> rooms = studyRoomService.findAllRoomsInHall(studyHallId);
+        List<StudyRoomResponse> responseDtos = rooms.stream()
+                .map(studyRoomMapper::toResponseDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responseDtos);
     }
 }

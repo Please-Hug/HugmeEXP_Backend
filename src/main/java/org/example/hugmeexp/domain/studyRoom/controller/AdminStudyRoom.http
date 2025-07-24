@@ -43,7 +43,24 @@ Authorization: {{admin_token}}
 GET {{host}}/api/v1/admin/studyhalls
 Authorization: {{admin_token}}
 
-
 ### 3. 특정 스터디 홀 상세 조회 (GET)
-GET {{host}}/api/v1/admin/studyhalls/{{studyHallId}}
+GET {{host}}/api/v1/admin/studyhalls/1
+Authorization: {{admin_token}}
+
+### 4. 개별 스터디 룸 생성
+POST {{host}}/api/v1/admin/studyhalls/1/rooms
+Content-Type: application/json
+Authorization: {{admin_token}}
+
+{
+  "name": "4인실 C",
+  "maxNum": 4
+}
+
+> {%
+    client.global.set("studyRoomId", response.body.id);
+%}
+
+### 5. 특정 홀에 속한 룸 목록 조회
+GET {{host}}/api/v1/admin/studyhalls/{{studyHallId}}/rooms
 Authorization: {{admin_token}}

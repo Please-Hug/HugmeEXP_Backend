@@ -10,16 +10,15 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class StudyHallResponse {
-    private Long id;
-    private String name;
-    private String description;
-    private String simpleAddress;
-    private String address;
-    private Double latitude;
-    private Double longitude;
-    private String thumbnail;
-    private LocalDateTime openTime;
-    private LocalDateTime closeTime;
+    private final Long id;
+    private final String name;
+    private final String description;
+    private final String simpleAddress;
+    private final String address;
+    private final Double latitude;
+    private final Double longitude;
+    private final String thumbnail;
+    private final LocalDateTime openTime;
+    private final LocalDateTime closeTime;
 }
