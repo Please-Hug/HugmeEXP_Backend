@@ -15,8 +15,6 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class StudyHall extends BaseEntity {
 
-    private boolean isDeleted = false;
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="studyhall_id")
@@ -42,6 +40,8 @@ public class StudyHall extends BaseEntity {
 
     @OneToMany(mappedBy = "studyHall", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StudyRoom> studyRooms;
+    
+    private boolean isDeleted = false;
 
     /**
      * 스터디 홀 정보를 수정하는 메서드입니다.
