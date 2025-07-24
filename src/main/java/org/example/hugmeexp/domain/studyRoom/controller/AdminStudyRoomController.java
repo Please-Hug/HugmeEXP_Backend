@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 회의실(스터디 홀) 관련 API 요청을 처리하는 컨트롤러입니다.
@@ -119,9 +118,7 @@ public class AdminStudyRoomController {
     @GetMapping("/{studyHallId}/rooms")
     public ResponseEntity<List<StudyRoomResponse>> getAllRoomsInHall(@PathVariable Long studyHallId) {
         List<StudyRoom> rooms = studyRoomService.findAllRoomsInHall(studyHallId);
-        List<StudyRoomResponse> responseDtos = rooms.stream()
-                .map(studyRoomMapper::toResponseDto)
-                .toList();
+        List<StudyRoomResponse> responseDtos = studyRoomMapper.toResponseDtos(rooms);
         return ResponseEntity.ok(responseDtos);
     }
 
