@@ -37,6 +37,6 @@ public class StudyHall extends BaseEntity {
 
     private LocalDateTime closeTime;
 
-    @OneToMany(mappedBy = "studyRoom", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "studyHall", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StudyRoom> studyRooms;
 }
