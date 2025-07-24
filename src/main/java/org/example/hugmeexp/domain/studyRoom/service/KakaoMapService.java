@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.studyRoom.entity.Location;
 import org.example.hugmeexp.global.common.config.KakaoMapConfig;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -21,6 +22,7 @@ public class KakaoMapService {
 
     private final KakaoMapConfig kakaoMapConfig;
     private final RestTemplate restTemplate;
+    @Qualifier("kakaoMapObjectMapper")
     private final ObjectMapper objectMapper;
 
     /**
