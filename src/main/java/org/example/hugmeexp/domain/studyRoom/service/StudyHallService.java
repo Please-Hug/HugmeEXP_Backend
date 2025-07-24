@@ -56,6 +56,6 @@ public class StudyHallService {
      */
     public StudyHall findStudyHallById(Long studyHallId) {
         return studyHallRepository.findById(studyHallId)
-                .orElseThrow(StudyHallNotFoundException::new);
+                .orElseThrow(() -> new StudyHallNotFoundException(studyHallId));
     }
 }
