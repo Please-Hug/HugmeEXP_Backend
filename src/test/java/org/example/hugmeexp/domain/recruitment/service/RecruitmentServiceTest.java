@@ -55,7 +55,10 @@ public class RecruitmentServiceTest {
 
         // Then
         assertEquals(expectedResult, result);
-        verify(recruitmentRepository).findBySearchConditions(any(RecruitmentSearchConditionDTO.class));
+        verify(recruitmentRepository).findBySearchConditions(argThat(cond ->
+            cond.getTechStackCount() == 2L &&
+            cond.getTagCount() == 2L
+        ));
     }
 
     @Test
