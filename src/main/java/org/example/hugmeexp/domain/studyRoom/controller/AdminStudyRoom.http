@@ -49,7 +49,6 @@ GET {{host}}/api/v1/admin/studyhalls/1
 Authorization: {{admin_token}}
 
 ### 4. 개별 스터디 룸 생성
-# @name createStudyRoom
 POST {{host}}/api/v1/admin/studyhalls/1/rooms
 Content-Type: application/json
 Authorization: {{admin_token}}
@@ -65,5 +64,5 @@ Authorization: {{admin_token}}
 
 
 ### 5. 특정 홀에 속한 룸 목록 조회
-GET {{host}}/api/v1/admin/studyhalls/1/rooms
+GET {{host}}/api/v1/admin/studyhalls/{{studyHallId}}/rooms
 Authorization: {{admin_token}}
