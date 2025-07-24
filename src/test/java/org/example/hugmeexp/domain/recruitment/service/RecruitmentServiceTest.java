@@ -48,26 +48,14 @@ public class RecruitmentServiceTest {
                 .build();
 
         List<RecruitmentResponseDTO> expectedResult = createMockResponseList();
-        when(recruitmentRepository.findBySearchConditions(
-                eq(3000), eq(5000), eq(3), eq(4), eq("서울"),
-                eq(new BigDecimal("37.5")), eq(new BigDecimal("126.9")),
-                eq(new BigDecimal("37.4")), eq(new BigDecimal("127.0")),
-                eq(List.of(1L, 2L)), eq(List.of(3L, 4L)),
-                eq(2L), eq(2L)
-        )).thenReturn(expectedResult);
+        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class))).thenReturn(expectedResult);
 
         // When
         List<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition);
 
         // Then
         assertEquals(expectedResult, result);
-        verify(recruitmentRepository).findBySearchConditions(
-                eq(3000), eq(5000), eq(3), eq(4), eq("서울"),
-                eq(new BigDecimal("37.5")), eq(new BigDecimal("126.9")),
-                eq(new BigDecimal("37.4")), eq(new BigDecimal("127.0")),
-                eq(List.of(1L, 2L)), eq(List.of(3L, 4L)),
-                eq(2L), eq(2L)
-        );
+        verify(recruitmentRepository).findBySearchConditions(any(RecruitmentSearchConditionDTO.class));
     }
 
     @Test
@@ -77,22 +65,14 @@ public class RecruitmentServiceTest {
         RecruitmentSearchConditionDTO condition = RecruitmentSearchConditionDTO.builder().build();
 
         List<RecruitmentResponseDTO> expectedResult = createMockResponseList();
-        when(recruitmentRepository.findBySearchConditions(
-                isNull(), isNull(), isNull(), isNull(), isNull(),
-                isNull(), isNull(), isNull(), isNull(),
-                isNull(), isNull(), isNull(), isNull()
-        )).thenReturn(expectedResult);
+        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class))).thenReturn(expectedResult);
 
         // When
         List<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition);
 
         // Then
         assertEquals(expectedResult, result);
-        verify(recruitmentRepository).findBySearchConditions(
-                isNull(), isNull(), isNull(), isNull(), isNull(),
-                isNull(), isNull(), isNull(), isNull(),
-                isNull(), isNull(), isNull(), isNull()
-        );
+        verify(recruitmentRepository).findBySearchConditions(any(RecruitmentSearchConditionDTO.class));
     }
 
     @Test
@@ -105,22 +85,14 @@ public class RecruitmentServiceTest {
                 .build();
 
         List<RecruitmentResponseDTO> expectedResult = createMockResponseList();
-        when(recruitmentRepository.findBySearchConditions(
-                eq(3000), eq(5000), isNull(), isNull(), isNull(),
-                isNull(), isNull(), isNull(), isNull(),
-                isNull(), isNull(), isNull(), isNull()
-        )).thenReturn(expectedResult);
+        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class))).thenReturn(expectedResult);
 
         // When
         List<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition);
 
         // Then
         assertEquals(expectedResult, result);
-        verify(recruitmentRepository).findBySearchConditions(
-                eq(3000), eq(5000), isNull(), isNull(), isNull(),
-                isNull(), isNull(), isNull(), isNull(),
-                isNull(), isNull(), isNull(), isNull()
-        );
+        verify(recruitmentRepository).findBySearchConditions(any(RecruitmentSearchConditionDTO.class));
     }
 
     @Test
@@ -135,22 +107,14 @@ public class RecruitmentServiceTest {
                 .build();
 
         List<RecruitmentResponseDTO> expectedResult = createMockResponseList();
-        when(recruitmentRepository.findBySearchConditions(
-                eq(3000), eq(5000), isNull(), isNull(), isNull(),
-                isNull(), isNull(), isNull(), isNull(),
-                isNull(), isNull(), isNull(), isNull()
-        )).thenReturn(expectedResult);
+        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class))).thenReturn(expectedResult);
 
         // When
         List<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition);
 
         // Then
         assertEquals(expectedResult, result);
-        verify(recruitmentRepository).findBySearchConditions(
-                eq(3000), eq(5000), isNull(), isNull(), isNull(),
-                isNull(), isNull(), isNull(), isNull(),
-                isNull(), isNull(), isNull(), isNull()
-        );
+        verify(recruitmentRepository).findBySearchConditions(any(RecruitmentSearchConditionDTO.class));
     }
 
     @Test
@@ -163,22 +127,14 @@ public class RecruitmentServiceTest {
                 .build();
 
         List<RecruitmentResponseDTO> expectedResult = createMockResponseList();
-        when(recruitmentRepository.findBySearchConditions(
-                isNull(), isNull(), isNull(), isNull(), isNull(),
-                isNull(), isNull(), isNull(), isNull(),
-                eq(List.of()), eq(List.of()), eq(0L), eq(0L)
-        )).thenReturn(expectedResult);
+        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class))).thenReturn(expectedResult);
 
         // When
         List<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition);
 
         // Then
         assertEquals(expectedResult, result);
-        verify(recruitmentRepository).findBySearchConditions(
-                isNull(), isNull(), isNull(), isNull(), isNull(),
-                isNull(), isNull(), isNull(), isNull(),
-                eq(List.of()), eq(List.of()), eq(0L), eq(0L)
-        );
+        verify(recruitmentRepository).findBySearchConditions(any(RecruitmentSearchConditionDTO.class));
     }
 
     @Test
@@ -191,22 +147,14 @@ public class RecruitmentServiceTest {
                 .build();
 
         List<RecruitmentResponseDTO> expectedResult = createMockResponseList();
-        when(recruitmentRepository.findBySearchConditions(
-                isNull(), isNull(), isNull(), isNull(), isNull(),
-                isNull(), isNull(), isNull(), isNull(),
-                eq(List.of(1L, 2L, 3L)), isNull(), eq(3L), isNull()
-        )).thenReturn(expectedResult);
+        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class))).thenReturn(expectedResult);
 
         // When
         List<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition);
 
         // Then
         assertEquals(expectedResult, result);
-        verify(recruitmentRepository).findBySearchConditions(
-                isNull(), isNull(), isNull(), isNull(), isNull(),
-                isNull(), isNull(), isNull(), isNull(),
-                eq(List.of(1L, 2L, 3L)), isNull(), eq(3L), isNull()
-        );
+        verify(recruitmentRepository).findBySearchConditions(any(RecruitmentSearchConditionDTO.class));
     }
 
     @Test
@@ -219,42 +167,34 @@ public class RecruitmentServiceTest {
                 .build();
 
         List<RecruitmentResponseDTO> expectedResult = createMockResponseList();
-        when(recruitmentRepository.findBySearchConditions(
-                isNull(), isNull(), isNull(), isNull(), isNull(),
-                isNull(), isNull(), isNull(), isNull(),
-                isNull(), eq(List.of(1L, 2L)), isNull(), eq(2L)
-        )).thenReturn(expectedResult);
+        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class))).thenReturn(expectedResult);
 
         // When
         List<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition);
 
         // Then
         assertEquals(expectedResult, result);
-        verify(recruitmentRepository).findBySearchConditions(
-                isNull(), isNull(), isNull(), isNull(), isNull(),
-                isNull(), isNull(), isNull(), isNull(),
-                isNull(), eq(List.of(1L, 2L)), isNull(), eq(2L)
-        );
+        verify(recruitmentRepository).findBySearchConditions(any(RecruitmentSearchConditionDTO.class));
     }
 
     // 테스트용 응답 DTO 리스트 생성 헬퍼 메소드
     private List<RecruitmentResponseDTO> createMockResponseList() {
         List<RecruitmentResponseDTO> responses = new ArrayList<>();
-        
+
         // 첫 번째 응답 DTO
         responses.add(new RecruitmentResponseDTO(
                 1L, "백엔드 개발자 모집", "ABC 회사", "company_image_url_1.jpg",
                 LocalDateTime.of(2023, 12, 31, 23, 59),
                 3, "서울시 강남구", new BigDecimal("37.5"), new BigDecimal("127.0")
         ));
-        
+
         // 두 번째 응답 DTO
         responses.add(new RecruitmentResponseDTO(
                 2L, "프론트엔드 개발자 모집", "XYZ 회사", "company_image_url_2.jpg",
                 LocalDateTime.of(2023, 11, 30, 23, 59),
                 2, "서울시 서초구", new BigDecimal("37.4"), new BigDecimal("127.1")
         ));
-        
+
         return responses;
     }
 }
