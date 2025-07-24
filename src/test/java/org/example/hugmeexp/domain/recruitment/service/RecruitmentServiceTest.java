@@ -117,7 +117,10 @@ public class RecruitmentServiceTest {
 
         // Then
         assertEquals(expectedResult, result);
-        verify(recruitmentRepository).findBySearchConditions(any(RecruitmentSearchConditionDTO.class));
+        verify(recruitmentRepository).findBySearchConditions(argThat(cond ->
+            cond.getTechStackCount() == null &&
+            cond.getTagCount() == null
+        ));
     }
 
     @Test
@@ -137,7 +140,10 @@ public class RecruitmentServiceTest {
 
         // Then
         assertEquals(expectedResult, result);
-        verify(recruitmentRepository).findBySearchConditions(any(RecruitmentSearchConditionDTO.class));
+        verify(recruitmentRepository).findBySearchConditions(argThat(cond ->
+            cond.getTechStackCount() == null &&
+            cond.getTagCount() == null
+        ));
     }
 
     @Test
