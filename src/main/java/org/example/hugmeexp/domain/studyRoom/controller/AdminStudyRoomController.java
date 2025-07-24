@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.studyRoom.dto.mapper.StudyHallMapper;
@@ -52,10 +53,10 @@ public class AdminStudyRoomController {
             @ApiResponse(responseCode = "403", description = "권한 없음")
     })
     @PostMapping
-    public ResponseEntity<StudyHallResponse> createStudyHall(@RequestBody StudyHallRequest requestDto) {
+    public ResponseEntity<StudyHallResponse> createStudyHall(@Valid @RequestBody StudyHallRequest requestDto) {
         StudyHall createdStudyHall = studyHallService.createStudyHall(requestDto);
         StudyHallResponse responseDto = studyHallMapper.toResponseDto(createdStudyHall);
-        URI location = URI.create(String.format("/api/v1/admin/studyrooms/%d", createdStudyHall.getId()));
+        URI location = URI.create(String.format("/api/v1/admin/studyhalls/%d", createdStudyHall.getId()));
 
         return ResponseEntity.created(location).body(responseDto);
     }
@@ -70,7 +71,7 @@ public class AdminStudyRoomController {
         List<StudyHall> studyHalls = studyHallService.findAllStudyHalls();
         List<StudyHallResponse> responseDtos = studyHalls.stream()
                 .map(studyHallMapper::toResponseDto)
-                .collect(Collectors.toList());
+                .toList();
         return ResponseEntity.ok(responseDtos);
     }
 

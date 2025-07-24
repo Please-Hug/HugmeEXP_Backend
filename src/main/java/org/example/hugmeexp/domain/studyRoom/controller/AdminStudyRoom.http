@@ -23,15 +23,15 @@ Content-Type: application/json
 Authorization: {{admin_token}}
 
 {
-  "name": "강남 1호점",
+  "name": "강남 3호점",
   "description": "조용하고 집중하기 좋은 공간입니다.",
   "simpleAddress": "강남역 1번 출구",
   "address": "서울특별시 강남구 강남대로 396",
   "latitude": 37.4979,
   "longitude": 127.0276,
   "thumbnail": "https://example.com/thumbnail.jpg",
-  "openTime": "2025-07-23T09:00:00",
-  "closeTime": "2025-07-23T23:00:00"
+  "openTime": "2025-07-24T09:00:00",
+  "closeTime": "2025-07-24T23:00:00"
 }
 
 > {%
@@ -42,7 +42,6 @@ Authorization: {{admin_token}}
 ### 2. 전체 스터디 홀 조회 (GET)
 GET {{host}}/api/v1/admin/studyhalls
 Authorization: {{admin_token}}
-
 
 ### 3. 특정 스터디 홀 상세 조회 (GET)
 GET {{host}}/api/v1/admin/studyhalls/1
@@ -61,7 +60,6 @@ Authorization: {{admin_token}}
 > {%
     client.global.set("studyRoomId", response.body.id);
 %}
-
 
 ### 5. 특정 홀에 속한 룸 목록 조회
 GET {{host}}/api/v1/admin/studyhalls/{{studyHallId}}/rooms
