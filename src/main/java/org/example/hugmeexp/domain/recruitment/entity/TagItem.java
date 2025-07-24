@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-@Table(name = "tagItem")
+@Table(name = "tag_item")
 public class TagItem {
 
     @Id
