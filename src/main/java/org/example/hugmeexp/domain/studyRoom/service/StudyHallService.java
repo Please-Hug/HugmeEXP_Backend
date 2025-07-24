@@ -26,6 +26,12 @@ public class StudyHallService {
      */
     @Transactional
     public StudyHall createStudyHall(StudyHallRequest requestDto) {
+        if (requestDto == null) {
+            throw new IllegalArgumentException("StudyHallRequest는 null일 수 없습니다.");
+        }
+        if (requestDto.getName() == null || requestDto.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("스터디 홀 이름은 필수입니다.");
+        }
         StudyHall studyHall = StudyHall.builder()
                 .name(requestDto.getName())
                 .description(requestDto.getDescription())
@@ -56,6 +62,6 @@ public class StudyHallService {
      */
     public StudyHall findStudyHallById(Long studyHallId) {
         return studyHallRepository.findById(studyHallId)
-                .orElseThrow(StudyHallNotFoundException::new);
+                .orElseThrow(() -> new StudyHallNotFoundException(studyHallId));
     }
 }
