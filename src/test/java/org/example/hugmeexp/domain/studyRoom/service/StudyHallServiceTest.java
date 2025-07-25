@@ -122,6 +122,7 @@ class StudyHallServiceTest {
         StudyHall originalHall = StudyHall.builder()
                 .id(studyHallId)
                 .name("수정 전 이름")
+                .description("수정 전 설명")
                 .build();
 
         StudyHallRequest updateRequest = StudyHallRequest.builder()
@@ -136,7 +137,6 @@ class StudyHallServiceTest {
 
         // then
         verify(studyHallRepository).findByIdAndIsDeletedFalse(studyHallId);
-
         assertThat(originalHall.getName()).isEqualTo("수정된 이름");
         assertThat(originalHall.getDescription()).isEqualTo("수정된 설명입니다.");
     }
