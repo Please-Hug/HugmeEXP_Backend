@@ -3,7 +3,6 @@ package org.example.hugmeexp.domain.recruitment.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentCompanySearchResponseDTO;
-import org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO;
 import org.example.hugmeexp.domain.recruitment.entity.Company;
 import org.example.hugmeexp.domain.recruitment.repository.CompanyRepository;
 import org.springframework.stereotype.Service;
@@ -20,10 +19,11 @@ public class CompanyService {
     private final CompanyRepository companyRepository;
 
     /**
-     * 주어진 키워드로 기업 목록을 검색합니다.
+     * 기업 이름을 키워드로 검색하여 기업 목록을 조회합니다.
+     * 키워드가 null 또는 비어있으면 모든 기업을 조회합니다.
      *
-     * @param keyword 검색할 키워드
-     * @return 검색된 기업 목록
+     * @param keyword 검색 키워드
+     * @return 기업 목록 DTO
      */
     public List<RecruitmentCompanySearchResponseDTO> searchCompaniesByKeyword(String keyword) {
         List<Company> companies = (keyword == null || keyword.isBlank())

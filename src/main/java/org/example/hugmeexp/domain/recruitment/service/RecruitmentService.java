@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentSearchConditionDTO;
-import org.example.hugmeexp.domain.recruitment.entity.Company;
 import org.example.hugmeexp.domain.recruitment.repository.RecruitmentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
