@@ -50,14 +50,14 @@ public class RecruitmentController {
 
         List<RecruitmentCompanySearchResponseDTO> result = companyService.searchCompaniesByKeyword(keyword);
 
+        if(result.isEmpty()){
+            return ResponseEntity.noContent().build();
+        }
+
         Response<List<RecruitmentCompanySearchResponseDTO>> response = Response.<List<RecruitmentCompanySearchResponseDTO>>builder()
                 .message("기업 목록 조회 성공")
                 .data(result)
                 .build();
-
-        if(result.isEmpty()){
-            return ResponseEntity.noContent().build();
-        }
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

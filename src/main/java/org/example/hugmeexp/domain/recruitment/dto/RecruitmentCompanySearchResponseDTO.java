@@ -12,8 +12,8 @@ import org.example.hugmeexp.domain.recruitment.entity.Company;
 @Builder(toBuilder = true)
 public class RecruitmentCompanySearchResponseDTO {
 
-    Long companyId;
-    String companyName;
+    private Long companyId;
+    private String companyName;
 
     public static RecruitmentCompanySearchResponseDTO from(Company company) {
         return RecruitmentCompanySearchResponseDTO.builder()
