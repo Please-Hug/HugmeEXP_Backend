@@ -5,16 +5,15 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.hugmeexp.domain.recruitment.dto.RecruitmentCompanySearchResponseDTO;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentSearchConditionDTO;
+import org.example.hugmeexp.domain.recruitment.service.CompanyService;
 import org.example.hugmeexp.domain.recruitment.service.RecruitmentService;
 import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -26,6 +25,7 @@ import java.util.List;
 public class RecruitmentController {
 
     private final RecruitmentService recruitmentService;
+    private final CompanyService companyService;
 
     @Operation(summary = "채용 공고 목록 조회", description = "채용 공고 목록을 조회합니다")
     @GetMapping
@@ -38,6 +38,26 @@ public class RecruitmentController {
                 .message("채용 공고 목록 조회 성공")
                 .data(result)
                 .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Operation(summary = "채용 기업 목록 조회", description = "채용 기업 목록을 조회합니다")
+    @GetMapping("/companies")
+    public ResponseEntity<Response<List<RecruitmentCompanySearchResponseDTO>>> searchCompanies(
+            @RequestParam(required = false) String keyword
+    ){
+
+        List<RecruitmentCompanySearchResponseDTO> result = companyService.searchCompaniesByKeyword(keyword);
+
+        Response<List<RecruitmentCompanySearchResponseDTO>> response = Response.<List<RecruitmentCompanySearchResponseDTO>>builder()
+                .message("기업 목록 조회 성공")
+                .data(result)
+                .build();
+
+        if(result.isEmpty()){
+            return ResponseEntity.noContent().build();
+        }
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
