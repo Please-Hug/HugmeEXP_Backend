@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
  */
 @Getter
 @Builder
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class StudyHallResponse {
     private final Long id;
     private final String name;

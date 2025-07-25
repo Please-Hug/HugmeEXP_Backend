@@ -28,7 +28,7 @@ public class StudyRoomService {
      */
     @Transactional
     public StudyRoom createStudyRoom(Long studyHallId, StudyRoomRequest requestDto) {
-        StudyHall parentStudyHall = studyHallRepository.findById(studyHallId)
+        StudyHall parentStudyHall = studyHallRepository.findByIdAndIsDeletedFalse(studyHallId)
                 .orElseThrow(() -> new StudyHallNotFoundException(studyHallId));
 
         StudyRoom studyRoom = StudyRoom.builder()
@@ -47,7 +47,7 @@ public class StudyRoomService {
      * @return StudyRoom 엔티티 리스트
      */
     public List<StudyRoom> findAllRoomsInHall(Long studyHallId) {
-        StudyHall parentHall = studyHallRepository.findById(studyHallId)
+        StudyHall parentHall = studyHallRepository.findByIdAndIsDeletedFalse(studyHallId)
                 .orElseThrow(() -> new StudyHallNotFoundException(studyHallId));
 
         return studyRoomRepository.findAllByStudyHall(parentHall);
