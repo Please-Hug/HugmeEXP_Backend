@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 public class StudyHallService {
 
     private final StudyHallRepository studyHallRepository;
-    private final StudyHallMapper studyHallMapper;
 
     /**
      * 새로운 회의실(스터디 홀)을 생성하고 데이터베이스에 저장합니다.
@@ -70,7 +69,7 @@ public class StudyHallService {
     @Transactional
     public StudyHall updateStudyHall(Long studyHallId, StudyHallRequest requestDto) {
         StudyHall studyHall = findStudyHallById(studyHallId);
-        studyHallMapper.updateFromDto(requestDto, studyHall);
+        studyHall.update(requestDto);
         return studyHall;
     }
 

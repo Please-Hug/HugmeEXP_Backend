@@ -19,7 +19,4 @@ public interface StudyHallMapper {
 
     List<StudyHallResponse> toResponseDtos(List<StudyHall> studyHalls);
 
-    // DTO의 필드가 null일 경우, 엔티티의 해당 필드를 무시하도록 설정
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateFromDto(StudyHallRequest dto, @MappingTarget StudyHall entity);
 }
