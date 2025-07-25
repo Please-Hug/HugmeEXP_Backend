@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.studyRoom.dto.request.StudyHallSearchRequest;
 import org.example.hugmeexp.domain.studyRoom.dto.response.StudyHallLocationResponse;
+import org.example.hugmeexp.domain.studyRoom.repository.StudyHallRepository;
 import org.example.hugmeexp.domain.studyRoom.service.StudyHallService;
 import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import java.util.List;
 public class StudyRoomController {
 
     private final StudyHallService studyHallService;
+    private final StudyHallRepository studyHallRepository;
 
     @Operation(summary = "모든 스터디홀 위치 조회", description = "지도에 표시할 모든 스터디홀의 위치 정보를 조회합니다.")
     @GetMapping("/map/halls")
@@ -109,6 +111,21 @@ public class StudyRoomController {
         return ResponseEntity.ok(Response.<List<StudyHallLocationResponse>>builder()
                 .message(String.format("이름 '%s'로 %d개의 스터디홀을 찾았습니다.", name, studyHalls.size()))
                 .data(studyHalls)
+                .build());
+    }
+
+    @Operation(summary = "디버깅용 거리 계산",
+            description = "디버깅 목적으로 현재 위치와 스터디홀 간의 거리를 계산합니다.")
+    @GetMapping("/debug/distance")
+    public ResponseEntity<Response<List<Object[]>>> debugDistance(
+            @RequestParam Double latitude,
+            @RequestParam Double longitude) {
+
+        List<Object[]> results = studyHallRepository.findAllWithDistanceDebug(latitude, longitude);
+
+        return ResponseEntity.ok(Response.<List<Object[]>>builder()
+                .message("디버깅용 거리 계산 결과")
+                .data(results)
                 .build());
     }
 }

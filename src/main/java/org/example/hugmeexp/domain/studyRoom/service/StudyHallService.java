@@ -18,9 +18,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigInteger;
-import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -110,38 +107,29 @@ public class StudyHallService {
     }
 
     /**
-     * 현재 위치 기반 주변 스터디홀 검색
+     * 현재 위치 기반 주변 스터디홀 검색 (Java 계산 방식)
      */
     public List<StudyHallLocationResponse> searchNearbyStudyHalls(StudyHallSearchRequest request) {
         log.info("Searching nearby study halls - lat: {}, lng: {}, radius: {}km",
                 request.getLatitude(), request.getLongitude(), request.getRadius());
 
-        // 반경을 미터로 변환
-        Double radiusInMeters = request.getRadius() * 1000;
+        // 모든 스터디홀을 가져와서 Java로 거리 계산
+        List<StudyHall> allHalls = studyHallRepository.findAll();
 
-        // 데이터베이스에서 거리 기반 검색
-        List<Object[]> results = studyHallRepository.findNearbyStudyHallsWithDistance(
-                request.getLatitude(),
-                request.getLongitude(),
-                radiusInMeters,
-                request.getLimit()
-        );
-
-        List<StudyHallLocationResponse> responses = new ArrayList<>();
-
-        for (Object[] result : results) {
-            try {
-                // Native query 결과를 StudyHall 객체로 변환
-                StudyHall studyHall = mapResultToStudyHall(result);
-                Double distance = ((Number) result[result.length - 1]).doubleValue(); // 마지막 컬럼이 distance_km
-
-                StudyHallLocationResponse response = StudyHallLocationResponse.from(studyHall, distance);
-                responses.add(response);
-
-            } catch (Exception e) {
-                log.error("Error mapping study hall result", e);
-            }
-        }
+        List<StudyHallLocationResponse> responses = allHalls.stream()
+                .filter(hall -> hall.getLatitude() != null && hall.getLongitude() != null)
+                .map(hall -> {
+                    // Java에서 거리 계산
+                    Double distance = kakaoMapService.calculateDistance(
+                            request.getLatitude(), request.getLongitude(),
+                            hall.getLatitude(), hall.getLongitude()
+                    );
+                    return StudyHallLocationResponse.from(hall, distance);
+                })
+                .filter(response -> response.getDistance() != null && response.getDistance() <= request.getRadius())
+                .sorted((a, b) -> Double.compare(a.getDistance(), b.getDistance()))
+                .limit(request.getLimit())
+                .toList();
 
         log.info("Found {} nearby study halls", responses.size());
         return responses;
@@ -180,7 +168,7 @@ public class StudyHallService {
      * 주소로 스터디홀 검색
      */
     public List<StudyHallLocationResponse> searchStudyHallsByAddress(String address) {
-        List<StudyHall> studyHalls = studyHallRepository.findByAddressContainingIgnoreCase(address);
+        List<StudyHall> studyHalls = studyHallRepository.findByLocationAddressContainingIgnoreCase(address);
         return studyHalls.stream()
                 .map(StudyHallLocationResponse::from)
                 .toList();
@@ -202,23 +190,5 @@ public class StudyHallService {
     @Transactional
     public Location convertAddressToLocation(String address) {
         return kakaoMapService.addressToCoordinates(address);
-    }
-
-    /**
-     * Native query 결과를 StudyHall 엔티티로 매핑
-     */
-    private StudyHall mapResultToStudyHall(Object[] result) {
-        return StudyHall.builder()
-                .id(((BigInteger) result[0]).longValue())
-                .name((String) result[3])
-                .description((String) result[4])
-                .simpleAddress((String) result[5])
-                .address((String) result[6])
-                .latitude((Double) result[7])
-                .longitude((Double) result[8])
-                .thumbnail((String) result[9])
-                .openTime(result[10] != null ? ((Timestamp) result[10]).toLocalDateTime() : null)
-                .closeTime(result[11] != null ? ((Timestamp) result[11]).toLocalDateTime() : null)
-                .build();
     }
 }

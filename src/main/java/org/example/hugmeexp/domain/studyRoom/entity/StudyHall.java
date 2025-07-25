@@ -22,7 +22,7 @@ public class StudyHall extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "study_hall_id")
+    @Column(name = "studyhall_id")
     private Long id;
 
     @NotBlank(message = "스터디홀 이름은 필수입니다.")

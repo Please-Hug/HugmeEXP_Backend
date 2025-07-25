@@ -22,33 +22,48 @@ public interface StudyHallRepository extends JpaRepository<StudyHall, Long> {
     Optional<StudyHall> findByIdAndIsDeletedFalse(Long studyHallId);
 
     /**
-     * 현재 위치 기준으로 일정 반경 내의 스터디홀 조회 (거리 계산 포함)
-     * MySQL의 ST_Distance_Sphere 함수를 사용하여 구면 거리 계산
-     *
-     * @param latitude 현재 위치 위도
-     * @param longitude 현재 위치 경도
-     * @param radiusInMeters 검색 반경 (미터)
-     * @param limit 결과 개수 제한
-     * @return 거리 순으로 정렬된 스터디홀 목록
+     * 디버깅용: 모든 스터디홀을 거리와 함께 조회
      */
     @Query(value = """
         SELECT sh.*, 
-               (ST_Distance_Sphere(
-                   POINT(sh.longitude, sh.latitude), 
-                   POINT(:longitude, :latitude)
-               ) / 1000) as distance_km
+               (6371 * ACOS(
+                   COS(RADIANS(:latitude)) * 
+                   COS(RADIANS(sh.latitude)) * 
+                   COS(RADIANS(sh.longitude) - RADIANS(:longitude)) + 
+                   SIN(RADIANS(:latitude)) * 
+                   SIN(RADIANS(sh.latitude))
+               )) as distance_km
         FROM study_hall sh 
-        WHERE ST_Distance_Sphere(
-                  POINT(sh.longitude, sh.latitude), 
-                  POINT(:longitude, :latitude)
-              ) <= :radiusInMeters
+        ORDER BY distance_km ASC
+        LIMIT 5
+        """, nativeQuery = true)
+    List<Object[]> findAllWithDistanceDebug(
+            @Param("latitude") Double latitude,
+            @Param("longitude") Double longitude
+    );
+
+    /**
+     * 현재 위치 기준으로 일정 반경 내의 스터디홀 조회 (거리 계산 포함)
+     * Haversine 공식을 사용하여 구면 거리 계산
+     */
+    @Query(value = """
+        SELECT sh.*, 
+               (6371 * ACOS(
+                   COS(RADIANS(:latitude)) * 
+                   COS(RADIANS(sh.latitude)) * 
+                   COS(RADIANS(sh.longitude) - RADIANS(:longitude)) + 
+                   SIN(RADIANS(:latitude)) * 
+                   SIN(RADIANS(sh.latitude))
+               )) as distance_km
+        FROM study_hall sh 
+        HAVING distance_km <= :radiusInKm
         ORDER BY distance_km ASC
         LIMIT :limit
         """, nativeQuery = true)
     List<Object[]> findNearbyStudyHallsWithDistance(
             @Param("latitude") Double latitude,
             @Param("longitude") Double longitude,
-            @Param("radiusInMeters") Double radiusInMeters,
+            @Param("radiusInKm") Double radiusInKm,
             @Param("limit") Integer limit
     );
 
@@ -72,5 +87,5 @@ public interface StudyHallRepository extends JpaRepository<StudyHall, Long> {
     /**
      * 주소로 스터디홀 검색
      */
-    List<StudyHall> findByAddressContainingIgnoreCase(String address);
+    List<StudyHall> findByLocationAddressContainingIgnoreCase(String address);
 }
