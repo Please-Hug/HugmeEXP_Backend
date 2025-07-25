@@ -26,7 +26,6 @@ public class BookmarkService {
 
     /** 전체 북마크 조회 */
     @Transactional(readOnly = true)
-    @Cacheable(value = "userBookmarks", key = "'bookmark::' + #username")
     public List<BookmarkResponse> getBookmarks(String username) {
         return bookmarkRepository
                 .findAllByUser_Username(username).stream()
@@ -36,7 +35,6 @@ public class BookmarkService {
 
     /** 북마크 추가 */
     @Transactional
-    @CacheEvict(value = "userBookmarks", key = "'bookmark::' + #username")
     public void createBookmark(String username, BookmarkRequest req) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(BookmarkUserNotFoundException::new);
@@ -52,7 +50,6 @@ public class BookmarkService {
 
     /** 북마크 수정 */
     @Transactional
-    @CacheEvict(value = "userBookmarks", key = "'bookmark::' + #username")
     public void updateBookmark(String username, Long id, BookmarkRequest req) {
         Bookmark b = bookmarkRepository
                 .findByIdAndUser_Username(id, username)
@@ -63,7 +60,6 @@ public class BookmarkService {
 
     /** 북마크 삭제 */
     @Transactional
-    @CacheEvict(value = "userBookmarks", key = "'bookmark::' + #username")
     public void deleteBookmark(String username, Long id) {
         Bookmark b = bookmarkRepository
                 .findByIdAndUser_Username(id, username)
