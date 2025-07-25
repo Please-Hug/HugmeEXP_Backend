@@ -122,6 +122,22 @@ public class CompanyServiceTest {
         verify(companyRepository).findByCompanyNameContainingIgnoreCase(keyword);
     }
 
+    @Test
+    @DisplayName("공백 키워드로 회사 검색")
+    void searchCompaniesByKeyword_WithBlankKeyword_ShouldReturnAllCompanies() {
+        // Given
+        String keyword = "   ";
+        List<Company> mockCompanies = createMockCompanies();
+        when(companyRepository.findAll(PageRequest.of(0, 30))).thenReturn(new PageImpl<>(mockCompanies));
+
+        // When
+        List<RecruitmentCompanySearchResponseDTO> result = companyService.searchCompaniesByKeyword(keyword);
+
+        // Then
+        assertEquals(2, result.size());
+        verify(companyRepository).findAll(PageRequest.of(0, 30));
+    }
+
     // 테스트용 회사 데이터 생성 헬퍼 메소드
     private List<Company> createMockCompanies() {
         List<Company> companies = new ArrayList<>();
