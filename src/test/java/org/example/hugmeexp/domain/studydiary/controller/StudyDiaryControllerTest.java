@@ -18,8 +18,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.example.hugmeexp.global.AWS.config.S3Config;
+import org.example.hugmeexp.global.common.config.RedisConfig;
+import org.example.hugmeexp.global.security.config.SecurityConfig;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
+import com.amazonaws.services.s3.AmazonS3Client;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -40,7 +48,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
+@WebMvcTest(controllers = StudyDiaryController.class,
+        excludeFilters = {
+                @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {SecurityConfig.class, S3Config.class, RedisConfig.class})
+        })
 @AutoConfigureMockMvc
 @DisplayName("StudyDiary 컨트롤러 테스트")
 class StudyDiaryControllerTest {
@@ -51,11 +62,20 @@ class StudyDiaryControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @MockitoBean
     private StudyDiaryService studyDiaryService;
 
-    @MockBean
+    @MockitoBean
+    private AmazonS3Client amazonS3Client;
+
+    @MockitoBean
+    private RedisTemplate<String, Object> redisTemplate;
+
+    @MockitoBean
     private StudyDiaryRedisService studyDiaryRedisService;
+
+    @MockitoBean
+    private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
     @Test
     @DisplayName("GET /api/v1/studydiaries - 배움일기 목록 조회 성공")

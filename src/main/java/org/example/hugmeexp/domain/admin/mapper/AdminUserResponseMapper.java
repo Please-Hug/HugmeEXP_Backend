@@ -8,30 +8,32 @@ import org.example.hugmeexp.domain.user.entity.User;
 public class AdminUserResponseMapper {
 
     /** 목록 조회용 매핑 */
-    public static AdminUserAllResponse toProfileResponse(User u) {
+    public static AdminUserAllResponse toProfileResponse(User u, UserInfoResponse userInfo) {
         return new AdminUserAllResponse(
                 u.getId(),
                 u.getPublicProfileImageUrl() != null ? u.getPublicProfileImageUrl() : null,
                 u.getUsername(),
                 u.getName(),
-                u.getRole()
+                u.getRole(),
+                userInfo.getLevel(),
+                userInfo.getPoint()
         );
     }
 
     /** 상세 조회용 매핑 */
-    public static AdminUserInfoResponse toInfoResponse(User u, UserInfoResponse base) {
+    public static AdminUserInfoResponse toInfoResponse(User u, UserInfoResponse userInfo) {
         return new AdminUserInfoResponse(
                 u.getId(),
                 u.getUsername(),
-                base.getProfileImage() != null ? base.getProfileImage() : null,
-                base.getName(),
-                base.getDescription(),
-                base.getPhoneNumber(),
+                userInfo.getProfileImage() != null ? userInfo.getProfileImage() : null,
+                userInfo.getName(),
+                userInfo.getDescription(),
+                userInfo.getPhoneNumber(),
                 u.getRole(),
-                base.getLevel(),
-                base.getNextLevelTotalExp(),
-                base.getCurrentTotalExp(),
-                base.getPoint()
+                userInfo.getLevel(),
+                userInfo.getNextLevelTotalExp(),
+                userInfo.getCurrentTotalExp(),
+                userInfo.getPoint()
         );
     }
 }

@@ -20,4 +20,6 @@ public class AdminUserAllResponse {
     private String username;
     private String name;
     private UserRole role;
+    private int level;
+    private int point;
 }

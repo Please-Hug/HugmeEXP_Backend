@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.global.infra.auth.dto.RegisterResponse;
 import org.example.hugmeexp.global.infra.auth.dto.request.LoginRequest;
+import org.example.hugmeexp.global.infra.auth.dto.request.ModifyPasswordRequest;
 import org.example.hugmeexp.global.infra.auth.dto.request.RegisterRequest;
 import org.example.hugmeexp.global.infra.auth.dto.request.RefreshRequest;
 import org.example.hugmeexp.global.infra.auth.dto.response.*;
@@ -18,15 +19,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AuthService
-{
+public class AuthService {
+
     private final CredentialService credentialService;
     private final TokenService tokenService;
 
     // 회원가입
     @Transactional
-    public RegisterResponse registerAndAuthenticate(RegisterRequest request)
-    {
+    public RegisterResponse registerAndAuthenticate(RegisterRequest request) {
         // 1. 사용자 등록
         User user = credentialService.registerNewUser(request);
 
@@ -49,7 +49,8 @@ public class AuthService
         // 3. 토큰 생성 및 저장
         String accessToken = tokenService.createAccessToken(user.getUsername(), user.getRole());
         String refreshToken = tokenService.createRefreshToken(user.getUsername(), user.getRole());
-        tokenService.saveRefreshToken(user.getUsername(), refreshToken, tokenService.getTokenRemainingTimeMillis(refreshToken));
+        tokenService.saveRefreshToken(user.getUsername(), refreshToken,
+            tokenService.getTokenRemainingTimeMillis(refreshToken));
 
         // 4. 액세스 토큰, 리프레시 토큰 리턴
         log.info("Login successful - user: {}({})", user.getUsername(), user.getName());
@@ -74,5 +75,12 @@ public class AuthService
     // 액세스 또는 리프레시 토큰에서 username을 추출하는 메서드
     public String getUsernameFromToken(String token) {
         return tokenService.getUsernameFromToken(token);
+    }
+
+    // 비밀번호 변경
+    @Transactional
+    public void modifyPassword(String username, ModifyPasswordRequest request) {
+        credentialService.updatePassword(username, request);
+        log.info("Password changed successfully for user: {}", username);
     }
 }

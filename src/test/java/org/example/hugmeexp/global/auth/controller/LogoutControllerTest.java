@@ -13,9 +13,9 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.context.annotation.Import;
+import org.example.hugmeexp.config.MockTestConfiguration;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -23,12 +23,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Import(MockTestConfiguration.class)
 @DisplayName("로그아웃 컨트롤러 테스트")
-@TestPropertySource(properties = {
-        "jwt.secret=aHR0cHM6Ly9naXRodWIuY29tL3NldW5nd29vay9qd3QtYXBpLXNlcnZlci1zYW1wbGUteW91LWNhbi11c2UtdGhpcy1sb25nLXNlY3JldC1rZXktZm9yLWVuY3J5cHRpb24K",
-        "jwt.access-token-expiration=10000",
-        "jwt.refresh-token-expiration=60000"
-})
+@ActiveProfiles("test")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class LogoutControllerTest {
 
@@ -37,6 +34,7 @@ class LogoutControllerTest {
     @Autowired private AuthService authService;
     @Autowired private CredentialService credentialService;
     @Autowired private UserService userService;
+
 
     private final String username = "logoutuser";
     private final String phone = "010-2222-3333";
