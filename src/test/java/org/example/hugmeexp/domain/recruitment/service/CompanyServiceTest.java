@@ -9,6 +9,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -65,19 +67,43 @@ public class CompanyServiceTest {
     }
 
     @Test
-    @DisplayName("빈 키워드로 회사 검색")
+    @DisplayName("빈 키워드로 회사 검색 - 페이징 처리")
     void searchCompaniesByKeyword_WithEmptyKeyword_ShouldReturnAllCompanies() {
         // Given
         String keyword = "";
         List<Company> mockCompanies = createMockCompanies();
-        when(companyRepository.findAll()).thenReturn(mockCompanies);
+        when(companyRepository.findAll(PageRequest.of(0, 30))).thenReturn(new PageImpl<>(mockCompanies));
 
         // When
         List<RecruitmentCompanySearchResponseDTO> result = companyService.searchCompaniesByKeyword(keyword);
 
         // Then
         assertEquals(2, result.size());
-        verify(companyRepository).findAll();
+        assertEquals(1L, result.get(0).getCompanyId());
+        assertEquals("ABC 테크", result.get(0).getCompanyName());
+        assertEquals(2L, result.get(1).getCompanyId());
+        assertEquals("XYZ 테크놀로지", result.get(1).getCompanyName());
+        verify(companyRepository).findAll(PageRequest.of(0, 30));
+    }
+
+    @Test
+    @DisplayName("null 키워드로 회사 검색 - 페이징 처리")
+    void searchCompaniesByKeyword_WithNullKeyword_ShouldReturnAllCompanies() {
+        // Given
+        String keyword = null;
+        List<Company> mockCompanies = createMockCompanies();
+        when(companyRepository.findAll(PageRequest.of(0, 30))).thenReturn(new PageImpl<>(mockCompanies));
+
+        // When
+        List<RecruitmentCompanySearchResponseDTO> result = companyService.searchCompaniesByKeyword(keyword);
+
+        // Then
+        assertEquals(2, result.size());
+        assertEquals(1L, result.get(0).getCompanyId());
+        assertEquals("ABC 테크", result.get(0).getCompanyName());
+        assertEquals(2L, result.get(1).getCompanyId());
+        assertEquals("XYZ 테크놀로지", result.get(1).getCompanyName());
+        verify(companyRepository).findAll(PageRequest.of(0, 30));
     }
 
     @Test
