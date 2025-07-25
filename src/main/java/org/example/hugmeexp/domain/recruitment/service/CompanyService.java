@@ -26,7 +26,9 @@ public class CompanyService {
      * @return 검색된 기업 목록
      */
     public List<RecruitmentCompanySearchResponseDTO> searchCompaniesByKeyword(String keyword) {
-        List<Company> companies = companyRepository.findByCompanyNameContainingIgnoreCase(keyword);
+        List<Company> companies = (keyword == null || keyword.isBlank())
+                ? companyRepository.findAll()
+                : companyRepository.findByCompanyNameContainingIgnoreCase(keyword);
 
         return companies.stream()
                 .map(RecruitmentCompanySearchResponseDTO::from)
