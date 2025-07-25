@@ -2,10 +2,12 @@ package org.example.hugmeexp.domain.studyRoom.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.example.hugmeexp.domain.studyRoom.dto.request.StudyHallRequest;
 import org.example.hugmeexp.global.entity.BaseEntity;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 @Entity
@@ -37,10 +39,27 @@ public class StudyHall extends BaseEntity {
 
     private LocalDateTime closeTime;
 
-//    @OneToMany(mappedBy = "studyHall")
-//    ➡️ "This relationship is mapped by the studyHall field over in the StudyRoom entity."
-//    ➡️ "이 관계는 StudyRoom 엔티티에 있는 studyHall 필드에 의해서 매핑됩니다."
-
     @OneToMany(mappedBy = "studyHall", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StudyRoom> studyRooms;
+
+    private boolean isDeleted = false;
+
+    public void update(StudyHallRequest requestDto) {
+        Optional.ofNullable(requestDto.getName()).ifPresent(name -> this.name = name);
+        Optional.ofNullable(requestDto.getDescription()).ifPresent(description -> this.description = description);
+        Optional.ofNullable(requestDto.getSimpleAddress()).ifPresent(simpleAddress -> this.simpleAddress = simpleAddress);
+        Optional.ofNullable(requestDto.getAddress()).ifPresent(address -> this.address = address);
+        Optional.ofNullable(requestDto.getLatitude()).ifPresent(latitude -> this.latitude = latitude);
+        Optional.ofNullable(requestDto.getLongitude()).ifPresent(longitude -> this.longitude = longitude);
+        Optional.ofNullable(requestDto.getThumbnail()).ifPresent(thumbnail -> this.thumbnail = thumbnail);
+        Optional.ofNullable(requestDto.getOpenTime()).ifPresent(openTime -> this.openTime = openTime);
+        Optional.ofNullable(requestDto.getCloseTime()).ifPresent(closeTime -> this.closeTime = closeTime);
+    }
+
+    /**
+     * 스터디 홀을 논리적으로 삭제 처리하는 메서드입니다.
+     */
+    public void delete() {
+        this.isDeleted = true;
+    }
 }
