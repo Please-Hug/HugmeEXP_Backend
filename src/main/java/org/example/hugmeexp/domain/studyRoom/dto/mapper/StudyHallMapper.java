@@ -1,12 +1,8 @@
 package org.example.hugmeexp.domain.studyRoom.dto.mapper;
 
-import org.example.hugmeexp.domain.studyRoom.dto.request.StudyHallRequest;
 import org.example.hugmeexp.domain.studyRoom.dto.response.StudyHallResponse;
 import org.example.hugmeexp.domain.studyRoom.entity.StudyHall;
-import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import java.util.List;
 
