@@ -10,9 +10,7 @@ import java.util.List;
 @Repository
 public interface StudyRoomRepository extends JpaRepository<StudyRoom, Long> {
 
-    // 특정 스터디 홀(ID 기준)에 속한 모든 룸을 찾는 메서드.
-    List<StudyRoom> findAllByStudyHallId(Long studyHallId);
-
+    // 특정 스터디 홀에 속한 모든 룸을 찾는 메서드.
     List<StudyRoom> findAllByStudyHall(StudyHall studyHall);
 
 }
