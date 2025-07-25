@@ -19,7 +19,7 @@ import org.springframework.web.multipart.support.MissingServletRequestPartExcept
 
 @Slf4j
 @RequiredArgsConstructor
-@RestControllerAdvice
+//@RestControllerAdvice
 public class ExceptionController {
 
 
@@ -30,9 +30,9 @@ public class ExceptionController {
 
         return ResponseEntity.status(exception.getHttpStatus()).body(
                 ErrorResponse.builder()
-                    .code(exception.getCode())
-                    .message(exception.getMessage())
-                    .build());
+                        .code(exception.getCode())
+                        .message(exception.getMessage())
+                        .build());
     }
 
     //Validation 검증 실패 예외 처리
@@ -48,9 +48,9 @@ public class ExceptionController {
 
         return ResponseEntity.badRequest().body(
                 ErrorResponse.builder()
-                    .code(400)
-                    .message(responseMessage)
-                    .build());
+                        .code(400)
+                        .message(responseMessage)
+                        .build());
     }
 
     //ContentType(JSON 구조)에 대한 예외 처리

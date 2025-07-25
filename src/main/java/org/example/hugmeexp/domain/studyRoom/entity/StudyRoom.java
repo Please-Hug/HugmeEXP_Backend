@@ -39,4 +39,7 @@ public class StudyRoom extends BaseEntity {
     public void delete() {
         this.isDeleted = true;
     }
+    // optimistic lock을 위해
+    @Version
+    private Long version;
 }

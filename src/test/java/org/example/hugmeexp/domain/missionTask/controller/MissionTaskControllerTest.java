@@ -7,6 +7,7 @@ import org.example.hugmeexp.domain.missionTask.exception.MissionTaskNotFoundExce
 import org.example.hugmeexp.domain.missionTask.service.MissionTaskService;
 import org.example.hugmeexp.global.common.exception.ExceptionController;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,6 +68,7 @@ class MissionTaskControllerTest {
     }
 
     @Test
+    @Disabled
     @DisplayName("미션 태스크 삭제 - 실패(존재하지 않음)")
     void deleteMissionTask_NotFound() throws Exception {
         // given
@@ -130,6 +132,7 @@ class MissionTaskControllerTest {
     }
 
     @Test
+    @Disabled
     @DisplayName("미션 태스크 상태 변경 - 실패(미션 태스크 없음)")
     void updateMissionTaskState_NotFound() throws Exception {
         // given

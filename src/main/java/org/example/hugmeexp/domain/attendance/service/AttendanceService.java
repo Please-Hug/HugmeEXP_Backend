@@ -33,7 +33,6 @@ public class AttendanceService {
     private final UserService userService;
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "allAttendanceDates", key = "#username")
     public List<LocalDate> getAllAttendanceDates(String username) {
 
         // 1) 사용자 존재 확인
@@ -46,7 +45,6 @@ public class AttendanceService {
 
     // 출석 상태 조회 (일요일~토요일의 일주일, 연속 출석일)
     @Transactional(readOnly = true)
-    @Cacheable(value = "attendanceStatus", key = "#username + '_' + T(java.time.LocalDate).now().toString()")
     public AttendanceStatusResponse getAttendanceStatus(String username) {
 
         // 사용자 한번만 조회해서 재사용
@@ -105,7 +103,6 @@ public class AttendanceService {
 
     // 출석 체크
     @Transactional
-    @CacheEvict(value = {"attendanceStatus", "allAttendanceDates"}, key = "#username")
     public AttendanceCheckResponse checkAttendance (String username) {
 
         LocalDate today = LocalDate.now();
