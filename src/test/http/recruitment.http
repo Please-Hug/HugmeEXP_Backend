@@ -1,0 +1,37 @@
+@host = localhost
+@port = 8080
+@baseUrl = http://{{host}}:{{port}}/api
+
+### 🔐 로그인 - accessToken 저장
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "username": "test01",
+  "password": "123456789"
+}
+
+> {%
+    const accessToken = response.body.data.accessToken;
+    client.global.set("accessToken", accessToken);
+%}
+
+### 📄 채용 공고 전체 조회
+GET {{baseUrl}}/recruitments
+Authorization: Bearer {{accessToken}}
+
+### 🔍 조건 검색 - 경력 2년 이상, 대졸 이상, 서울, 최소 연봉 3000
+GET {{baseUrl}}/recruitments?experience=2&education=30&workLocation=강남&salaryMin=3000
+Authorization: Bearer {{accessToken}}
+
+### 🗺️ 지도 기반 조회 - 좌표 설정 포함
+GET {{baseUrl}}/recruitments?topLeftLat=37.60&topLeftLng=126.90&bottomRightLat=37.30&bottomRightLng=127.10
+Authorization: Bearer {{accessToken}}
+
+### 🧪 기술 스택 + 태그 검색 (복수 선택 시)
+GET {{baseUrl}}/recruitments?techStacks=1&techStacks=2&tags=3&tags=4
+Authorization: Bearer {{accessToken}}
+
+### 🧾 복합 검색 예시
+GET {{baseUrl}}/recruitments?experience=1&education=20&salaryMin=2500&workLocation=강남&techStacks=1&techStacks=2&tags=5&tags=6
+Authorization: Bearer {{accessToken}}
