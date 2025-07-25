@@ -75,7 +75,7 @@ class StudyRoomServiceTest {
         List<StudyRoom> rooms = List.of(StudyRoom.builder().build());
 
         when(studyHallRepository.findByIdAndIsDeletedFalse(studyHallId)).thenReturn(Optional.of(mockHall));
-        when(studyRoomRepository.findAllByStudyHall(mockHall)).thenReturn(rooms);
+        when(studyRoomRepository.findAllByStudyHallAndIsDeletedFalse(mockHall)).thenReturn(rooms);
 
         // when
         List<StudyRoom> results = studyRoomService.findAllRoomsInHall(studyHallId);
@@ -110,7 +110,7 @@ class StudyRoomServiceTest {
         StudyRoom originalRoom = StudyRoom.builder().id(roomId).name("기존 룸 이름").maxNum(4).studyHall(mockHall).build();
 
         when(studyHallRepository.findByIdAndIsDeletedFalse(studyHallId)).thenReturn(Optional.of(mockHall));
-        when(studyRoomRepository.findById(roomId)).thenReturn(Optional.of(originalRoom));
+        when(studyRoomRepository.findByIdAndIsDeletedFalse(roomId)).thenReturn(Optional.of(originalRoom));
 
         // when
         studyRoomService.updateStudyRoom(studyHallId, roomId, requestDto);
@@ -119,7 +119,7 @@ class StudyRoomServiceTest {
         assertThat(originalRoom.getName()).isEqualTo("수정된 룸 이름");
         assertThat(originalRoom.getMaxNum()).isEqualTo(5);
         verify(studyHallRepository).findByIdAndIsDeletedFalse(studyHallId);
-        verify(studyRoomRepository).findById(roomId);
+        verify(studyRoomRepository).findByIdAndIsDeletedFalse(roomId);
     }
 
     @Test
@@ -132,7 +132,7 @@ class StudyRoomServiceTest {
         StudyHall mockHall = StudyHall.builder().id(studyHallId).build();
 
         when(studyHallRepository.findByIdAndIsDeletedFalse(studyHallId)).thenReturn(Optional.of(mockHall));
-        when(studyRoomRepository.findById(nonExistentRoomId)).thenReturn(Optional.empty());
+        when(studyRoomRepository.findByIdAndIsDeletedFalse(nonExistentRoomId)).thenReturn(Optional.empty());
 
         // when & then
         assertThrows(StudyRoomNotFoundException.class, () -> {
@@ -141,38 +141,64 @@ class StudyRoomServiceTest {
     }
 
     @Test
-    @DisplayName("스터디 룸 삭제 성공")
+    @DisplayName("스터디 룸 정보 수정 실패 - 소속 홀 불일치")
+    void updateStudyRoom_fail_wrongHall() {
+        // given
+        Long targetHallId = 1L;
+        Long actualHallId = 2L;
+        Long roomId = 10L;
+        StudyRoomRequest requestDto = new StudyRoomRequest("수정된 룸 이름", 5);
+
+        StudyHall targetHall = StudyHall.builder().id(targetHallId).build();
+        StudyHall actualHall = StudyHall.builder().id(actualHallId).build();
+        StudyRoom roomInWrongHall = StudyRoom.builder().id(roomId).studyHall(actualHall).build();
+
+        when(studyHallRepository.findByIdAndIsDeletedFalse(targetHallId)).thenReturn(Optional.of(targetHall));
+        when(studyRoomRepository.findByIdAndIsDeletedFalse(roomId)).thenReturn(Optional.of(roomInWrongHall));
+
+        // when & then
+        assertThrows(StudyRoomNotFoundException.class, () -> {
+            studyRoomService.updateStudyRoom(targetHallId, roomId, requestDto);
+        });
+    }
+
+    @Test
+    @DisplayName("스터디 룸 삭제 성공 (논리적)")
     void deleteStudyRoom_success() {
         // given
         Long studyHallId = 1L;
         Long roomId = 10L;
         StudyHall mockHall = StudyHall.builder().id(studyHallId).build();
+        StudyRoom roomToDelete = StudyRoom.builder().id(roomId).studyHall(mockHall).build();
 
         when(studyHallRepository.findByIdAndIsDeletedFalse(studyHallId)).thenReturn(Optional.of(mockHall));
-        when(studyRoomRepository.existsById(roomId)).thenReturn(true);
+        when(studyRoomRepository.findByIdAndIsDeletedFalse(roomId)).thenReturn(Optional.of(roomToDelete));
 
         // when
         studyRoomService.deleteStudyRoom(studyHallId, roomId);
 
         // then
-        verify(studyRoomRepository, times(1)).deleteById(roomId);
+        assertThat(roomToDelete.isDeleted()).isTrue();
     }
 
-    @Test
-    @DisplayName("스터디 룸 삭제 실패 - 룸을 찾을 수 없음")
-    void deleteStudyRoom_fail_roomNotFound() {
+        @Test
+    @DisplayName("스터디 룸 삭제 실패 - 소속 홀 불일치")
+    void deleteStudyRoom_fail_wrongHall() {
         // given
-        Long studyHallId = 1L;
-        Long nonExistentRoomId = 999L;
-        StudyHall mockHall = StudyHall.builder().id(studyHallId).build();
+        Long targetHallId = 1L;
+        Long actualHallId = 2L;
+        Long roomId = 10L;
 
-        when(studyHallRepository.findByIdAndIsDeletedFalse(studyHallId)).thenReturn(Optional.of(mockHall));
-        when(studyRoomRepository.existsById(nonExistentRoomId)).thenReturn(false);
+        StudyHall targetHall = StudyHall.builder().id(targetHallId).build();
+        StudyHall actualHall = StudyHall.builder().id(actualHallId).build();
+        StudyRoom roomInWrongHall = StudyRoom.builder().id(roomId).studyHall(actualHall).build();
+
+        when(studyHallRepository.findByIdAndIsDeletedFalse(targetHallId)).thenReturn(Optional.of(targetHall));
+        when(studyRoomRepository.findByIdAndIsDeletedFalse(roomId)).thenReturn(Optional.of(roomInWrongHall));
 
         // when & then
         assertThrows(StudyRoomNotFoundException.class, () -> {
-            studyRoomService.deleteStudyRoom(studyHallId, nonExistentRoomId);
+            studyRoomService.deleteStudyRoom(targetHallId, roomId);
         });
-        verify(studyRoomRepository, never()).deleteById(any());
     }
 }

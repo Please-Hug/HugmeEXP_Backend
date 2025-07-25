@@ -92,7 +92,6 @@ GET {{host}}/api/v1/admin/studyhalls/{{studyHallId}}
 Authorization: {{admin_token}}
 
 ### 9. 스터디 룸 정보 수정 (PUT)
-# [추가] 4번에서 생성한 스터디 룸의 정보를 수정합니다.
 PUT {{host}}/api/v1/admin/studyhalls/{{studyHallId}}/rooms/{{studyRoomId}}
 Content-Type: application/json
 Authorization: {{admin_token}}
@@ -103,11 +102,9 @@ Authorization: {{admin_token}}
 }
 
 ### 10. 스터디 룸 삭제 (DELETE)
-# [추가] 4번에서 생성하고 9번에서 수정한 스터디 룸을 삭제합니다.
 DELETE {{host}}/api/v1/admin/studyhalls/{{studyHallId}}/rooms/{{studyRoomId}}
 Authorization: {{admin_token}}
 
 ### 11. 룸 삭제 후 목록 재조회 (빈 리스트 확인)
-# [추가] 룸 삭제 후, 해당 홀의 룸 목록이 비어있는지 확인합니다.
 GET {{host}}/api/v1/admin/studyhalls/{{studyHallId}}/rooms
 Authorization: {{admin_token}}
