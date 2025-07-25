@@ -64,11 +64,15 @@ public class StudyRoomService {
      */
     @Transactional
     public StudyRoom updateStudyRoom(Long studyHallId, Long roomId, StudyRoomRequest requestDto) {
-        studyHallRepository.findByIdAndIsDeletedFalse(studyHallId)
+        StudyHall parentStudyHall = studyHallRepository.findByIdAndIsDeletedFalse(studyHallId)
                 .orElseThrow(() -> new StudyHallNotFoundException(studyHallId));
 
         StudyRoom studyRoom = studyRoomRepository.findById(roomId)
                 .orElseThrow(() -> new StudyRoomNotFoundException(roomId));
+
+        if (!studyRoom.getStudyHall().getId().equals(parentStudyHall.getId())) {
+            throw new StudyRoomNotFoundException(roomId);
+        }
 
         studyRoom.update(requestDto);
         return studyRoom;
@@ -82,12 +86,16 @@ public class StudyRoomService {
      */
     @Transactional
     public void deleteStudyRoom(Long studyHallId, Long roomId) {
-        studyHallRepository.findByIdAndIsDeletedFalse(studyHallId)
+        StudyHall parentStudyHall = studyHallRepository.findByIdAndIsDeletedFalse(studyHallId)
                 .orElseThrow(() -> new StudyHallNotFoundException(studyHallId));
 
-        if (!studyRoomRepository.existsById(roomId)) {
+        StudyRoom studyRoom = studyRoomRepository.findById(roomId)
+                .orElseThrow(() -> new StudyRoomNotFoundException(roomId));
+
+        if (!studyRoom.getStudyHall().getId().equals(parentStudyHall.getId())) {
             throw new StudyRoomNotFoundException(roomId);
         }
-        studyRoomRepository.deleteById(roomId);
+
+        studyRoomRepository.delete(studyRoom);
     }
 }
