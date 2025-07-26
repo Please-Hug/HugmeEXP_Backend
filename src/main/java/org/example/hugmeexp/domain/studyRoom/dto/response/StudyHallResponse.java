@@ -5,11 +5,11 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 /**
- * 회의실(스터디 홀) 정보 응답을 위한 DTO 입니다.
+ * 스터디 홀 정보 응답을 위한 DTO 입니다.
  */
 @Getter
 @Builder
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class StudyHallResponse {
     private final Long id;
     private final String name;

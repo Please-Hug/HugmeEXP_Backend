@@ -51,6 +51,7 @@ public class StudyHallService {
     }
 
     /**
+     * 특정 ID로 스터디 홀을 조회합니다.
      * @param studyHallId 조회할 스터디 홀의 ID
      * @return 찾아낸 StudyHall 엔티티
      * @throws StudyHallNotFoundException 해당 ID의 홀이 없을 경우

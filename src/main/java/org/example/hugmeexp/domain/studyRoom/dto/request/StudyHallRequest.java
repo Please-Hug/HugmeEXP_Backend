@@ -9,7 +9,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 /**
- * 회의실(스터디 홀) 생성을 위한 요청 데이터를 담는 DTO 입니다.
+ * 스터디 홀 생성을 위한 요청 데이터를 담는 DTO 입니다.
  */
 @Builder
 @Getter

@@ -90,3 +90,21 @@ Authorization: {{admin_token}}
 ### 8. 삭제된 홀 재조회 (404 확인)
 GET {{host}}/api/v1/admin/studyhalls/{{studyHallId}}
 Authorization: {{admin_token}}
+
+### 9. 스터디 룸 정보 수정 (PUT)
+PUT {{host}}/api/v1/admin/studyhalls/{{studyHallId}}/rooms/{{studyRoomId}}
+Content-Type: application/json
+Authorization: {{admin_token}}
+
+{
+  "name": "4인실 C (리뉴얼)",
+  "maxNum": 5
+}
+
+### 10. 스터디 룸 삭제 (DELETE)
+DELETE {{host}}/api/v1/admin/studyhalls/{{studyHallId}}/rooms/{{studyRoomId}}
+Authorization: {{admin_token}}
+
+### 11. 룸 삭제 후 목록 재조회 (빈 리스트 확인)
+GET {{host}}/api/v1/admin/studyhalls/{{studyHallId}}/rooms
+Authorization: {{admin_token}}

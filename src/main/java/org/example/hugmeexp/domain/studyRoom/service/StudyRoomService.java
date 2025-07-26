@@ -6,6 +6,7 @@ import org.example.hugmeexp.domain.studyRoom.dto.request.StudyRoomRequest;
 import org.example.hugmeexp.domain.studyRoom.entity.StudyHall;
 import org.example.hugmeexp.domain.studyRoom.entity.StudyRoom;
 import org.example.hugmeexp.domain.studyRoom.exception.StudyHallNotFoundException;
+import org.example.hugmeexp.domain.studyRoom.exception.StudyRoomNotFoundException;
 import org.example.hugmeexp.domain.studyRoom.repository.StudyHallRepository;
 import org.example.hugmeexp.domain.studyRoom.repository.StudyRoomRepository;
 import org.springframework.stereotype.Service;
@@ -50,6 +51,51 @@ public class StudyRoomService {
         StudyHall parentHall = studyHallRepository.findByIdAndIsDeletedFalse(studyHallId)
                 .orElseThrow(() -> new StudyHallNotFoundException(studyHallId));
 
-        return studyRoomRepository.findAllByStudyHall(parentHall);
+        return studyRoomRepository.findAllByStudyHallAndIsDeletedFalse(parentHall);
+    }
+
+    /**
+     * 특정 스터디 룸의 정보를 수정합니다.
+     *
+     * @param studyHallId 부모 스터디 홀의 ID
+     * @param roomId      수정할 스터디 룸의 ID
+     * @param requestDto  수정할 정보가 담긴 DTO
+     * @return 수정된 StudyRoom 엔티티
+     */
+    @Transactional
+    public StudyRoom updateStudyRoom(Long studyHallId, Long roomId, StudyRoomRequest requestDto) {
+        StudyHall parentStudyHall = studyHallRepository.findByIdAndIsDeletedFalse(studyHallId)
+                .orElseThrow(() -> new StudyHallNotFoundException(studyHallId));
+
+        StudyRoom studyRoom = studyRoomRepository.findByIdAndIsDeletedFalse(roomId)
+                .orElseThrow(() -> new StudyRoomNotFoundException(roomId));
+
+        if (!studyRoom.getStudyHall().getId().equals(parentStudyHall.getId())) {
+            throw new StudyRoomNotFoundException(roomId);
+        }
+
+        studyRoom.update(requestDto);
+        return studyRoom;
+    }
+
+    /**
+     * 특정 스터디 룸을 삭제합니다.
+     *
+     * @param studyHallId 부모 스터디 홀의 ID
+     * @param roomId      삭제할 스터디 룸의 ID
+     */
+    @Transactional
+    public void deleteStudyRoom(Long studyHallId, Long roomId) {
+        StudyHall parentStudyHall = studyHallRepository.findByIdAndIsDeletedFalse(studyHallId)
+                .orElseThrow(() -> new StudyHallNotFoundException(studyHallId));
+
+        StudyRoom studyRoom = studyRoomRepository.findByIdAndIsDeletedFalse(roomId)
+                .orElseThrow(() -> new StudyRoomNotFoundException(roomId));
+
+        if (!studyRoom.getStudyHall().getId().equals(parentStudyHall.getId())) {
+            throw new StudyRoomNotFoundException(roomId);
+        }
+
+        studyRoom.delete();
     }
 }

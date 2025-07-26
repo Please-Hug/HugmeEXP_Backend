@@ -144,4 +144,31 @@ public class AdminStudyRoomController {
         studyHallService.deleteStudyHall(studyHallId);
         return ResponseEntity.noContent().build();
     }
+
+    /**
+     * 특정 스터디 룸의 정보를 수정합니다.
+     */
+    @Operation(summary = "개별 스터디 룸 수정", description = "특정 스터디 룸의 정보를 수정합니다.")
+    @PutMapping("/{studyHallId}/rooms/{roomId}")
+    public ResponseEntity<StudyRoomResponse> updateStudyRoom(
+            @PathVariable Long studyHallId,
+            @PathVariable Long roomId,
+            @Valid @RequestBody StudyRoomRequest requestDto) {
+
+        StudyRoom updatedStudyRoom = studyRoomService.updateStudyRoom(studyHallId, roomId, requestDto);
+        return ResponseEntity.ok(studyRoomMapper.toResponseDto(updatedStudyRoom));
+    }
+
+    /**
+     * 특정 스터디 룸을 삭제합니다.
+     */
+    @Operation(summary = "개별 스터디 룸 삭제", description = "특정 스터디 룸을 삭제합니다.")
+    @DeleteMapping("/{studyHallId}/rooms/{roomId}")
+    public ResponseEntity<Void> deleteStudyRoom(
+            @PathVariable Long studyHallId,
+            @PathVariable Long roomId) {
+
+        studyRoomService.deleteStudyRoom(studyHallId, roomId);
+        return ResponseEntity.noContent().build();
+    }
 }
