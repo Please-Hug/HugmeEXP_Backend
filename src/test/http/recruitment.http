@@ -35,3 +35,17 @@ Authorization: Bearer {{accessToken}}
 ### 🧾 복합 검색 예시
 GET {{baseUrl}}/recruitments?experience=1&education=20&salaryMin=2500&workLocation=강남&techStacks=1&techStacks=2&tags=5&tags=6
 Authorization: Bearer {{accessToken}}
+
+
+
+### 🏢 채용 기업 이름 검색 (예: 네이버)
+GET {{baseUrl}}/recruitments/companies?keyword=네이버
+Authorization: Bearer {{accessToken}}
+
+### 🏢 채용 기업 이름 검색 (없는 경우)
+GET {{baseUrl}}/recruitments/companies?keyword=없는회사
+Authorization: Bearer {{accessToken}}
+
+### ❌ 채용 기업 키워드 누락 (예외 테스트)
+GET {{baseUrl}}/recruitments/companies
+Authorization: Bearer {{accessToken}}
