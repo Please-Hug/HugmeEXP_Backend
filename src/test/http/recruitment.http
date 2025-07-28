@@ -49,3 +49,9 @@ Authorization: Bearer {{accessToken}}
 ### ❌ 채용 기업 키워드 누락 (예외 테스트)
 GET {{baseUrl}}/recruitments/companies
 Authorization: Bearer {{accessToken}}
+
+
+
+### 🏠 홈 화면 - 최신 채용 공고 조회
+GET {{baseUrl}}/recruitments/home
+Authorization: Bearer {{accessToken}}
