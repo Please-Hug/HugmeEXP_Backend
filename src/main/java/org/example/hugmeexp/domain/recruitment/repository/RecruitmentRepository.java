@@ -3,6 +3,7 @@ package org.example.hugmeexp.domain.recruitment.repository;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentSearchConditionDTO;
 import org.example.hugmeexp.domain.recruitment.entity.Recruitment;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -50,9 +51,10 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
 
     /**
      * 최신 수정일 기준으로 정렬된 채용 공고 목록을 조회합니다.
-     * 별도의 검색 조건 없이, 최신 공고를 우선순위로 반환합니다.
+     * Pageable을 사용하여 원하는 개수만큼 제한하여 가져옵니다.
      *
-     * @return 최신 채용 공고 목록
+     * @param pageable 페이징 및 정렬 정보를 담은 객체
+     * @return 최신 채용 공고 목록 (modifiedAt 기준 내림차순 정렬)
      */
     @Query("""
         SELECT new org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO(
@@ -63,5 +65,5 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
         JOIN r.company c
         ORDER BY r.modifiedAt DESC
     """)
-    List<RecruitmentResponseDTO> findLatestRecruitments();
+    List<RecruitmentResponseDTO> findLatestRecruitments(Pageable pageable);
 }

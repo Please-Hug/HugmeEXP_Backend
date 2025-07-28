@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentSearchConditionDTO;
 import org.example.hugmeexp.domain.recruitment.repository.RecruitmentRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,7 +44,8 @@ public class RecruitmentService {
      *
      * @return 최신 채용 공고 목록
      */
-    public List<RecruitmentResponseDTO> findLatestRecruitments() {
-        return recruitmentRepository.findLatestRecruitments();
+    public List<RecruitmentResponseDTO> findLatestRecruitments(int limit) {
+        Pageable pageable = PageRequest.of(0, limit);
+        return recruitmentRepository.findLatestRecruitments(pageable);
     }
 }

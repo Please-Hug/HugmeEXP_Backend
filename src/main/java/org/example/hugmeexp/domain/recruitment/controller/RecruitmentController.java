@@ -65,7 +65,8 @@ public class RecruitmentController {
     @Operation(summary = "최신 채용 공고 조회", description = "홈 화면에 보여질 최신 채용 공고 목록을 조회합니다 (최신 수정일 기준)")
     @GetMapping("/home")
     public ResponseEntity<Response<List<RecruitmentResponseDTO>>> findLatestRecruitments() {
-        List<RecruitmentResponseDTO> result = recruitmentService.findLatestRecruitments();
+        int limit = 5;
+        List<RecruitmentResponseDTO> result = recruitmentService.findLatestRecruitments(limit);
 
         Response<List<RecruitmentResponseDTO>> response = Response.<List<RecruitmentResponseDTO>>builder()
                 .message("최신 채용 공고 조회 성공")
