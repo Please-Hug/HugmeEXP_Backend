@@ -35,4 +35,14 @@ public class RecruitmentService {
 
         return recruitmentRepository.findBySearchConditions(enrichedCond);
     }
+
+    /**
+     * 최신 채용 공고 목록을 조회합니다.
+     * 수정일 기준으로 정렬된 최신 채용 공고를 반환합니다.
+     *
+     * @return 최신 채용 공고 목록
+     */
+    public List<RecruitmentResponseDTO> findLatestRecruitments() {
+        return recruitmentRepository.findLatestRecruitments();
+    }
 }

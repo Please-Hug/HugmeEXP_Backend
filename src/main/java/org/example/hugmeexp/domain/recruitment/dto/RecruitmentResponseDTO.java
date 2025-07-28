@@ -23,10 +23,12 @@ public class RecruitmentResponseDTO {
     private BigDecimal latitude; // 위도
     private BigDecimal longitude; // 경도
 
+    private LocalDateTime modifiedAt;
+
     // JPA 에서 사용되는 생성자
     public RecruitmentResponseDTO(Long id, String title, String companyName, String companyImageUrl,
                                   LocalDateTime dueDate, Integer experience, String workLocation,
-                                  BigDecimal latitude, BigDecimal longitude) {
+                                  BigDecimal latitude, BigDecimal longitude, LocalDateTime modifiedAt) {
         this.id = id;
         this.title = title;
         this.companyName = companyName;
@@ -36,6 +38,7 @@ public class RecruitmentResponseDTO {
         this.workLocation = workLocation;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.modifiedAt = modifiedAt;
     }
 
     // 서비스 단에서 Recruitment 엔티티를 DTO로 변환하는 메서드
@@ -50,6 +53,7 @@ public class RecruitmentResponseDTO {
                 .workLocation(recruitment.getWorkLocation())
                 .latitude(recruitment.getCompany().getLatitude())
                 .longitude(recruitment.getCompany().getLongitude())
+                .modifiedAt(recruitment.getModifiedAt())
                 .build();
     }
 }

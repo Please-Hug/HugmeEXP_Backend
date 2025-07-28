@@ -13,10 +13,17 @@ import java.util.List;
 @Repository
 public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> {
 
+    /**
+     * 검색 조건에 맞는 채용 공고 목록을 조회합니다.
+     * 조건에 따라 필터링된 결과를 반환합니다.
+     *
+     * @param cond 검색 조건 DTO
+     * @return 채용 공고 목록
+     */
     @Query("""
         SELECT new org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO(
             r.id, r.title, c.companyName, c.companyImageUrl, r.dueDate, r.experience,
-            r.workLocation, r.latitude, r.longitude
+            r.workLocation, r.latitude, r.longitude, r.modifiedAt
         )
         FROM Recruitment r
         JOIN r.company c
@@ -34,10 +41,27 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
               (:#{#cond.techStacks} IS NULL OR ts.id IN :#{#cond.techStacks}) AND
               (:#{#cond.tags} IS NULL OR t.id IN :#{#cond.tags})
         GROUP BY r.id, r.title, c.companyName, c.companyImageUrl, r.dueDate, r.experience,
-                 r.workLocation, r.latitude, r.longitude
+                 r.workLocation, r.latitude, r.longitude, r.modifiedAt
         HAVING (:#{#cond.techStacks} IS NULL OR COUNT(DISTINCT ts.id) = :#{#cond.techStackCount}) AND
                (:#{#cond.tags} IS NULL OR COUNT(DISTINCT t.id) = :#{#cond.tagCount})
     """)
     List<RecruitmentResponseDTO> findBySearchConditions(@Param("cond") RecruitmentSearchConditionDTO cond);
 
+
+    /**
+     * 최신 수정일 기준으로 정렬된 채용 공고 목록을 조회합니다.
+     * 별도의 검색 조건 없이, 최신 공고를 우선순위로 반환합니다.
+     *
+     * @return 최신 채용 공고 목록
+     */
+    @Query("""
+        SELECT new org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO(
+            r.id, r.title, c.companyName, c.companyImageUrl, r.dueDate, r.experience,
+            r.workLocation, r.latitude, r.longitude, r.modifiedAt
+        )
+        FROM Recruitment r
+        JOIN r.company c
+        ORDER BY r.modifiedAt DESC
+    """)
+    List<RecruitmentResponseDTO> findLatestRecruitments();
 }
