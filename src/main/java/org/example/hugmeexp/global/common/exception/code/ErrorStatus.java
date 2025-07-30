@@ -1,7 +1,6 @@
 package org.example.hugmeexp.global.common.exception.code;
 
 import lombok.RequiredArgsConstructor;
-import org.example.hugmeexp.domain.recruitment.entity.Recruitment;
 import org.springframework.http.HttpStatus;
 
 /**

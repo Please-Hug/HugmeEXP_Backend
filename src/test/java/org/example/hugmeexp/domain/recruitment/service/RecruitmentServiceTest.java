@@ -1,7 +1,14 @@
 package org.example.hugmeexp.domain.recruitment.service;
 
+import org.example.hugmeexp.domain.recruitment.dto.RecruitmentDetailResponseDTO;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentSearchConditionDTO;
+import org.example.hugmeexp.domain.recruitment.dto.TechStackDTO;
+import org.example.hugmeexp.domain.recruitment.entity.Company;
+import org.example.hugmeexp.domain.recruitment.entity.Recruitment;
+import org.example.hugmeexp.domain.recruitment.entity.TechItem;
+import org.example.hugmeexp.domain.recruitment.entity.TechStack;
+import org.example.hugmeexp.domain.recruitment.exception.RecruitmentNotFoundException;
 import org.example.hugmeexp.domain.recruitment.repository.RecruitmentRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,12 +19,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -305,5 +313,127 @@ public class RecruitmentServiceTest {
         ));
 
         return responses;
+    }
+
+    @Test
+    @DisplayName("채용 공고 상세 조회 성공 테스트")
+    void getRecruitmentDetail_Success() {
+        // Given
+        Long recruitmentId = 1L;
+
+        // 회사 정보 생성
+        Company company = Company.builder()
+                .id(1L)
+                .companyName("ABC 회사")
+                .companyAddress("서울시 강남구 테헤란로 123")
+                .latitude(new BigDecimal("37.5"))
+                .longitude(new BigDecimal("127.0"))
+                .establishmentDate(LocalDate.of(2010, 1, 1))
+                .companyImageUrl("company_image_url_1.jpg")
+                .companyDescription("좋은 회사입니다.")
+                .build();
+
+        // 기술 스택 아이템 생성 (생성자 사용)
+        TechItem techItem1 = new TechItem(1L, "Java", "자바", "java_icon.png");
+
+        TechItem techItem2 = new TechItem(2L, "Spring", "스프링", "spring_icon.png");
+
+        // 채용 공고 생성
+        Recruitment recruitment = Recruitment.builder()
+                .id(recruitmentId)
+                .title("백엔드 개발자 모집")
+                .education(4)
+                .experience(3)
+                .qualification("Java, Spring 경험자")
+                .advantage("MSA 경험자 우대")
+                .welfare("점심 제공, 4대 보험")
+                .workLocation("서울시 강남구")
+                .latitude(new BigDecimal("37.5"))
+                .longitude(new BigDecimal("127.0"))
+                .salaryMin(3000)
+                .salaryMax(5000)
+                .link("https://example.com/job/1")
+                .dueDate(LocalDateTime.of(2023, 12, 31, 23, 59))
+                .company(company)
+                .build();
+
+        // 기술 스택 생성 및 연결
+        List<TechStack> techStacks = new ArrayList<>();
+        TechStack techStack1 = TechStack.builder()
+                .id(1L)
+                .recruitment(recruitment)
+                .techItem(techItem1)
+                .build();
+
+        TechStack techStack2 = TechStack.builder()
+                .id(2L)
+                .recruitment(recruitment)
+                .techItem(techItem2)
+                .build();
+
+        techStacks.add(techStack1);
+        techStacks.add(techStack2);
+
+        // 채용 공고에 기술 스택 설정
+        recruitment = recruitment.toBuilder()
+                .techStacks(techStacks)
+                .build();
+
+        // Repository mock 설정
+        when(recruitmentRepository.findDetailById(recruitmentId)).thenReturn(Optional.of(recruitment));
+
+        // When
+        RecruitmentDetailResponseDTO result = recruitmentService.getRecruitmentDetail(recruitmentId);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(recruitmentId, result.getId());
+        assertEquals("백엔드 개발자 모집", result.getTitle());
+        assertEquals("ABC 회사", result.getCompanyName());
+        assertEquals("company_image_url_1.jpg", result.getCompanyImageUrl());
+        assertEquals("서울시 강남구 테헤란로 123", result.getCompanyAddress());
+        assertEquals(LocalDate.of(2010, 1, 1), result.getEstablishmentDate());
+        assertEquals("좋은 회사입니다.", result.getCompanyDescription());
+        assertEquals(LocalDateTime.of(2023, 12, 31, 23, 59), result.getDueDate());
+        assertEquals(3, result.getExperience());
+        assertEquals(4, result.getEducation());
+        assertEquals(3000, result.getSalaryMin());
+        assertEquals(5000, result.getSalaryMax());
+        assertEquals("Java, Spring 경험자", result.getQualifications());
+        assertEquals("MSA 경험자 우대", result.getAdvantage());
+        assertEquals("점심 제공, 4대 보험", result.getWelfare());
+        assertEquals("https://example.com/job/1", result.getLink());
+
+        // 기술 스택 검증
+        assertEquals(2, result.getTechStacks().size());
+
+        TechStackDTO techStackDTO1 = result.getTechStacks().get(0);
+        assertEquals("자바", techStackDTO1.getLabelKo());
+        assertEquals("Java", techStackDTO1.getLabelEn());
+        assertEquals("java_icon.png", techStackDTO1.getIconUrl());
+
+        TechStackDTO techStackDTO2 = result.getTechStacks().get(1);
+        assertEquals("스프링", techStackDTO2.getLabelKo());
+        assertEquals("Spring", techStackDTO2.getLabelEn());
+        assertEquals("spring_icon.png", techStackDTO2.getIconUrl());
+
+        // Repository 호출 검증
+        verify(recruitmentRepository).findDetailById(recruitmentId);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 채용 공고 상세 조회 테스트")
+    void getRecruitmentDetail_NotFound() {
+        // Given
+        Long nonExistentId = 999L;
+        when(recruitmentRepository.findDetailById(nonExistentId)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(RecruitmentNotFoundException.class, () -> {
+            recruitmentService.getRecruitmentDetail(nonExistentId);
+        });
+
+        // Repository 호출 검증
+        verify(recruitmentRepository).findDetailById(nonExistentId);
     }
 }
