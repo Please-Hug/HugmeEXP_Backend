@@ -2,8 +2,12 @@ package org.example.hugmeexp.domain.recruitment.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.hugmeexp.domain.recruitment.dto.RecruitmentDetailResponseDTO;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentSearchConditionDTO;
+import org.example.hugmeexp.domain.recruitment.dto.TechStackDTO;
+import org.example.hugmeexp.domain.recruitment.entity.Recruitment;
+import org.example.hugmeexp.domain.recruitment.exception.RecruitmentNotFoundException;
 import org.example.hugmeexp.domain.recruitment.repository.RecruitmentRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -47,5 +51,36 @@ public class RecruitmentService {
     public List<RecruitmentResponseDTO> findLatestRecruitments(int limit) {
         Pageable pageable = PageRequest.of(0, limit);
         return recruitmentRepository.findLatestRecruitments(pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public RecruitmentDetailResponseDTO getRecruitmentDetail(Long id){
+        Recruitment recruitment = recruitmentRepository.findDetailById(id).orElseThrow(() -> new RecruitmentNotFoundException());
+
+        return RecruitmentDetailResponseDTO.builder()
+                .id(recruitment.getId())
+                .title(recruitment.getTitle())
+                .companyName(recruitment.getCompany().getCompanyName())
+                .companyImageUrl(recruitment.getCompany().getCompanyImageUrl())
+                .companyAddress(recruitment.getCompany().getCompanyAddress())
+                .establishmentDate(recruitment.getCompany().getEstablishmentDate())
+                .companyDescription(recruitment.getCompany().getCompanyDescription())
+                .dueDate(recruitment.getDueDate())
+                .experience(recruitment.getExperience())
+                .education(recruitment.getEducation())
+                .salaryMin(recruitment.getSalaryMin())
+                .salaryMax(recruitment.getSalaryMax())
+                .techStacks(recruitment.getTechStacks().stream()
+                        .map(ts -> TechStackDTO.builder()
+                            .labelKo(ts.getTechItem().getKoreanName())
+                            .labelEn(ts.getTechItem().getEnglishName())
+                            .iconUrl(ts.getTechItem().getIconUrl())
+                            .build())
+                        .toList())
+                .advantage(recruitment.getAdvantage())
+                .qualifications(recruitment.getQualification())
+                .welfare(recruitment.getWelfare())
+                .link(recruitment.getLink())
+                .build();
     }
 }

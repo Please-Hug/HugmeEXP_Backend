@@ -55,3 +55,13 @@ Authorization: Bearer {{accessToken}}
 ### 🏠 홈 화면 - 최신 채용 공고 조회
 GET {{baseUrl}}/recruitments/home
 Authorization: Bearer {{accessToken}}
+
+
+
+### 📝 채용 공고 상세 조회 (예: id = 1)
+GET {{baseUrl}}/recruitments/1
+Authorization: Bearer {{accessToken}}
+
+### ❌ 채용 공고 상세 조회 - 존재하지 않는 ID
+GET {{baseUrl}}/recruitments/99999
+Authorization: Bearer {{accessToken}}

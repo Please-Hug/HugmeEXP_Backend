@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentCompanySearchResponseDTO;
+import org.example.hugmeexp.domain.recruitment.dto.RecruitmentDetailResponseDTO;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentSearchConditionDTO;
 import org.example.hugmeexp.domain.recruitment.service.CompanyService;
@@ -70,6 +71,20 @@ public class RecruitmentController {
 
         Response<List<RecruitmentResponseDTO>> response = Response.<List<RecruitmentResponseDTO>>builder()
                 .message("최신 채용 공고 조회 성공")
+                .data(result)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Operation(summary = "채용 공고 상세 조회", description = "채용 공고의 상세 정보를 조회합니다")
+    @GetMapping("/{id}")
+    public ResponseEntity<Response<RecruitmentDetailResponseDTO>> findRecruitmentDetail(@PathVariable Long id) {
+
+        RecruitmentDetailResponseDTO result = recruitmentService.getRecruitmentDetail(id);
+
+        Response<RecruitmentDetailResponseDTO> response = Response.<RecruitmentDetailResponseDTO>builder()
+                .message("채용 공고 상세 조회 성공")
                 .data(result)
                 .build();
 
