@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentDetailResponseDTO;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentSearchConditionDTO;
-import org.example.hugmeexp.domain.recruitment.dto.TechStackDTO;
 import org.example.hugmeexp.domain.recruitment.entity.Recruitment;
 import org.example.hugmeexp.domain.recruitment.exception.RecruitmentNotFoundException;
 import org.example.hugmeexp.domain.recruitment.repository.RecruitmentRepository;

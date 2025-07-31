@@ -1,10 +1,8 @@
 package org.example.hugmeexp.domain.recruitment.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.example.hugmeexp.global.common.response.Response;
 
 import java.util.List;
 
