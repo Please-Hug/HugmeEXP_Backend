@@ -87,4 +87,20 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
     """)
     Optional<Recruitment> findDetailById(@Param("id") Long id);
 
+    /**
+     * 키워드로 채용 공고를 검색합니다.
+     * 제목 또는 회사 이름에 키워드가 포함된 채용 공고를 반환합니다.
+     *
+     * @param keyword 검색 키워드
+     * @param pageable 페이징 정보
+     * @return 키워드에 해당하는 채용 공고 목록
+     */
+    @Query("""
+        SELECT r FROM Recruitment r
+        JOIN FETCH r.company c
+        WHERE LOWER(r.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+        OR LOWER(c.companyName) LIKE LOWER(CONCAT('%', :keyword, '%'))
+    """)
+    List<Recruitment> findByKeyword(@Param("keyword") String keyword, Pageable pageable);
+
 }
