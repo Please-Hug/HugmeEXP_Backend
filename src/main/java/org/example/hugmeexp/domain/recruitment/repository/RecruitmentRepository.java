@@ -33,9 +33,8 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
         LEFT JOIN r.tags t
         WHERE (:#{#cond.salaryMin} IS NULL OR r.salaryMin >= :#{#cond.salaryMin}) AND
               (:#{#cond.salaryMax} IS NULL OR r.salaryMax <= :#{#cond.salaryMax}) AND
-              (:#{#cond.experience} IS NULL OR
-                (r.experienceMin <= :#{#cond.experience} AND
-                (r.experienceMax IS NULL OR r.experienceMax >= :#{#cond.experience})))AND
+              (:#{#cond.experienceMin} IS NULL OR r.experienceMin <= :#{#cond.experienceMin}) AND
+              (:#{#cond.experienceMax} IS NULL OR r.experienceMax >= :#{#cond.experienceMax})AND
               (:#{#cond.education} IS NULL OR r.education = :#{#cond.education}) AND
               (:#{#cond.workLocation} IS NULL OR r.workLocation LIKE %:#{#cond.workLocation}%) AND
               (:#{#cond.topLeftLat} IS NULL OR r.latitude >= :#{#cond.topLeftLat}) AND
