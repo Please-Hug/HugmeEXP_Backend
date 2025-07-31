@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> {
@@ -66,4 +67,23 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
         ORDER BY r.modifiedAt DESC
     """)
     List<RecruitmentResponseDTO> findLatestRecruitments(Pageable pageable);
+
+    /**
+     * 채용 공고의 상세 정보를 ID로 조회합니다.
+     * 회사 정보, 기술 스택, 태그 등을 포함하여 상세 정보를 반환합니다.
+     *
+     * @param id 채용 공고 ID
+     * @return 채용 공고의 상세 정보 (존재하지 않을 경우 Optional.empty())
+     */
+    @Query("""
+        SELECT DISTINCT r FROM Recruitment r
+        JOIN FETCH r.company
+        LEFT JOIN FETCH r.techStacks ts
+        LEFT JOIN FETCH ts.techItem
+        LEFT JOIN FETCH r.tags t
+        LEFT JOIN FETCH t.tagItem
+        WHERE r.id = :id
+    """)
+    Optional<Recruitment> findDetailById(@Param("id") Long id);
+
 }

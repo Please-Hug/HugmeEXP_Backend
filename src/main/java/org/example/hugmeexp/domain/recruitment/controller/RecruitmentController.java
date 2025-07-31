@@ -1,13 +1,14 @@
 package org.example.hugmeexp.domain.recruitment.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.hugmeexp.domain.recruitment.dto.RecruitmentCompanySearchResponseDTO;
-import org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO;
-import org.example.hugmeexp.domain.recruitment.dto.RecruitmentSearchConditionDTO;
+import org.example.hugmeexp.domain.recruitment.dto.*;
 import org.example.hugmeexp.domain.recruitment.service.CompanyService;
 import org.example.hugmeexp.domain.recruitment.service.RecruitmentService;
 import org.example.hugmeexp.global.common.response.Response;
@@ -27,7 +28,20 @@ public class RecruitmentController {
     private final RecruitmentService recruitmentService;
     private final CompanyService companyService;
 
-    @Operation(summary = "채용 공고 목록 조회", description = "채용 공고 목록을 조회합니다")
+    @Operation(
+        summary = "채용 공고 목록 조회",
+        description = "조건에 따라 채용 공고 목록을 조회합니다",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "채용 공고 목록 조회 성공",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = RecruitmentListResponse.class)
+                )
+            )
+        }
+    )
     @GetMapping
     public ResponseEntity<Response<List<RecruitmentResponseDTO>>> listRecruitments(
             @Valid @ModelAttribute RecruitmentSearchConditionDTO conditionDTO) {
@@ -42,7 +56,24 @@ public class RecruitmentController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @Operation(summary = "채용 기업 목록 조회", description = "채용 기업 목록을 조회합니다")
+    @Operation(
+        summary = "채용 기업 목록 조회",
+        description = "채용 기업 목록을 조회합니다",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "기업 목록 조회 성공",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = CompanyListResponse.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "204",
+                description = "결과 없음 (No Content)"
+            )
+        }
+    )
     @GetMapping("/companies")
     public ResponseEntity<Response<List<RecruitmentCompanySearchResponseDTO>>> searchCompanies(
             @RequestParam(required = false) String keyword
@@ -62,7 +93,20 @@ public class RecruitmentController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @Operation(summary = "최신 채용 공고 조회", description = "홈 화면에 보여질 최신 채용 공고 목록을 조회합니다 (최신 수정일 기준)")
+    @Operation(
+            summary = "최신 채용 공고 조회",
+            description = "홈 화면에 보여질 최신 채용 공고 목록을 조회합니다 (최신 수정일 기준)",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "최신 채용 공고 조회 성공",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = RecruitmentListResponse.class)
+                            )
+                    )
+            }
+    )
     @GetMapping("/home")
     public ResponseEntity<Response<List<RecruitmentResponseDTO>>> findLatestRecruitments() {
         int limit = 5;
@@ -70,6 +114,37 @@ public class RecruitmentController {
 
         Response<List<RecruitmentResponseDTO>> response = Response.<List<RecruitmentResponseDTO>>builder()
                 .message("최신 채용 공고 조회 성공")
+                .data(result)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Operation(
+        summary = "채용 공고 상세 조회",
+        description = "채용 공고의 ID를 기준으로 상세 정보를 조회합니다",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "채용 공고 상세 조회 성공",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = RecruitmentDetailResponseDTO.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "404",
+                description = "해당 ID의 채용 공고가 존재하지 않음"
+            )
+        }
+    )
+    @GetMapping("/{id}")
+    public ResponseEntity<Response<RecruitmentDetailResponseDTO>> findRecruitmentDetail(@PathVariable Long id) {
+
+        RecruitmentDetailResponseDTO result = recruitmentService.getRecruitmentDetail(id);
+
+        Response<RecruitmentDetailResponseDTO> response = Response.<RecruitmentDetailResponseDTO>builder()
+                .message("채용 공고 상세 조회 성공")
                 .data(result)
                 .build();
 
