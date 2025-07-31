@@ -426,6 +426,7 @@ public class RecruitmentServiceTest {
         assertEquals("좋은 회사입니다.", result.getCompanyDescription());
         assertEquals(LocalDateTime.of(2023, 12, 31, 23, 59), result.getDueDate());
         assertEquals(3, result.getExperienceMin());
+        assertEquals(5, result.getExperienceMax());
         assertEquals(4, result.getEducation());
         assertEquals(3000, result.getSalaryMin());
         assertEquals(5000, result.getSalaryMax());
