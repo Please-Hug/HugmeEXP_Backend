@@ -48,7 +48,8 @@ public class RecruitmentServiceTest {
         RecruitmentSearchConditionDTO condition = RecruitmentSearchConditionDTO.builder()
                 .salaryMin(3000)
                 .salaryMax(5000)
-                .experience(3)
+                .experienceMin(3)
+                .experienceMax(7)
                 .education(4)
                 .workLocation("서울")
                 .techStacks(List.of(1L, 2L))
@@ -97,6 +98,8 @@ public class RecruitmentServiceTest {
         RecruitmentSearchConditionDTO condition = RecruitmentSearchConditionDTO.builder()
                 .salaryMin(3000)
                 .salaryMax(5000)
+                .experienceMin(2)
+                .experienceMax(5)
                 .build();
 
         List<RecruitmentResponseDTO> expectedResult = createMockResponseList();
@@ -117,6 +120,8 @@ public class RecruitmentServiceTest {
         RecruitmentSearchConditionDTO condition = RecruitmentSearchConditionDTO.builder()
                 .salaryMin(3000)
                 .salaryMax(5000)
+                .experienceMin(1)
+                .experienceMax(10)
                 .techStacks(null)
                 .tags(null)
                 .build();
@@ -230,7 +235,7 @@ public class RecruitmentServiceTest {
         responses.add(new RecruitmentResponseDTO(
                 1L, "백엔드 개발자 모집", "ABC 회사", "company_image_url_1.jpg",
                 LocalDateTime.of(2023, 12, 31, 23, 59),
-                3, "서울시 강남구", new BigDecimal("37.5"), new BigDecimal("127.0"),
+                3, 5, "서울시 강남구", new BigDecimal("37.5"), new BigDecimal("127.0"),
                 LocalDateTime.now()
         ));
 
@@ -238,7 +243,7 @@ public class RecruitmentServiceTest {
         responses.add(new RecruitmentResponseDTO(
                 2L, "프론트엔드 개발자 모집", "XYZ 회사", "company_image_url_2.jpg",
                 LocalDateTime.of(2023, 11, 30, 23, 59),
-                2, "서울시 서초구", new BigDecimal("37.4"), new BigDecimal("127.1"),
+                2, 4, "서울시 서초구", new BigDecimal("37.4"), new BigDecimal("127.1"),
                 LocalDateTime.now()
         ));
 
@@ -254,7 +259,7 @@ public class RecruitmentServiceTest {
         responses.add(new RecruitmentResponseDTO(
                 1L, "백엔드 개발자 모집", "ABC 회사", "company_image_url_1.jpg",
                 LocalDateTime.of(2023, 12, 31, 23, 59),
-                3, "서울시 강남구", new BigDecimal("37.5"), new BigDecimal("127.0"),
+                3, 5, "서울시 강남구", new BigDecimal("37.5"), new BigDecimal("127.0"),
                 LocalDateTime.now().minusDays(1)
         ));
 
@@ -262,7 +267,7 @@ public class RecruitmentServiceTest {
         responses.add(new RecruitmentResponseDTO(
                 2L, "프론트엔드 개발자 모집", "XYZ 회사", "company_image_url_2.jpg",
                 LocalDateTime.of(2023, 11, 30, 23, 59),
-                2, "서울시 서초구", new BigDecimal("37.4"), new BigDecimal("127.1"),
+                2, 4, "서울시 서초구", new BigDecimal("37.4"), new BigDecimal("127.1"),
                 LocalDateTime.now().minusDays(3)
         ));
 
@@ -270,7 +275,7 @@ public class RecruitmentServiceTest {
         responses.add(new RecruitmentResponseDTO(
                 3L, "데이터 엔지니어 모집", "DEF 회사", "company_image_url_3.jpg",
                 LocalDateTime.of(2023, 12, 15, 23, 59),
-                5, "서울시 송파구", new BigDecimal("37.6"), new BigDecimal("127.2"),
+                5, 7, "서울시 송파구", new BigDecimal("37.6"), new BigDecimal("127.2"),
                 LocalDateTime.now().minusDays(5)
         ));
 
@@ -278,7 +283,7 @@ public class RecruitmentServiceTest {
         responses.add(new RecruitmentResponseDTO(
                 4L, "모바일 개발자 모집", "GHI 회사", "company_image_url_4.jpg",
                 LocalDateTime.of(2023, 12, 20, 23, 59),
-                4, "서울시 마포구", new BigDecimal("37.55"), new BigDecimal("126.9"),
+                4, 6, "서울시 마포구", new BigDecimal("37.55"), new BigDecimal("126.9"),
                 LocalDateTime.now().minusDays(7)
         ));
 
@@ -286,7 +291,7 @@ public class RecruitmentServiceTest {
         responses.add(new RecruitmentResponseDTO(
                 5L, "DevOps 엔지니어 모집", "JKL 회사", "company_image_url_5.jpg",
                 LocalDateTime.of(2023, 12, 25, 23, 59),
-                2, "서울시 영등포구", new BigDecimal("37.52"), new BigDecimal("126.93"),
+                2, 4, "서울시 영등포구", new BigDecimal("37.52"), new BigDecimal("126.93"),
                 LocalDateTime.now().minusDays(10)
         ));
 
@@ -294,7 +299,7 @@ public class RecruitmentServiceTest {
         responses.add(new RecruitmentResponseDTO(
                 6L, "QA 엔지니어 모집", "MNO 회사", "company_image_url_6.jpg",
                 LocalDateTime.of(2023, 12, 10, 23, 59),
-                3, "서울시 강동구", new BigDecimal("37.53"), new BigDecimal("127.12"),
+                3, 5, "서울시 강동구", new BigDecimal("37.53"), new BigDecimal("127.12"),
                 LocalDateTime.now().minusDays(14)
         ));
 
@@ -302,7 +307,7 @@ public class RecruitmentServiceTest {
         responses.add(new RecruitmentResponseDTO(
                 7L, "보안 엔지니어 모집", "PQR 회사", "company_image_url_7.jpg",
                 LocalDateTime.of(2023, 12, 5, 23, 59),
-                6, "서울시 성동구", new BigDecimal("37.54"), new BigDecimal("127.05"),
+                6, 8, "서울시 성동구", new BigDecimal("37.54"), new BigDecimal("127.05"),
                 LocalDateTime.now().minusDays(20)
         ));
 
@@ -310,7 +315,7 @@ public class RecruitmentServiceTest {
         responses.add(new RecruitmentResponseDTO(
                 8L, "시스템 엔지니어 모집", "STU 회사", "company_image_url_8.jpg",
                 LocalDateTime.of(2023, 11, 15, 23, 59),
-                4, "서울시 중구", new BigDecimal("37.56"), new BigDecimal("126.98"),
+                4, 6, "서울시 중구", new BigDecimal("37.56"), new BigDecimal("126.98"),
                 LocalDateTime.now().minusDays(30)
         ));
 
@@ -345,7 +350,8 @@ public class RecruitmentServiceTest {
                 .id(recruitmentId)
                 .title("백엔드 개발자 모집")
                 .education(4)
-                .experience(3)
+                .experienceMin(3)
+                .experienceMax(5)
                 .qualification("Java, Spring 경험자")
                 .advantage("MSA 경험자 우대")
                 .welfare("점심 제공, 4대 보험")
@@ -419,7 +425,7 @@ public class RecruitmentServiceTest {
         assertEquals(LocalDate.of(2010, 1, 1), result.getEstablishmentDate());
         assertEquals("좋은 회사입니다.", result.getCompanyDescription());
         assertEquals(LocalDateTime.of(2023, 12, 31, 23, 59), result.getDueDate());
-        assertEquals(3, result.getExperience());
+        assertEquals(3, result.getExperienceMin());
         assertEquals(4, result.getEducation());
         assertEquals(3000, result.getSalaryMin());
         assertEquals(5000, result.getSalaryMax());
