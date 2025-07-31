@@ -9,7 +9,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.recruitment.dto.*;
-import org.example.hugmeexp.domain.recruitment.service.CompanyService;
 import org.example.hugmeexp.domain.recruitment.service.RecruitmentService;
 import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.http.HttpStatus;

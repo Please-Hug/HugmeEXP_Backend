@@ -1,5 +1,6 @@
 package org.example.hugmeexp.domain.recruitment.service;
 
+import org.example.hugmeexp.domain.recruitment.dto.RecruitmentCompanySearchResponseDTO;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentDetailResponseDTO;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentSearchConditionDTO;
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
@@ -466,5 +468,210 @@ public class RecruitmentServiceTest {
 
         // Repository 호출 검증
         verify(recruitmentRepository).findDetailById(nonExistentId);
+    }
+    @Test
+    @DisplayName("키워드로 채용 공고 검색 - 제목에 키워드가 포함된 경우")
+    void findByKeyword_KeywordInTitle_ShouldReturnMatchingRecruitments() {
+        // Given
+        String keyword = "백엔드";
+        int limit = 10;
+
+        // 회사 정보 생성
+        Company company1 = Company.builder()
+                .id(1L)
+                .companyName("ABC 회사")
+                .companyAddress("서울시 강남구 테헤란로 123")
+                .latitude(new BigDecimal("37.5"))
+                .longitude(new BigDecimal("127.0"))
+                .establishmentDate(LocalDate.of(2010, 1, 1))
+                .companyImageUrl("company_image_url_1.jpg")
+                .companyDescription("좋은 회사입니다.")
+                .build();
+
+        // 채용 공고 생성 (키워드가 제목에 포함됨)
+        Recruitment recruitment1 = Recruitment.builder()
+                .id(1L)
+                .title("백엔드 개발자 모집")
+                .education(4)
+                .experienceMin(3)
+                .experienceMax(5)
+                .workLocation("서울시 강남구")
+                .company(company1)
+                .build();
+
+        List<Recruitment> mockRecruitments = List.of(recruitment1);
+
+        // Repository mock 설정
+        when(recruitmentRepository.findByKeyword(keyword, PageRequest.of(0, limit))).thenReturn(mockRecruitments);
+
+        // When
+        List<RecruitmentCompanySearchResponseDTO> result = recruitmentService.findByKeyword(keyword, limit);
+
+        // Then
+        assertEquals(1, result.size());
+        assertEquals(1L, result.get(0).getRecruitmentId());
+        assertEquals("백엔드 개발자 모집", result.get(0).getTitle());
+        assertEquals(1L, result.get(0).getCompanyId());
+        assertEquals("ABC 회사", result.get(0).getCompanyName());
+
+        // Repository 호출 검증
+        verify(recruitmentRepository).findByKeyword(keyword, PageRequest.of(0, limit));
+    }
+
+    @Test
+    @DisplayName("키워드로 채용 공고 검색 - 회사명에 키워드가 포함된 경우")
+    void findByKeyword_KeywordInCompanyName_ShouldReturnMatchingRecruitments() {
+        // Given
+        String keyword = "XYZ";
+        int limit = 10;
+
+        // 회사 정보 생성 (키워드가 회사명에 포함됨)
+        Company company1 = Company.builder()
+                .id(2L)
+                .companyName("XYZ 회사")
+                .companyAddress("서울시 서초구 서초대로 456")
+                .latitude(new BigDecimal("37.4"))
+                .longitude(new BigDecimal("127.1"))
+                .establishmentDate(LocalDate.of(2015, 5, 5))
+                .companyImageUrl("company_image_url_2.jpg")
+                .companyDescription("혁신적인 회사입니다.")
+                .build();
+
+        // 채용 공고 생성
+        Recruitment recruitment1 = Recruitment.builder()
+                .id(2L)
+                .title("프론트엔드 개발자 모집")
+                .education(4)
+                .experienceMin(2)
+                .experienceMax(4)
+                .workLocation("서울시 서초구")
+                .company(company1)
+                .build();
+
+        List<Recruitment> mockRecruitments = List.of(recruitment1);
+
+        // Repository mock 설정
+        when(recruitmentRepository.findByKeyword(keyword, PageRequest.of(0, limit))).thenReturn(mockRecruitments);
+
+        // When
+        List<RecruitmentCompanySearchResponseDTO> result = recruitmentService.findByKeyword(keyword, limit);
+
+        // Then
+        assertEquals(1, result.size());
+        assertEquals(2L, result.get(0).getRecruitmentId());
+        assertEquals("프론트엔드 개발자 모집", result.get(0).getTitle());
+        assertEquals(2L, result.get(0).getCompanyId());
+        assertEquals("XYZ 회사", result.get(0).getCompanyName());
+
+        // Repository 호출 검증
+        verify(recruitmentRepository).findByKeyword(keyword, PageRequest.of(0, limit));
+    }
+
+    @Test
+    @DisplayName("키워드로 채용 공고 검색 - 일치하는 결과가 없는 경우")
+    void findByKeyword_NoMatches_ShouldReturnEmptyList() {
+        // Given
+        String keyword = "존재하지않는키워드";
+        int limit = 10;
+
+        // Repository mock 설정 - 빈 리스트 반환
+        when(recruitmentRepository.findByKeyword(keyword, PageRequest.of(0, limit))).thenReturn(List.of());
+
+        // When
+        List<RecruitmentCompanySearchResponseDTO> result = recruitmentService.findByKeyword(keyword, limit);
+
+        // Then
+        assertTrue(result.isEmpty());
+
+        // Repository 호출 검증
+        verify(recruitmentRepository).findByKeyword(keyword, PageRequest.of(0, limit));
+    }
+
+    @Test
+    @DisplayName("키워드로 채용 공고 검색 - 결과 제한 테스트")
+    void findByKeyword_LimitResults_ShouldReturnLimitedResults() {
+        // Given
+        String keyword = "개발자";
+        int limit = 2;
+
+        // 회사 정보 생성
+        Company company1 = Company.builder()
+                .id(1L)
+                .companyName("ABC 회사")
+                .companyAddress("서울시 강남구 테헤란로 123")
+                .latitude(new BigDecimal("37.5"))
+                .longitude(new BigDecimal("127.0"))
+                .establishmentDate(LocalDate.of(2010, 1, 1))
+                .companyImageUrl("company_image_url_1.jpg")
+                .companyDescription("좋은 회사입니다.")
+                .build();
+
+        Company company2 = Company.builder()
+                .id(2L)
+                .companyName("XYZ 회사")
+                .companyAddress("서울시 서초구 서초대로 456")
+                .latitude(new BigDecimal("37.4"))
+                .longitude(new BigDecimal("127.1"))
+                .establishmentDate(LocalDate.of(2015, 5, 5))
+                .companyImageUrl("company_image_url_2.jpg")
+                .companyDescription("혁신적인 회사입니다.")
+                .build();
+
+        Company company3 = Company.builder()
+                .id(3L)
+                .companyName("DEF 회사")
+                .companyAddress("서울시 송파구 올림픽로 789")
+                .latitude(new BigDecimal("37.6"))
+                .longitude(new BigDecimal("127.2"))
+                .establishmentDate(LocalDate.of(2012, 3, 3))
+                .companyImageUrl("company_image_url_3.jpg")
+                .companyDescription("성장하는 회사입니다.")
+                .build();
+
+        // 채용 공고 생성
+        Recruitment recruitment1 = Recruitment.builder()
+                .id(1L)
+                .title("백엔드 개발자 모집")
+                .education(4)
+                .experienceMin(3)
+                .experienceMax(5)
+                .workLocation("서울시 강남구")
+                .company(company1)
+                .build();
+
+        Recruitment recruitment2 = Recruitment.builder()
+                .id(2L)
+                .title("프론트엔드 개발자 모집")
+                .education(4)
+                .experienceMin(2)
+                .experienceMax(4)
+                .workLocation("서울시 서초구")
+                .company(company2)
+                .build();
+
+        Recruitment recruitment3 = Recruitment.builder()
+                .id(3L)
+                .title("모바일 개발자 모집")
+                .education(4)
+                .experienceMin(5)
+                .experienceMax(7)
+                .workLocation("서울시 송파구")
+                .company(company3)
+                .build();
+
+        // 3개의 결과가 있지만 limit이 2이므로 2개만 반환되어야 함
+        List<Recruitment> mockRecruitments = List.of(recruitment1, recruitment2);
+
+        // Repository mock 설정
+        when(recruitmentRepository.findByKeyword(keyword, PageRequest.of(0, limit))).thenReturn(mockRecruitments);
+
+        // When
+        List<RecruitmentCompanySearchResponseDTO> result = recruitmentService.findByKeyword(keyword, limit);
+
+        // Then
+        assertEquals(2, result.size());
+
+        // Repository 호출 검증
+        verify(recruitmentRepository).findByKeyword(keyword, PageRequest.of(0, limit));
     }
 }
