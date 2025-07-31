@@ -6,6 +6,8 @@ import org.example.hugmeexp.domain.recruitment.dto.RecruitmentSearchConditionDTO
 import org.example.hugmeexp.domain.recruitment.dto.TechStackDTO;
 import org.example.hugmeexp.domain.recruitment.entity.Company;
 import org.example.hugmeexp.domain.recruitment.entity.Recruitment;
+import org.example.hugmeexp.domain.recruitment.entity.Tag;
+import org.example.hugmeexp.domain.recruitment.entity.TagItem;
 import org.example.hugmeexp.domain.recruitment.entity.TechItem;
 import org.example.hugmeexp.domain.recruitment.entity.TechStack;
 import org.example.hugmeexp.domain.recruitment.exception.RecruitmentNotFoundException;
@@ -374,9 +376,31 @@ public class RecruitmentServiceTest {
         techStacks.add(techStack1);
         techStacks.add(techStack2);
 
-        // 채용 공고에 기술 스택 설정
+        // 태그 아이템 생성
+        TagItem tagItem1 = new TagItem(1L, "신입");
+        TagItem tagItem2 = new TagItem(2L, "경력");
+
+        // 태그 생성 및 연결
+        List<Tag> tags = new ArrayList<>();
+        Tag tag1 = Tag.builder()
+                .id(1L)
+                .recruitment(recruitment)
+                .tagItem(tagItem1)
+                .build();
+
+        Tag tag2 = Tag.builder()
+                .id(2L)
+                .recruitment(recruitment)
+                .tagItem(tagItem2)
+                .build();
+
+        tags.add(tag1);
+        tags.add(tag2);
+
+        // 채용 공고에 기술 스택과 태그 설정
         recruitment = recruitment.toBuilder()
                 .techStacks(techStacks)
+                .tags(tags)
                 .build();
 
         // Repository mock 설정
