@@ -18,7 +18,8 @@ public class RecruitmentResponseDTO {
     private String companyName;
     private String companyImageUrl;
     private LocalDateTime dueDate;
-    private Integer experience;
+    private Integer experienceMin;
+    private Integer experienceMax;
     private String workLocation;
     private BigDecimal latitude; // 위도
     private BigDecimal longitude; // 경도
@@ -27,14 +28,15 @@ public class RecruitmentResponseDTO {
 
     // JPA 에서 사용되는 생성자
     public RecruitmentResponseDTO(Long id, String title, String companyName, String companyImageUrl,
-                                  LocalDateTime dueDate, Integer experience, String workLocation,
+                                  LocalDateTime dueDate, Integer experienceMin, Integer experienceMax, String workLocation,
                                   BigDecimal latitude, BigDecimal longitude, LocalDateTime modifiedAt) {
         this.id = id;
         this.title = title;
         this.companyName = companyName;
         this.companyImageUrl = companyImageUrl;
         this.dueDate = dueDate;
-        this.experience = experience;
+        this.experienceMin = experienceMin;
+        this.experienceMax = experienceMax;
         this.workLocation = workLocation;
         this.latitude = latitude;
         this.longitude = longitude;
@@ -49,7 +51,8 @@ public class RecruitmentResponseDTO {
                 .companyName(recruitment.getCompany().getCompanyName())
                 .companyImageUrl(recruitment.getCompany().getCompanyImageUrl())
                 .dueDate(recruitment.getDueDate())
-                .experience(recruitment.getExperience())
+                .experienceMin(recruitment.getExperienceMin())
+                .experienceMax(recruitment.getExperienceMax())
                 .workLocation(recruitment.getWorkLocation())
                 .latitude(recruitment.getCompany().getLatitude())
                 .longitude(recruitment.getCompany().getLongitude())

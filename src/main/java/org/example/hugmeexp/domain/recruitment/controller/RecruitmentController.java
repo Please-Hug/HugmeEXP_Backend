@@ -9,7 +9,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.recruitment.dto.*;
-import org.example.hugmeexp.domain.recruitment.service.CompanyService;
 import org.example.hugmeexp.domain.recruitment.service.RecruitmentService;
 import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.http.HttpStatus;
@@ -26,7 +25,6 @@ import java.util.List;
 public class RecruitmentController {
 
     private final RecruitmentService recruitmentService;
-    private final CompanyService companyService;
 
     @Operation(
         summary = "채용 공고 목록 조회",
@@ -57,20 +55,24 @@ public class RecruitmentController {
     }
 
     @Operation(
-        summary = "채용 기업 목록 조회",
-        description = "채용 기업 목록을 조회합니다",
+        summary = "회사명 또는 공고 제목 키워드로 채용 공고 검색",
+        description = "사용자가 입력한 키워드를 기준으로 회사명 또는 공고 제목에 포함되는 채용 공고 목록을 조회합니다",
         responses = {
             @ApiResponse(
                 responseCode = "200",
-                description = "기업 목록 조회 성공",
+                description = "공고 목록 조회 성공",
                 content = @Content(
                     mediaType = "application/json",
-                    schema = @Schema(implementation = CompanyListResponse.class)
+                    schema = @Schema(implementation = RecruitmentCompanySearchResponseDTO.class)
                 )
             ),
             @ApiResponse(
                 responseCode = "204",
-                description = "결과 없음 (No Content)"
+                description = "조건에 맞는 결과 없음"
+            ),
+            @ApiResponse(
+                responseCode = "400",
+                description = "잘못된 요청 파라미터"
             )
         }
     )
@@ -79,14 +81,15 @@ public class RecruitmentController {
             @RequestParam(required = false) String keyword
     ){
 
-        List<RecruitmentCompanySearchResponseDTO> result = companyService.searchCompaniesByKeyword(keyword);
+        int limit = 5;
+        List<RecruitmentCompanySearchResponseDTO> result = recruitmentService.findByKeyword(keyword,limit);
 
         if(result.isEmpty()){
             return ResponseEntity.noContent().build();
         }
 
         Response<List<RecruitmentCompanySearchResponseDTO>> response = Response.<List<RecruitmentCompanySearchResponseDTO>>builder()
-                .message("기업 목록 조회 성공")
+                .message("회사 이름 또는 제목 키워드로 공고 목록 조회 성공")
                 .data(result)
                 .build();
 

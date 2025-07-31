@@ -16,7 +16,8 @@ public class RecruitmentSearchConditionDTO {
 
     private Integer salaryMin;
     private Integer salaryMax;
-    private Integer experience;
+    private Integer experienceMin;
+    private Integer experienceMax;
     private Integer education;
     private List<Long> techStacks;
     private String workLocation;

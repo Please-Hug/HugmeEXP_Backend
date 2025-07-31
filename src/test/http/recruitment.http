@@ -38,17 +38,18 @@ Authorization: Bearer {{accessToken}}
 
 
 
-### 🏢 채용 기업 이름 검색 (예: 네이버)
+### 🏢 회사명 또는 공고 제목으로 검색 (예: 네이버)
 GET {{baseUrl}}/recruitments/companies?keyword=네이버
 Authorization: Bearer {{accessToken}}
 
-### 🏢 채용 기업 이름 검색 (없는 경우)
-GET {{baseUrl}}/recruitments/companies?keyword=없는회사
+### 🏢 회사명 또는 공고 제목으로 검색 (예: 백엔드)
+GET {{baseUrl}}/recruitments/companies?keyword=백엔드
 Authorization: Bearer {{accessToken}}
 
-### ❌ 채용 기업 키워드 누락 (예외 테스트)
+### ❌ 키워드 누락 (예외 테스트)
 GET {{baseUrl}}/recruitments/companies
 Authorization: Bearer {{accessToken}}
+
 
 
 
