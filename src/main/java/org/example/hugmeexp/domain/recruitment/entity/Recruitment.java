@@ -29,8 +29,11 @@ public class Recruitment extends BaseEntity {
 
     @Column(nullable = false)
     private Integer education;
-    @Column(nullable = false)
-    private Integer experience;
+    @Column(name = "experience_min", nullable = false)
+    private Integer experienceMin;
+    @Column(name = "experience_max")
+    private Integer experienceMax;
+
 
     private String qualification; // 자격 요건
     private String advantage; // 우대 사항

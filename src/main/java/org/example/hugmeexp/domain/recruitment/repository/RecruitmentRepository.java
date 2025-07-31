@@ -24,7 +24,7 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
      */
     @Query("""
         SELECT new org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO(
-            r.id, r.title, c.companyName, c.companyImageUrl, r.dueDate, r.experience,
+            r.id, r.title, c.companyName, c.companyImageUrl, r.dueDate, r.experienceMin, r.experienceMax,
             r.workLocation, r.latitude, r.longitude, r.modifiedAt
         )
         FROM Recruitment r
@@ -33,7 +33,9 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
         LEFT JOIN r.tags t
         WHERE (:#{#cond.salaryMin} IS NULL OR r.salaryMin >= :#{#cond.salaryMin}) AND
               (:#{#cond.salaryMax} IS NULL OR r.salaryMax <= :#{#cond.salaryMax}) AND
-              (:#{#cond.experience} IS NULL OR r.experience = :#{#cond.experience}) AND
+              (:#{#cond.experience} IS NULL OR
+                (r.experienceMin <= :#{#cond.experience} AND
+                (r.experienceMax IS NULL OR r.experienceMax >= :#{#cond.experience})))AND
               (:#{#cond.education} IS NULL OR r.education = :#{#cond.education}) AND
               (:#{#cond.workLocation} IS NULL OR r.workLocation LIKE %:#{#cond.workLocation}%) AND
               (:#{#cond.topLeftLat} IS NULL OR r.latitude >= :#{#cond.topLeftLat}) AND
@@ -42,7 +44,7 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
               (:#{#cond.bottomRightLng} IS NULL OR r.longitude <= :#{#cond.bottomRightLng}) AND
               (:#{#cond.techStacks} IS NULL OR ts.id IN :#{#cond.techStacks}) AND
               (:#{#cond.tags} IS NULL OR t.id IN :#{#cond.tags})
-        GROUP BY r.id, r.title, c.companyName, c.companyImageUrl, r.dueDate, r.experience,
+        GROUP BY r.id, r.title, c.companyName, c.companyImageUrl, r.dueDate, r.experienceMin, r.experienceMax,
                  r.workLocation, r.latitude, r.longitude, r.modifiedAt
         HAVING (:#{#cond.techStacks} IS NULL OR COUNT(DISTINCT ts.id) = :#{#cond.techStackCount}) AND
                (:#{#cond.tags} IS NULL OR COUNT(DISTINCT t.id) = :#{#cond.tagCount})
@@ -59,7 +61,7 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
      */
     @Query("""
         SELECT new org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO(
-            r.id, r.title, c.companyName, c.companyImageUrl, r.dueDate, r.experience,
+            r.id, r.title, c.companyName, c.companyImageUrl, r.dueDate, r.experienceMin, r.experienceMax,
             r.workLocation, r.latitude, r.longitude, r.modifiedAt
         )
         FROM Recruitment r

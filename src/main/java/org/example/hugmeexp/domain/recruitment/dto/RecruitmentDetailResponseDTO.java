@@ -24,7 +24,8 @@ public class RecruitmentDetailResponseDTO {
     private LocalDate establishmentDate;
     private String companyDescription;
     private LocalDateTime dueDate;
-    private Integer experience;
+    private Integer experienceMin;
+    private Integer experienceMax;
     private Integer education;
     private Integer salaryMin;
     private Integer salaryMax;
@@ -45,7 +46,8 @@ public class RecruitmentDetailResponseDTO {
                 .establishmentDate(recruitment.getCompany().getEstablishmentDate())
                 .companyDescription(recruitment.getCompany().getCompanyDescription())
                 .dueDate(recruitment.getDueDate())
-                .experience(recruitment.getExperience())
+                .experienceMin(recruitment.getExperienceMin())
+                .experienceMax(recruitment.getExperienceMax())
                 .education(recruitment.getEducation())
                 .salaryMin(recruitment.getSalaryMin())
                 .salaryMax(recruitment.getSalaryMax())
