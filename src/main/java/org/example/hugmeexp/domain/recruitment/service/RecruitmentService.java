@@ -57,30 +57,6 @@ public class RecruitmentService {
     public RecruitmentDetailResponseDTO getRecruitmentDetail(Long id){
         Recruitment recruitment = recruitmentRepository.findDetailById(id).orElseThrow(() -> new RecruitmentNotFoundException());
 
-        return RecruitmentDetailResponseDTO.builder()
-                .id(recruitment.getId())
-                .title(recruitment.getTitle())
-                .companyName(recruitment.getCompany().getCompanyName())
-                .companyImageUrl(recruitment.getCompany().getCompanyImageUrl())
-                .companyAddress(recruitment.getCompany().getCompanyAddress())
-                .establishmentDate(recruitment.getCompany().getEstablishmentDate())
-                .companyDescription(recruitment.getCompany().getCompanyDescription())
-                .dueDate(recruitment.getDueDate())
-                .experience(recruitment.getExperience())
-                .education(recruitment.getEducation())
-                .salaryMin(recruitment.getSalaryMin())
-                .salaryMax(recruitment.getSalaryMax())
-                .techStacks(recruitment.getTechStacks().stream()
-                        .map(ts -> TechStackDTO.builder()
-                            .labelKo(ts.getTechItem().getKoreanName())
-                            .labelEn(ts.getTechItem().getEnglishName())
-                            .iconUrl(ts.getTechItem().getIconUrl())
-                            .build())
-                        .toList())
-                .advantage(recruitment.getAdvantage())
-                .qualifications(recruitment.getQualification())
-                .welfare(recruitment.getWelfare())
-                .link(recruitment.getLink())
-                .build();
+        return RecruitmentDetailResponseDTO.from(recruitment);
     }
 }

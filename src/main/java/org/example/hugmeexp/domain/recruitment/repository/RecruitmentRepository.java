@@ -76,9 +76,12 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
      * @return 채용 공고의 상세 정보 (존재하지 않을 경우 Optional.empty())
      */
     @Query("""
-        SELECT r FROM Recruitment r
+        SELECT DISTINCT r FROM Recruitment r
         JOIN FETCH r.company
         LEFT JOIN FETCH r.techStacks ts
+        LEFT JOIN FETCH ts.techItem
+        LEFT JOIN FETCH r.tags t
+        LEFT JOIN FETCH t.tagItem
         WHERE r.id = :id
     """)
     Optional<Recruitment> findDetailById(@Param("id") Long id);

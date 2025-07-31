@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.example.hugmeexp.domain.recruitment.entity.Recruitment;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -32,4 +33,38 @@ public class RecruitmentDetailResponseDTO {
     private String qualifications;
     private String welfare;
     private String link;
+    private List<TagDTO> tags;
+
+    public static RecruitmentDetailResponseDTO from(Recruitment recruitment) {
+        return RecruitmentDetailResponseDTO.builder()
+                .id(recruitment.getId())
+                .title(recruitment.getTitle())
+                .companyName(recruitment.getCompany().getCompanyName())
+                .companyImageUrl(recruitment.getCompany().getCompanyImageUrl())
+                .companyAddress(recruitment.getCompany().getCompanyAddress())
+                .establishmentDate(recruitment.getCompany().getEstablishmentDate())
+                .companyDescription(recruitment.getCompany().getCompanyDescription())
+                .dueDate(recruitment.getDueDate())
+                .experience(recruitment.getExperience())
+                .education(recruitment.getEducation())
+                .salaryMin(recruitment.getSalaryMin())
+                .salaryMax(recruitment.getSalaryMax())
+                .techStacks(recruitment.getTechStacks().stream()
+                        .map(ts -> TechStackDTO.builder()
+                                .labelKo(ts.getTechItem().getKoreanName())
+                                .labelEn(ts.getTechItem().getEnglishName())
+                                .iconUrl(ts.getTechItem().getIconUrl())
+                                .build())
+                        .toList())
+                .advantage(recruitment.getAdvantage())
+                .qualifications(recruitment.getQualification())
+                .welfare(recruitment.getWelfare())
+                .link(recruitment.getLink())
+                .tags(recruitment.getTags().stream()
+                    .map(tag -> TagDTO.builder()
+                                    .tagName(tag.getTagItem().getTagName())
+                                    .build())
+                            .toList())
+                .build();
+    }
 }
