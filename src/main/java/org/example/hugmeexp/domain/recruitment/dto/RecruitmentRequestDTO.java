@@ -1,5 +1,6 @@
 package org.example.hugmeexp.domain.recruitment.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,7 +15,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RecruitmentRequestDTO {
+    @NotBlank
     private String sourceId;
+    @NotBlank
     private String title;
     private Integer education;
     private Integer experience;

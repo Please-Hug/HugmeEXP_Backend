@@ -1,6 +1,5 @@
 package org.example.hugmeexp.domain.recruitment.service;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentRequestDTO;

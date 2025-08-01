@@ -1,5 +1,6 @@
 package org.example.hugmeexp.domain.recruitment.dto;
 
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -11,6 +12,7 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class CompanyRequestDTO {
     private String companyName;
     private String companyAddress;
