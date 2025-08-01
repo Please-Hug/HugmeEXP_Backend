@@ -7,7 +7,7 @@ import lombok.*;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(access = AccessLevel.PRIVATE)
+@Builder(toBuilder = true)
 @Table(name = "tech_item")
 public class TechItem {
 

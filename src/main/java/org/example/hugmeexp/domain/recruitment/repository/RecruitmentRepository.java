@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> {
@@ -66,4 +67,8 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
         ORDER BY r.modifiedAt DESC
     """)
     List<RecruitmentResponseDTO> findLatestRecruitments(Pageable pageable);
+
+    boolean existsRecruitmentBySourceId(String sourceId);
+
+    Optional<Recruitment> findBySourceId(String sourceId);
 }

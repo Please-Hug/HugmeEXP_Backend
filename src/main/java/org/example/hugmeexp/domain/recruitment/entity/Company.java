@@ -27,9 +27,10 @@ public class Company {
     @Column(nullable = false)
     private String companyAddress;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 15, scale = 8)
     private BigDecimal latitude; // 위도
-    @Column(nullable = false)
+
+    @Column(nullable = false, precision = 15, scale = 8)
     private BigDecimal longitude; // 경도
 
     @Column(nullable = false)

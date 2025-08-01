@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentCompanySearchResponseDTO;
+import org.example.hugmeexp.domain.recruitment.dto.RecruitmentRequestDTO;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentSearchConditionDTO;
 import org.example.hugmeexp.domain.recruitment.service.CompanyService;
@@ -74,5 +75,33 @@ public class RecruitmentController {
                 .build();
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Operation(
+            summary = "채용 공고 스크래핑",
+            description = "외부 사이트에서 스크래핑한 채용 공고 데이터를 생성하거나 업데이트합니다. " +
+                    "동일한 sourceId가 존재하면 업데이트하고, 없으면 새로 생성합니다."
+    )
+    @PostMapping("/scrape")
+    public ResponseEntity<Response<RecruitmentResponseDTO>> createRecruitment(
+            @RequestHeader("X-API-Key") String apiKey,
+            @Valid @RequestBody RecruitmentRequestDTO requestDTO) {
+
+        // API 키 인증
+        if (!"1234567890".equals(apiKey)) {
+            Response<RecruitmentResponseDTO> errorResponse = Response.<RecruitmentResponseDTO>builder()
+                    .message("유효하지 않은 API 키입니다.")
+                    .build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+        }
+
+        RecruitmentResponseDTO createdRecruitment = recruitmentService.createOrUpdateRecruitment(requestDTO);
+
+        Response<RecruitmentResponseDTO> response = Response.<RecruitmentResponseDTO>builder()
+                .message("채용 공고 생성 성공")
+                .data(createdRecruitment)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

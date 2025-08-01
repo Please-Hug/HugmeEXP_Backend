@@ -1,15 +1,15 @@
 package org.example.hugmeexp.domain.recruitment.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import jakarta.validation.Valid;
+import lombok.*;
+import org.example.hugmeexp.domain.recruitment.dto.RecruitmentRequestDTO;
 import org.example.hugmeexp.domain.recruitment.enums.SourceType;
 import org.example.hugmeexp.global.entity.BaseEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -32,12 +32,24 @@ public class Recruitment extends BaseEntity {
     @Column(nullable = false)
     private Integer experience;
 
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String qualification; // 자격 요건
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String advantage; // 우대 사항
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String welfare; // 복지 혜택
+
     private String workLocation; // 근무지
 
+    @Column(precision = 15, scale = 8)
     private BigDecimal latitude; // 위도
+
+    @Column(precision = 15, scale = 8)
     private BigDecimal longitude; // 경도
 
     @Column(name = "salary_min")
@@ -55,13 +67,36 @@ public class Recruitment extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", nullable = false)
+    @Setter
     private Company company;
 
     // 중간 테이블 관계
     @OneToMany(mappedBy = "recruitment", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TechStack> techStacks;
+    @Builder.Default
+    private List<TechStack> techStacks = new ArrayList<>();
 
     @OneToMany(mappedBy = "recruitment", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Tag> tags;
+    @Builder.Default
+    private List<Tag> tags = new ArrayList<>();
 
+    @Column(nullable = false)
+    private String sourceId;
+
+    public void updateFromRequest(@Valid RecruitmentRequestDTO requestDTO) {
+        title = requestDTO.getTitle();
+        education = requestDTO.getEducation();
+        experience = requestDTO.getExperience();
+        qualification = requestDTO.getQualification();
+        advantage = requestDTO.getAdvantage();
+        welfare = requestDTO.getWelfare();
+        workLocation = requestDTO.getWorkLocation();
+        latitude = requestDTO.getLatitude();
+        longitude = requestDTO.getLongitude();
+        salaryMin = requestDTO.getSalaryMin();
+        salaryMax = requestDTO.getSalaryMax();
+        link = requestDTO.getLink();
+        source = requestDTO.getSource();
+        dueDate = requestDTO.getDueDate();
+        sourceId = requestDTO.getSourceId();
+    }
 }
