@@ -74,16 +74,16 @@ public class RecruitmentServiceTest {
 
     @BeforeEach
     void setUp() {
-    // 테스트용 CompanyRequestDTO 생성 (builder 패턴 적용)
-        CompanyRequestDTO companyRequestDTO = CompanyRequestDTO.builder()
-                .companyName("테스트 회사")
-                .companyAddress("서울시 강남구 테헤란로 123")
-                .establishmentDate(LocalDateTime.now().toLocalDate())
-                .companyDescription("테스트 회사 설명")
-                .companyImageUrl("https://test.com")
-                .latitude(BigDecimal.valueOf(123.456))
-                .longitude(BigDecimal.valueOf(78.910))
-                .build();
+    // 테스트용 CompanyRequestDTO 생성
+    CompanyRequestDTO companyRequestDTO = CompanyRequestDTO.builder()
+            .companyName("테스트 회사")
+            .companyAddress("서울시 강남구 테헤란로 123")
+            .establishmentDate(LocalDateTime.now().toLocalDate())
+            .companyDescription("테스트 회사 설명")
+            .companyImageUrl("https://test.com")
+            .latitude(BigDecimal.valueOf(123.456))
+            .longitude(BigDecimal.valueOf(78.910))
+            .build();
 
         // 테스트용 TechItemRequestDTO 생성
         List<TechItemRequestDTO> techItems = List.of(
