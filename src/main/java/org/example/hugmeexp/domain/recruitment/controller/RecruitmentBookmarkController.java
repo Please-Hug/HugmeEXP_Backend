@@ -35,8 +35,7 @@ public class RecruitmentBookmarkController {
             responses = {
                 @ApiResponse(
                     responseCode = "201",
-                    description = "즐겨찾기 등록 성공",
-                    content = @Content(schema = @Schema(implementation = Void.class))
+                    description = "즐겨찾기 등록 성공"
                 ),
                 @ApiResponse(
                     responseCode = "400",
