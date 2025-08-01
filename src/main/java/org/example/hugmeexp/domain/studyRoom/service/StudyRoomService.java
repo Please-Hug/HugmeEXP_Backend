@@ -36,6 +36,7 @@ public class StudyRoomService {
                 .name(requestDto.getName())
                 .maxNum(requestDto.getMaxNum())
                 .studyHall(parentStudyHall)
+                .thumbnail(requestDto.getThumbnail())
                 .build();
 
         return studyRoomRepository.save(studyRoom);

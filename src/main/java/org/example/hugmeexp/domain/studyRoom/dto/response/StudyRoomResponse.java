@@ -12,4 +12,5 @@ public class StudyRoomResponse {
     private final Long id;
     private final String name;
     private final Integer maxNum;
+    private final String thumbnail;
 }

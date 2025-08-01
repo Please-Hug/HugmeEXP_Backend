@@ -23,4 +23,6 @@ public class StudyRoomRequest {
     @NotNull(message = "최대 인원 수는 필수입니다.")
     @Positive(message = "최대 인원 수는 양수여야 합니다.")
     private Integer maxNum;
+
+    private String thumbnail;
 }
