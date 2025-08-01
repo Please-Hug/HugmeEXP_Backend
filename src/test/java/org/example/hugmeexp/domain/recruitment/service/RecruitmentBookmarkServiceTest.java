@@ -3,6 +3,7 @@ package org.example.hugmeexp.domain.recruitment.service;
 import org.example.hugmeexp.domain.recruitment.entity.Recruitment;
 import org.example.hugmeexp.domain.recruitment.entity.RecruitmentBookmark;
 import org.example.hugmeexp.domain.recruitment.exception.DuplicateRecruitmentBookmarkException;
+import org.example.hugmeexp.domain.recruitment.exception.RecruitmentBookmarkNotFoundException;
 import org.example.hugmeexp.domain.recruitment.repository.RecruitmentBookmarkRepository;
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.domain.user.exception.UserNotFoundException;
@@ -102,7 +103,6 @@ public class RecruitmentBookmarkServiceTest {
             Long userId = 999L;
             Long recruitmentId = 1L;
 
-            given(recruitmentService.getRecruitmentById(recruitmentId)).willReturn(testRecruitment);
             given(userRepository.findById(userId)).willReturn(Optional.empty());
 
             // When & Then
@@ -110,8 +110,8 @@ public class RecruitmentBookmarkServiceTest {
                     .isInstanceOf(UserNotFoundException.class);
 
             // Verify
-            verify(recruitmentService).getRecruitmentById(recruitmentId);
             verify(userRepository).findById(userId);
+            verify(recruitmentService, never()).getRecruitmentById(any());
             verify(recruitmentBookmarkRepository, never()).existsByUserAndRecruitment(any(), any());
             verify(recruitmentBookmarkRepository, never()).save(any());
         }
@@ -136,6 +136,75 @@ public class RecruitmentBookmarkServiceTest {
             verify(userRepository).findById(userId);
             verify(recruitmentBookmarkRepository).existsByUserAndRecruitment(testUser, testRecruitment);
             verify(recruitmentBookmarkRepository, never()).save(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("즐겨찾기 삭제 테스트")
+    class RemoveBookmarkTest {
+
+        @Test
+        @DisplayName("정상적으로 즐겨찾기를 삭제한다")
+        void removeBookmark_Success() {
+            // Given
+            Long userId = 1L;
+            Long recruitmentId = 1L;
+
+            given(recruitmentService.getRecruitmentById(recruitmentId)).willReturn(testRecruitment);
+            given(userRepository.findById(userId)).willReturn(Optional.of(testUser));
+            given(recruitmentBookmarkRepository.findByUserAndRecruitment(testUser, testRecruitment)).willReturn(Optional.of(testBookmark));
+
+            // When & Then
+            assertThatCode(() -> recruitmentBookmarkService.removeBookmark(userId, recruitmentId))
+                    .doesNotThrowAnyException();
+
+            // Verify
+            verify(recruitmentService).getRecruitmentById(recruitmentId);
+            verify(userRepository).findById(userId);
+            verify(recruitmentBookmarkRepository).findByUserAndRecruitment(testUser, testRecruitment);
+            verify(recruitmentBookmarkRepository).delete(testBookmark);
+        }
+
+        @Test
+        @DisplayName("존재하지 않는 사용자로 즐겨찾기 삭제 시 예외가 발생한다")
+        void removeBookmark_UserNotFound_ThrowsException() {
+            // Given
+            Long userId = 999L;
+            Long recruitmentId = 1L;
+
+            given(userRepository.findById(userId)).willReturn(Optional.empty());
+
+            // When & Then
+            assertThatThrownBy(() -> recruitmentBookmarkService.removeBookmark(userId, recruitmentId))
+                    .isInstanceOf(UserNotFoundException.class);
+
+            // Verify
+            verify(userRepository).findById(userId);
+            verify(recruitmentService, never()).getRecruitmentById(any());
+            verify(recruitmentBookmarkRepository, never()).findByUserAndRecruitment(any(), any());
+            verify(recruitmentBookmarkRepository, never()).delete(any());
+        }
+
+        @Test
+        @DisplayName("존재하지 않는 즐겨찾기를 삭제하려고 할 때 예외가 발생한다")
+        void removeBookmark_BookmarkNotFound_ThrowsException() {
+            // Given
+            Long userId = 1L;
+            Long recruitmentId = 1L;
+
+            given(recruitmentService.getRecruitmentById(recruitmentId)).willReturn(testRecruitment);
+            given(userRepository.findById(userId)).willReturn(Optional.of(testUser));
+            given(recruitmentBookmarkRepository.findByUserAndRecruitment(testUser, testRecruitment)).willReturn(Optional.empty());
+
+            // When & Then
+            assertThatThrownBy(() -> recruitmentBookmarkService.removeBookmark(userId, recruitmentId))
+                    .isInstanceOf(RecruitmentBookmarkNotFoundException.class);
+
+            // Verify
+            verify(recruitmentService).getRecruitmentById(recruitmentId);
+            verify(userRepository).findById(userId);
+            verify(recruitmentBookmarkRepository).findByUserAndRecruitment(testUser, testRecruitment);
+            verify(recruitmentBookmarkRepository, never()).delete(any());
         }
     }
 }
