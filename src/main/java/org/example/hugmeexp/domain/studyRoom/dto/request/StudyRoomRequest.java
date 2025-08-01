@@ -25,6 +25,6 @@ public class StudyRoomRequest {
     @Positive(message = "최대 인원 수는 양수여야 합니다.")
     private Integer maxNum;
 
-    @URL(message = "썸네일은 유효한 URL 형식이여야 합니다.")
+    @URL(message = "썸네일은 유효한 URL 형식이어야 합니다.")
     private String thumbnail;
 }
