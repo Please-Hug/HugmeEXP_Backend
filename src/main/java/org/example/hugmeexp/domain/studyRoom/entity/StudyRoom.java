@@ -28,12 +28,15 @@ public class StudyRoom extends BaseEntity {
     @JoinColumn(name = "studyhall_id")
     private StudyHall studyHall;
 
+    private String thumbnail;
+
     private boolean isDeleted = false;
 
     // 스터디 룸 정보 수정 메서드
     public void update(StudyRoomRequest requestDto) {
         Optional.ofNullable(requestDto.getName()).ifPresent(name -> this.name = name);
         Optional.ofNullable(requestDto.getMaxNum()).ifPresent(maxNum -> this.maxNum = maxNum);
+        Optional.ofNullable(requestDto.getThumbnail()).ifPresent(thumbnail -> this.thumbnail = thumbnail);
     }
 
     public void delete() {
