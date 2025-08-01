@@ -60,4 +60,28 @@ public class RecruitmentBookmarkController {
                 .build();
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @Operation(
+            summary = "즐겨찾기 취소",
+            description = "사용자가 특정 채용 공고의 즐겨찾기를 삭제합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "즐겨찾기 삭제 성공"),
+                    @ApiResponse(responseCode = "404", description = "즐겨찾기 또는 채용 공고가 존재하지 않음")
+            }
+    )
+    @DeleteMapping("/{recruitmentId}")
+    public ResponseEntity<Response<Void>> deleteBookmark(
+            @PathVariable Long recruitmentId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        recruitmentBookmarkService.removeBookmark(userDetails.getUser().getId(), recruitmentId);
+
+        Response<Void> response = Response.<Void>builder()
+                .message("즐겨찾기 취소 완료")
+                .data(null)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
 }
