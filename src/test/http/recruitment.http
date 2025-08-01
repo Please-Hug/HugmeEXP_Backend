@@ -80,3 +80,7 @@ Authorization: Bearer {{accessToken}}
 DELETE {{baseUrl}}/recruitments/bookmarks/1
 Authorization: Bearer {{accessToken}}
 
+### 📚 즐겨찾기 목록 조회
+GET {{baseUrl}}/recruitments/bookmarks
+Authorization: Bearer {{accessToken}}
+
