@@ -66,3 +66,9 @@ Authorization: Bearer {{accessToken}}
 ### ❌ 채용 공고 상세 조회 - 존재하지 않는 ID
 GET {{baseUrl}}/recruitments/99999
 Authorization: Bearer {{accessToken}}
+
+
+### ⭐ 즐겨찾기 등록
+POST {{baseUrl}}/recruitments/bookmarks/1
+Authorization: Bearer {{accessToken}}
+

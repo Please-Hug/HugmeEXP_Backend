@@ -85,4 +85,15 @@ public class RecruitmentService {
 
     }
 
+    /**
+     * ID에 해당하는 채용 공고를 조회합니다.
+     *
+     * @param recruitmentId 채용 공고 ID
+     * @return 채용 공고 객체
+     */
+    @Transactional(readOnly = true)
+    public Recruitment getRecruitmentById(Long recruitmentId){
+        return recruitmentRepository.findById(recruitmentId).orElseThrow(() -> new RecruitmentNotFoundException());
+    }
+
 }

@@ -1,0 +1,63 @@
+package org.example.hugmeexp.domain.recruitment.controller;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.example.hugmeexp.domain.recruitment.exception.DuplicateRecruitmentBookmarkException;
+import org.example.hugmeexp.domain.recruitment.exception.RecruitmentNotFoundException;
+import org.example.hugmeexp.domain.recruitment.service.RecruitmentBookmarkService;
+import org.example.hugmeexp.global.common.response.Response;
+import org.example.hugmeexp.global.security.CustomUserDetails;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+@Slf4j    // 로깅 어노테이션
+@RestController
+@RequestMapping("/api/recruitments/bookmarks")
+@RequiredArgsConstructor
+@Tag(name = "Bookmarks" , description = "즐겨 찾기 관련 API")
+public class RecruitmentBookmarkController {
+
+    private final RecruitmentBookmarkService recruitmentBookmarkService;
+
+    @Operation(
+        summary = "즐겨찾기 등록",
+        description = "사용자가 특정 채용 공고를 즐겨찾기에 등록합니다.",
+            responses = {
+                @ApiResponse(
+                    responseCode = "201",
+                    description = "즐겨찾기 등록 성공",
+                    content = @Content(schema = @Schema(implementation = Void.class))
+                ),
+                @ApiResponse(
+                    responseCode = "400",
+                    description = "이미 등록된 즐겨찾기입니다",
+                    content = @Content(schema = @Schema(implementation = DuplicateRecruitmentBookmarkException.class))
+                ),
+                @ApiResponse(
+                    responseCode = "404",
+                    description = "존재하지 않는 사용자 또는 채용 공고 ID",
+                    content = @Content(schema = @Schema(implementation = RecruitmentNotFoundException.class))
+                )
+            }
+    )
+    @PostMapping("/{recruitmentId}")
+    public ResponseEntity<Response<Void>> addBookmark(
+            @PathVariable Long recruitmentId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+            ){
+        recruitmentBookmarkService.addBookmark(userDetails.getUser().getId(), recruitmentId);
+
+        Response<Void> response = Response.<Void>builder()
+                .message("즐겨 찾기 등록 완료")
+                .data(null)
+                .build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+}
