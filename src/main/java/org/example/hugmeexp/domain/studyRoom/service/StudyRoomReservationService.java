@@ -40,7 +40,7 @@ public class StudyRoomReservationService {
                 .orElseThrow(UserNotFoundException::new);
 
         StudyRoom studyRoom = studyRoomRepository.findById(createDto.getStudyRoomId())
-                .orElseThrow(StudyRoomNotFoundException::new);
+                .orElseThrow(() -> new StudyRoomNotFoundException(createDto.getStudyRoomId()));
 
         validateReservationTime(createDto.getReservationStart(), createDto.getReservationEnd());
 
@@ -70,7 +70,7 @@ public class StudyRoomReservationService {
                     .orElseThrow(UserNotFoundException::new);
 
             StudyRoom studyRoom = studyRoomRepository.findByIdWithLock(createDto.getStudyRoomId())
-                    .orElseThrow(StudyRoomNotFoundException::new);
+                    .orElseThrow(() -> new StudyRoomNotFoundException(createDto.getStudyRoomId()));
 
             validateReservationTime(createDto.getReservationStart(), createDto.getReservationEnd());
 

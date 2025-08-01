@@ -38,4 +38,11 @@ public interface StudyRoomReservationRepository extends JpaRepository<StudyRoomR
             @Param("currentTime") LocalDateTime currentTime);
     
     Optional<StudyRoomReservation> findByIdAndUser(Long id, User user);
+
+    // 관리자가 모든 예약을 조회할 때 사용할 페이징 쿼리
+    @Query(value = "SELECT r FROM StudyRoomReservation r " +
+            "JOIN FETCH r.studyRoom sr " +
+            "JOIN FETCH sr.studyHall sh",
+            countQuery = "SELECT count(r) FROM StudyRoomReservation r")
+    Page<StudyRoomReservation> findAllWithDetails(Pageable pageable);
 }
