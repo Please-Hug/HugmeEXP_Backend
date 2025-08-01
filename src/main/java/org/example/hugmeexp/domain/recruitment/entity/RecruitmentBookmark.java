@@ -12,7 +12,7 @@ import org.example.hugmeexp.domain.user.entity.User;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-@Table(name = "bookmark")
+@Table(name = "recruitmentbookmark")
 public class RecruitmentBookmark {
 
     @Id
