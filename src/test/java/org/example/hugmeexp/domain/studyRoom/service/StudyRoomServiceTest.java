@@ -10,6 +10,7 @@ import org.example.hugmeexp.domain.studyRoom.repository.StudyRoomRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -37,7 +38,11 @@ class StudyRoomServiceTest {
     void createStudyRoom_success() {
         // given
         Long studyHallId = 1L;
-        StudyRoomRequest requestDto = new StudyRoomRequest("새 룸", 4);
+        StudyRoomRequest requestDto = StudyRoomRequest.builder()
+                .name("새 룸")
+                .maxNum(4)
+                .thumbnail("https://example.com/room_thumb.jpg")
+                .build();
         StudyHall mockHall = StudyHall.builder().id(studyHallId).build();
 
         when(studyHallRepository.findByIdAndIsDeletedFalse(studyHallId)).thenReturn(Optional.of(mockHall));
@@ -46,7 +51,13 @@ class StudyRoomServiceTest {
         studyRoomService.createStudyRoom(studyHallId, requestDto);
 
         // then
-        verify(studyRoomRepository).save(any(StudyRoom.class));
+        ArgumentCaptor<StudyRoom> captor = ArgumentCaptor.forClass(StudyRoom.class);
+        verify(studyRoomRepository).save(captor.capture());
+        StudyRoom savedRoom = captor.getValue();
+
+        assertThat(savedRoom.getName()).isEqualTo("새 룸");
+        assertThat(savedRoom.getMaxNum()).isEqualTo(4);
+        assertThat(savedRoom.getThumbnail()).isEqualTo("https://example.com/room_thumb.jpg");
     }
 
     @Test
@@ -54,7 +65,7 @@ class StudyRoomServiceTest {
     void createStudyRoom_fail_hallNotFound() {
         // given
         Long nonExistentHallId = 999L;
-        StudyRoomRequest requestDto = new StudyRoomRequest("새 룸", 4);
+        StudyRoomRequest requestDto = new StudyRoomRequest("새 룸", 4, "https://example.com/room_thumb.jpg");
 
         when(studyHallRepository.findByIdAndIsDeletedFalse(nonExistentHallId)).thenReturn(Optional.empty());
 
@@ -105,9 +116,15 @@ class StudyRoomServiceTest {
         // given
         Long studyHallId = 1L;
         Long roomId = 10L;
-        StudyRoomRequest requestDto = new StudyRoomRequest("수정된 룸 이름", 5);
+        StudyRoomRequest requestDto = new StudyRoomRequest("수정된 룸 이름", 5, "https://example.com/new_thumb.jpg");
         StudyHall mockHall = StudyHall.builder().id(studyHallId).build();
-        StudyRoom originalRoom = StudyRoom.builder().id(roomId).name("기존 룸 이름").maxNum(4).studyHall(mockHall).build();
+        StudyRoom originalRoom = StudyRoom.builder()
+                .id(roomId)
+                .name("기존 룸 이름")
+                .maxNum(4)
+                .thumbnail("https://example.com/old_thumb.jpg")
+                .studyHall(mockHall)
+                .build();
 
         when(studyHallRepository.findByIdAndIsDeletedFalse(studyHallId)).thenReturn(Optional.of(mockHall));
         when(studyRoomRepository.findByIdAndIsDeletedFalse(roomId)).thenReturn(Optional.of(originalRoom));
@@ -118,8 +135,7 @@ class StudyRoomServiceTest {
         // then
         assertThat(originalRoom.getName()).isEqualTo("수정된 룸 이름");
         assertThat(originalRoom.getMaxNum()).isEqualTo(5);
-        verify(studyHallRepository).findByIdAndIsDeletedFalse(studyHallId);
-        verify(studyRoomRepository).findByIdAndIsDeletedFalse(roomId);
+        assertThat(originalRoom.getThumbnail()).isEqualTo("https://example.com/new_thumb.jpg");
     }
 
     @Test
@@ -128,7 +144,7 @@ class StudyRoomServiceTest {
         // given
         Long studyHallId = 1L;
         Long nonExistentRoomId = 999L;
-        StudyRoomRequest requestDto = new StudyRoomRequest("수정된 룸 이름", 5);
+        StudyRoomRequest requestDto = new StudyRoomRequest("수정된 룸 이름", 5, "https://example.com/room_thumb.jpg");
         StudyHall mockHall = StudyHall.builder().id(studyHallId).build();
 
         when(studyHallRepository.findByIdAndIsDeletedFalse(studyHallId)).thenReturn(Optional.of(mockHall));
@@ -147,7 +163,7 @@ class StudyRoomServiceTest {
         Long targetHallId = 1L;
         Long actualHallId = 2L;
         Long roomId = 10L;
-        StudyRoomRequest requestDto = new StudyRoomRequest("수정된 룸 이름", 5);
+        StudyRoomRequest requestDto = new StudyRoomRequest("수정된 룸 이름", 5, "https://example.com/room_thumb.jpg");
 
         StudyHall targetHall = StudyHall.builder().id(targetHallId).build();
         StudyHall actualHall = StudyHall.builder().id(actualHallId).build();
