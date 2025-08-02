@@ -253,6 +253,9 @@ public class RecruitmentBookmarkServiceTest {
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getId()).isEqualTo(testRecruitment.getId());
             assertThat(result.get(0).getTitle()).isEqualTo(testRecruitment.getTitle());
+            assertThat(result.get(0).getCompanyName()).isNotNull();
+            assertThat(result.get(0).getExperienceMin()).isEqualTo(testRecruitment.getExperienceMin());
+            assertThat(result.get(0).getExperienceMax()).isEqualTo(testRecruitment.getExperienceMax());
 
             // Verify
             verify(userRepository).findById(userId);
