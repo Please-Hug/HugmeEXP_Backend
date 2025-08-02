@@ -39,16 +39,11 @@ public class RecruitmentBookmarkService {
 
         Recruitment recruitment = recruitmentService.getRecruitmentById(recruitmentId);
 
-//        if (recruitmentBookmarkRepository.existsByUserAndRecruitment(user, recruitment)) {
-//            throw new DuplicateRecruitmentBookmarkException();
-//        }
-
         RecruitmentBookmark recruitmentBookmark = RecruitmentBookmark.builder()
                 .user(user)
                 .recruitment(recruitment)
                 .build();
 
-//        recruitmentBookmarkRepository.save(recruitmentBookmark);
         try{
             recruitmentBookmarkRepository.save(recruitmentBookmark);
         } catch (DataIntegrityViolationException e){
