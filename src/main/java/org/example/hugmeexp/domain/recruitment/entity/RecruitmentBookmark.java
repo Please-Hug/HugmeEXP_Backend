@@ -12,7 +12,8 @@ import org.example.hugmeexp.domain.user.entity.User;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-@Table(name = "recruitment_bookmark")
+@Table(name = "recruitment_bookmark",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"recruitment_id", "user_id"}))
 public class RecruitmentBookmark {
 
     @Id

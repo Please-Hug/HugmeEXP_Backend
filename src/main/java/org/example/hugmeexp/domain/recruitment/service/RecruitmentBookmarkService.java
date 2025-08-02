@@ -11,6 +11,7 @@ import org.example.hugmeexp.domain.recruitment.repository.RecruitmentBookmarkRep
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.domain.user.exception.UserNotFoundException;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,16 +39,21 @@ public class RecruitmentBookmarkService {
 
         Recruitment recruitment = recruitmentService.getRecruitmentById(recruitmentId);
 
-        if (recruitmentBookmarkRepository.existsByUserAndRecruitment(user, recruitment)) {
-            throw new DuplicateRecruitmentBookmarkException();
-        }
+//        if (recruitmentBookmarkRepository.existsByUserAndRecruitment(user, recruitment)) {
+//            throw new DuplicateRecruitmentBookmarkException();
+//        }
 
         RecruitmentBookmark recruitmentBookmark = RecruitmentBookmark.builder()
                 .user(user)
                 .recruitment(recruitment)
                 .build();
 
-        recruitmentBookmarkRepository.save(recruitmentBookmark);
+//        recruitmentBookmarkRepository.save(recruitmentBookmark);
+        try{
+            recruitmentBookmarkRepository.save(recruitmentBookmark);
+        } catch (DataIntegrityViolationException e){
+            throw new DuplicateRecruitmentBookmarkException();
+        }
     }
 
     /**
