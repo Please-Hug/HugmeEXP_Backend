@@ -10,6 +10,7 @@ import org.example.hugmeexp.domain.recruitment.repository.RecruitmentBookmarkRep
 import org.example.hugmeexp.domain.user.entity.User;
 import org.example.hugmeexp.domain.user.exception.UserNotFoundException;
 import org.example.hugmeexp.domain.user.repository.UserRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -104,7 +105,6 @@ public class RecruitmentBookmarkServiceTest {
 
             given(recruitmentService.getRecruitmentById(recruitmentId)).willReturn(testRecruitment);
             given(userRepository.findById(userId)).willReturn(Optional.of(testUser));
-            given(recruitmentBookmarkRepository.existsByUserAndRecruitment(testUser, testRecruitment)).willReturn(false);
             given(recruitmentBookmarkRepository.save(any(RecruitmentBookmark.class))).willReturn(testBookmark);
 
             // When & Then
@@ -114,7 +114,6 @@ public class RecruitmentBookmarkServiceTest {
             // Verify
             verify(recruitmentService).getRecruitmentById(recruitmentId);
             verify(userRepository).findById(userId);
-            verify(recruitmentBookmarkRepository).existsByUserAndRecruitment(testUser, testRecruitment);
             verify(recruitmentBookmarkRepository).save(any(RecruitmentBookmark.class));
         }
 
@@ -134,7 +133,6 @@ public class RecruitmentBookmarkServiceTest {
             // Verify
             verify(userRepository).findById(userId);
             verify(recruitmentService, never()).getRecruitmentById(any());
-            verify(recruitmentBookmarkRepository, never()).existsByUserAndRecruitment(any(), any());
             verify(recruitmentBookmarkRepository, never()).save(any());
         }
 
@@ -147,7 +145,7 @@ public class RecruitmentBookmarkServiceTest {
 
             given(recruitmentService.getRecruitmentById(recruitmentId)).willReturn(testRecruitment);
             given(userRepository.findById(userId)).willReturn(Optional.of(testUser));
-            given(recruitmentBookmarkRepository.existsByUserAndRecruitment(testUser, testRecruitment)).willReturn(true);
+            given(recruitmentBookmarkRepository.save(any(RecruitmentBookmark.class))).willThrow(DataIntegrityViolationException.class);
 
             // When & Then
             assertThatThrownBy(() -> recruitmentBookmarkService.addBookmark(userId, recruitmentId))
@@ -156,8 +154,7 @@ public class RecruitmentBookmarkServiceTest {
             // Verify
             verify(recruitmentService).getRecruitmentById(recruitmentId);
             verify(userRepository).findById(userId);
-            verify(recruitmentBookmarkRepository).existsByUserAndRecruitment(testUser, testRecruitment);
-            verify(recruitmentBookmarkRepository, never()).save(any());
+            verify(recruitmentBookmarkRepository).save(any(RecruitmentBookmark.class));
         }
     }
 
