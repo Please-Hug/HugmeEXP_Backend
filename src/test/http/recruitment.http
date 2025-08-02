@@ -66,3 +66,21 @@ Authorization: Bearer {{accessToken}}
 ### ❌ 채용 공고 상세 조회 - 존재하지 않는 ID
 GET {{baseUrl}}/recruitments/99999
 Authorization: Bearer {{accessToken}}
+
+
+### ⭐ 즐겨찾기 등록
+POST {{baseUrl}}/recruitments/bookmarks/1
+Authorization: Bearer {{accessToken}}
+
+### ❌ 즐겨찾기 취소 - 존재하지 않는 공고 ID
+DELETE {{baseUrl}}/recruitments/bookmarks/99999
+Authorization: Bearer {{accessToken}}
+
+### ✅ 즐겨찾기 취소 - 정상 처리 (예: id = 1)
+DELETE {{baseUrl}}/recruitments/bookmarks/1
+Authorization: Bearer {{accessToken}}
+
+### 📚 즐겨찾기 목록 조회
+GET {{baseUrl}}/recruitments/bookmarks
+Authorization: Bearer {{accessToken}}
+
