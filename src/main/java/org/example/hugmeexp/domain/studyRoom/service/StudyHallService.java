@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.ArrayList;
 
 @Slf4j
 /**
@@ -107,29 +108,47 @@ public class StudyHallService {
     }
 
     /**
-     * 현재 위치 기반 주변 스터디홀 검색 (Java 계산 방식)
+     * 현재 위치 기반 주변 스터디홀 검색 (최적화된 Native Query 방식)
      */
     public List<StudyHallLocationResponse> searchNearbyStudyHalls(StudyHallSearchRequest request) {
         log.info("Searching nearby study halls - lat: {}, lng: {}, radius: {}km",
                 request.getLatitude(), request.getLongitude(), request.getRadius());
 
-        // 모든 스터디홀을 가져와서 Java로 거리 계산
-        List<StudyHall> allHalls = studyHallRepository.findAll();
+        // 사각형 영역 계산 (성능 최적화용)
+        double kmPerDegreeLat = 111.0; // 위도 1도당 약 111km
+        double kmPerDegreeLng = 111.0 * Math.cos(Math.toRadians(request.getLatitude())); // 경도는 위도에 따라 변함
 
-        List<StudyHallLocationResponse> responses = allHalls.stream()
-                .filter(hall -> hall.getLatitude() != null && hall.getLongitude() != null)
-                .map(hall -> {
-                    // Java에서 거리 계산
-                    Double distance = kakaoMapService.calculateDistance(
-                            request.getLatitude(), request.getLongitude(),
-                            hall.getLatitude(), hall.getLongitude()
-                    );
-                    return StudyHallLocationResponse.from(hall, distance);
-                })
-                .filter(response -> response.getDistance() != null && response.getDistance() <= request.getRadius())
-                .sorted((a, b) -> Double.compare(a.getDistance(), b.getDistance()))
-                .limit(request.getLimit())
-                .toList();
+        double deltaLat = request.getRadius() / kmPerDegreeLat;
+        double deltaLng = request.getRadius() / kmPerDegreeLng;
+
+        double minLat = request.getLatitude() - deltaLat;
+        double maxLat = request.getLatitude() + deltaLat;
+        double minLng = request.getLongitude() - deltaLng;
+        double maxLng = request.getLongitude() + deltaLng;
+
+        // 최적화된 Native Query 사용
+        List<Object[]> results = studyHallRepository.findNearbyStudyHallsOptimized(
+                request.getLatitude(),
+                request.getLongitude(),
+                minLat, maxLat, minLng, maxLng,
+                request.getRadius(),
+                request.getLimit()
+        );
+
+        List<StudyHallLocationResponse> responses = new ArrayList<>();
+
+        for (Object[] result : results) {
+            try {
+                StudyHall studyHall = mapResultToStudyHall(result);
+                Double distance = ((Number) result[result.length - 1]).doubleValue();
+
+                StudyHallLocationResponse response = StudyHallLocationResponse.from(studyHall, distance);
+                responses.add(response);
+
+            } catch (Exception e) {
+                log.error("Error mapping study hall result", e);
+            }
+        }
 
         log.info("Found {} nearby study halls", responses.size());
         return responses;
@@ -190,5 +209,28 @@ public class StudyHallService {
     @Transactional
     public Location convertAddressToLocation(String address) {
         return kakaoMapService.addressToCoordinates(address);
+    }
+
+    /**
+     * Native query 결과를 StudyHall 엔티티로 매핑
+     */
+    private StudyHall mapResultToStudyHall(Object[] result) {
+        // Location 객체 생성
+        Location location = Location.of(
+                (Double) result[6],  // latitude
+                (Double) result[7],  // longitude
+                (String) result[3],  // address
+                (String) result[10]  // simpleAddress
+        );
+
+        return StudyHall.builder()
+                .id(((Number) result[0]).longValue())
+                .name((String) result[8])
+                .description((String) result[5])
+                .location(location)
+                .thumbnail((String) result[11])
+                .openTime(result[9] != null ? ((java.sql.Timestamp) result[9]).toLocalDateTime() : null)
+                .closeTime(result[4] != null ? ((java.sql.Timestamp) result[4]).toLocalDateTime() : null)
+                .build();
     }
 }

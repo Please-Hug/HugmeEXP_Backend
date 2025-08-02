@@ -113,19 +113,4 @@ public class StudyRoomController {
                 .data(studyHalls)
                 .build());
     }
-
-    @Operation(summary = "디버깅용 거리 계산",
-            description = "디버깅 목적으로 현재 위치와 스터디홀 간의 거리를 계산합니다.")
-    @GetMapping("/debug/distance")
-    public ResponseEntity<Response<List<Object[]>>> debugDistance(
-            @RequestParam Double latitude,
-            @RequestParam Double longitude) {
-
-        List<Object[]> results = studyHallRepository.findAllWithDistanceDebug(latitude, longitude);
-
-        return ResponseEntity.ok(Response.<List<Object[]>>builder()
-                .message("디버깅용 거리 계산 결과")
-                .data(results)
-                .build());
-    }
 }

@@ -22,47 +22,39 @@ public interface StudyHallRepository extends JpaRepository<StudyHall, Long> {
     Optional<StudyHall> findByIdAndIsDeletedFalse(Long studyHallId);
 
     /**
-     * 디버깅용: 모든 스터디홀을 거리와 함께 조회
+     * 성능 최적화된 주변 스터디홀 검색
+     * 1. 사각형 영역으로 미리 필터링 (WHERE)
+     * 2. 정확한 원형 거리 계산 (HAVING)
      */
     @Query(value = """
-        SELECT sh.*, 
-               (6371 * ACOS(
-                   COS(RADIANS(:latitude)) * 
-                   COS(RADIANS(sh.latitude)) * 
-                   COS(RADIANS(sh.longitude) - RADIANS(:longitude)) + 
-                   SIN(RADIANS(:latitude)) * 
-                   SIN(RADIANS(sh.latitude))
-               )) as distance_km
-        FROM study_hall sh 
-        ORDER BY distance_km ASC
-        LIMIT 5
-        """, nativeQuery = true)
-    List<Object[]> findAllWithDistanceDebug(
-            @Param("latitude") Double latitude,
-            @Param("longitude") Double longitude
-    );
-
-    /**
-     * 현재 위치 기준으로 일정 반경 내의 스터디홀 조회 (거리 계산 포함)
-     * Haversine 공식을 사용하여 구면 거리 계산
-     */
-    @Query(value = """
-        SELECT sh.*, 
-               (6371 * ACOS(
-                   COS(RADIANS(:latitude)) * 
-                   COS(RADIANS(sh.latitude)) * 
-                   COS(RADIANS(sh.longitude) - RADIANS(:longitude)) + 
-                   SIN(RADIANS(:latitude)) * 
-                   SIN(RADIANS(sh.latitude))
-               )) as distance_km
-        FROM study_hall sh 
-        HAVING distance_km <= :radiusInKm
-        ORDER BY distance_km ASC
+        SELECT * FROM (
+            SELECT sh.*, 
+                   (6371 * ACOS(
+                       GREATEST(-1, LEAST(1,
+                           COS(RADIANS(:latitude)) * 
+                           COS(RADIANS(sh.latitude)) * 
+                           COS(RADIANS(sh.longitude) - RADIANS(:longitude)) + 
+                           SIN(RADIANS(:latitude)) * 
+                           SIN(RADIANS(sh.latitude))
+                       ))
+                   )) as distance_km
+            FROM study_hall sh 
+            WHERE sh.latitude BETWEEN :minLat AND :maxLat
+              AND sh.longitude BETWEEN :minLng AND :maxLng
+              AND sh.latitude IS NOT NULL 
+              AND sh.longitude IS NOT NULL
+        ) t
+        WHERE t.distance_km <= :radiusInKm
+        ORDER BY t.distance_km ASC
         LIMIT :limit
         """, nativeQuery = true)
-    List<Object[]> findNearbyStudyHallsWithDistance(
+    List<Object[]> findNearbyStudyHallsOptimized(
             @Param("latitude") Double latitude,
             @Param("longitude") Double longitude,
+            @Param("minLat") Double minLat,
+            @Param("maxLat") Double maxLat,
+            @Param("minLng") Double minLng,
+            @Param("maxLng") Double maxLng,
             @Param("radiusInKm") Double radiusInKm,
             @Param("limit") Integer limit
     );
