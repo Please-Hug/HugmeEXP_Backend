@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.recruitment.dto.*;
 import org.example.hugmeexp.domain.recruitment.service.RecruitmentService;
 import org.example.hugmeexp.global.common.response.Response;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,8 @@ import java.util.List;
 public class RecruitmentController {
 
     private final RecruitmentService recruitmentService;
+    @Value("${app.scraping.api-key}")
+    private String validApiKey;
 
     @Operation(
         summary = "채용 공고 목록 조회",
@@ -198,7 +201,7 @@ public class RecruitmentController {
             @Valid @RequestBody RecruitmentRequestDTO requestDTO) {
 
         // API 키 인증
-        if (!"1234567890".equals(apiKey)) {
+        if (!validApiKey.equals(apiKey)) {
             Response<RecruitmentResponseDTO> errorResponse = Response.<RecruitmentResponseDTO>builder()
                     .message("유효하지 않은 API 키입니다.")
                     .build();

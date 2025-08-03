@@ -10,6 +10,7 @@ import org.example.hugmeexp.global.entity.BaseEntity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -83,7 +84,7 @@ public class Recruitment extends BaseEntity {
 
     @OneToMany(mappedBy = "recruitment", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<Tag> tags = new ArrayList<>();
+    private Set<Tag> tags = new HashSet<>();
 
     @Column(nullable = false)
     private String sourceId;
@@ -91,8 +92,8 @@ public class Recruitment extends BaseEntity {
     public void updateFromRequest(@Valid RecruitmentRequestDTO requestDTO) {
         title = requestDTO.getTitle();
         education = requestDTO.getEducation();
-        experienceMin = requestDTO.getExperience();
-        experienceMax = requestDTO.getExperience();
+        experienceMin = requestDTO.getExperienceMin();
+        experienceMax = requestDTO.getExperienceMax();
         qualification = requestDTO.getQualification();
         advantage = requestDTO.getAdvantage();
         welfare = requestDTO.getWelfare();

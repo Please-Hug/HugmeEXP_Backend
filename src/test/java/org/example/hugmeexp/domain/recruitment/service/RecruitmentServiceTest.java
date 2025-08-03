@@ -10,12 +10,6 @@ import org.example.hugmeexp.domain.recruitment.entity.TechStack;
 import org.example.hugmeexp.domain.recruitment.exception.RecruitmentNotFoundException;
 import org.example.hugmeexp.domain.recruitment.dto.TechItemRequestDTO;
 import org.example.hugmeexp.domain.recruitment.dto.TagRequestDTO;
-import org.example.hugmeexp.domain.recruitment.entity.Company;
-import org.example.hugmeexp.domain.recruitment.entity.Recruitment;
-import org.example.hugmeexp.domain.recruitment.entity.Tag;
-import org.example.hugmeexp.domain.recruitment.entity.TagItem;
-import org.example.hugmeexp.domain.recruitment.entity.TechItem;
-import org.example.hugmeexp.domain.recruitment.entity.TechStack;
 import org.example.hugmeexp.domain.recruitment.enums.SourceType;
 import org.example.hugmeexp.domain.recruitment.repository.CompanyRepository;
 import org.example.hugmeexp.domain.recruitment.repository.RecruitmentRepository;
@@ -112,7 +106,8 @@ public class RecruitmentServiceTest {
         recruitmentRequestDTO.setSourceId("TEST_001");
         recruitmentRequestDTO.setTitle("백엔드 개발자 모집");
         recruitmentRequestDTO.setEducation(4);
-        recruitmentRequestDTO.setExperience(2);
+        recruitmentRequestDTO.setExperienceMin(2);
+        recruitmentRequestDTO.setExperienceMax(2);
         recruitmentRequestDTO.setQualification("컴퓨터 관련 전공");
         recruitmentRequestDTO.setAdvantage("Spring 프레임워크 경험");
         recruitmentRequestDTO.setWelfare("4대 보험, 점심 제공");
@@ -146,7 +141,8 @@ public class RecruitmentServiceTest {
                 .sourceId("TEST_001")
                 .title("백엔드 개발자 모집")
                 .education(4)
-                .experience(2)
+                .experienceMin(2)
+                .experienceMax(2)
                 .qualification("컴퓨터 관련 전공")
                 .advantage("Spring 프레임워크 경험")
                 .welfare("4대 보험, 점심 제공")
@@ -160,7 +156,7 @@ public class RecruitmentServiceTest {
                 .dueDate(LocalDateTime.now().plusDays(30))
                 .company(company)
                 .techStacks(new ArrayList<>())
-                .tags(new ArrayList<>())
+                .tags(new HashSet<>())
                 .build();
 
         // 테스트용 TechItem 엔티티들

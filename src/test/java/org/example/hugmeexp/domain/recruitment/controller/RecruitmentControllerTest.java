@@ -77,7 +77,8 @@ class RecruitmentControllerTest {
         recruitmentRequestDTO.setSourceId("TEST_001");
         recruitmentRequestDTO.setTitle("백엔드 개발자 모집");
         recruitmentRequestDTO.setEducation(4);
-        recruitmentRequestDTO.setExperience(2);
+        recruitmentRequestDTO.setExperienceMin(2);
+        recruitmentRequestDTO.setExperienceMax(2);
         recruitmentRequestDTO.setQualification("컴퓨터 관련 전공");
         recruitmentRequestDTO.setAdvantage("Spring 프레임워크 경험");
         recruitmentRequestDTO.setWelfare("4대 보험, 점심 제공");
@@ -97,7 +98,8 @@ class RecruitmentControllerTest {
         recruitmentResponseDTO = RecruitmentResponseDTO.builder()
                 .id(1L)
                 .title("백엔드 개발자 모집")
-                .experience(2)
+                .experienceMin(2)
+                .experienceMax(2)
                 .workLocation("서울시 강남구")
                 .latitude(new BigDecimal("37.5665"))
                 .longitude(new BigDecimal("126.9780"))
@@ -113,7 +115,7 @@ class RecruitmentControllerTest {
                 .thenReturn(recruitmentResponseDTO);
 
         // when & then
-        mockMvc.perform(post("/api/recruitments/scrape")
+        mockMvc.perform(post("/api/v1/recruitments/scrape")
                         .header("X-API-Key", "1234567890")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(recruitmentRequestDTO)))
@@ -121,7 +123,8 @@ class RecruitmentControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.message").value("채용 공고 생성 성공"))
                 .andExpect(jsonPath("$.data.title").value("백엔드 개발자 모집"))
-                .andExpect(jsonPath("$.data.experience").value(2))
+                .andExpect(jsonPath("$.data.experienceMin").value(2))
+                .andExpect(jsonPath("$.data.experienceMax").value(2))
                 .andExpect(jsonPath("$.data.workLocation").value("서울시 강남구"));
     }
 
@@ -129,7 +132,7 @@ class RecruitmentControllerTest {
     @DisplayName("잘못된 API 키로 채용 공고 스크래핑 - 실패")
     void scrapeRecruitment_InvalidApiKey_Unauthorized() throws Exception {
         // when & then
-        mockMvc.perform(post("/api/recruitments/scrape")
+        mockMvc.perform(post("/api/v1/recruitments/scrape")
                         .header("X-API-Key", "invalid-key")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(recruitmentRequestDTO)))
@@ -142,7 +145,7 @@ class RecruitmentControllerTest {
     @DisplayName("API 키 없이 채용 공고 스크래핑 - 실패")
     void scrapeRecruitment_NoApiKey_BadRequest() throws Exception {
         // when & then
-        mockMvc.perform(post("/api/recruitments/scrape")
+        mockMvc.perform(post("/api/v1/recruitments/scrape")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(recruitmentRequestDTO)))
                 .andExpect(status().isBadRequest());
@@ -157,7 +160,7 @@ class RecruitmentControllerTest {
         // 다른 필수 필드들 누락
 
         // when & then
-        mockMvc.perform(post("/api/recruitments/scrape")
+        mockMvc.perform(post("/api/v1/recruitments/scrape")
                         .header("X-API-Key", "1234567890")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
