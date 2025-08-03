@@ -2,13 +2,12 @@ package org.example.hugmeexp.domain.recruitment.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.hugmeexp.domain.recruitment.dto.RecruitmentCompanySearchResponseDTO;
-import org.example.hugmeexp.domain.recruitment.dto.RecruitmentDetailResponseDTO;
-import org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO;
-import org.example.hugmeexp.domain.recruitment.dto.RecruitmentSearchConditionDTO;
+import org.example.hugmeexp.domain.recruitment.dto.*;
 import org.example.hugmeexp.domain.recruitment.entity.Recruitment;
 import org.example.hugmeexp.domain.recruitment.exception.RecruitmentNotFoundException;
 import org.example.hugmeexp.domain.recruitment.repository.RecruitmentRepository;
+import org.example.hugmeexp.domain.recruitment.repository.TagItemRepository;
+import org.example.hugmeexp.domain.recruitment.repository.TechItemRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,6 +22,21 @@ import java.util.List;
 public class RecruitmentService {
 
     private final RecruitmentRepository recruitmentRepository;
+    private final TechItemRepository techItemRepository;
+    private final TagItemRepository tagItemRepository;
+
+    static final List<EducationOptionDTO> EDUCATION_OPTIONS = List.of(
+            new EducationOptionDTO("무관", 0),
+            new EducationOptionDTO("고졸", 10),
+            new EducationOptionDTO("초대졸", 20),
+            new EducationOptionDTO("대졸", 30),
+            new EducationOptionDTO("석사", 40),
+            new EducationOptionDTO("박사", 50)
+    );
+    static final List<Integer> EXPERIENCE_OPTIONS = List.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+    static final List<String> WORK_LOCATIONS  = List.of("판교", "강남", "구로");
+    static final int DEFAULT_MIN_SALARY = 0;
+    static final int DEFAULT_MAX_SALARY = 10000;
 
     /**
      * 채용 공고 목록을 조회합니다.
@@ -94,6 +108,37 @@ public class RecruitmentService {
     @Transactional(readOnly = true)
     public Recruitment getRecruitmentById(Long recruitmentId){
         return recruitmentRepository.findById(recruitmentId).orElseThrow(() -> new RecruitmentNotFoundException());
+    }
+
+    /**
+     * 채용 공고 필터 옵션을 조회합니다.
+     * 교육 수준, 경력, 기술 스택, 근무 지역, 태그, 급여 범위 등의 필터 옵션을 반환합니다.
+     *
+     * @return RecruitmentFilterResponseDTO 필터 옵션 DTO
+     */
+    public RecruitmentFilterResponseDTO getFilterOptions(){
+
+        List<TechStackDTO> techStacks = techItemRepository.findAll().stream()
+                .map(TechStackDTO::from)
+                .toList();
+
+        List<TagDTO> tags = tagItemRepository.findAll().stream()
+                .map(TagDTO::from)
+                .toList();
+
+        SalaryRangeDTO salaryRange = SalaryRangeDTO.builder()
+                .min(DEFAULT_MIN_SALARY)
+                .max(DEFAULT_MAX_SALARY)
+                .build();
+
+        return RecruitmentFilterResponseDTO.builder()
+                .educationOptions(EDUCATION_OPTIONS)
+                .experienceOptions(EXPERIENCE_OPTIONS)
+                .techStacks(techStacks)
+                .workLocations(WORK_LOCATIONS)
+                .tags(tags)
+                .salaryRange(salaryRange)
+                .build();
     }
 
 }

@@ -1,10 +1,6 @@
 package org.example.hugmeexp.domain.recruitment.service;
 
-import org.example.hugmeexp.domain.recruitment.dto.RecruitmentCompanySearchResponseDTO;
-import org.example.hugmeexp.domain.recruitment.dto.RecruitmentDetailResponseDTO;
-import org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO;
-import org.example.hugmeexp.domain.recruitment.dto.RecruitmentSearchConditionDTO;
-import org.example.hugmeexp.domain.recruitment.dto.TechStackDTO;
+import org.example.hugmeexp.domain.recruitment.dto.*;
 import org.example.hugmeexp.domain.recruitment.entity.Company;
 import org.example.hugmeexp.domain.recruitment.entity.Recruitment;
 import org.example.hugmeexp.domain.recruitment.entity.Tag;
@@ -13,6 +9,9 @@ import org.example.hugmeexp.domain.recruitment.entity.TechItem;
 import org.example.hugmeexp.domain.recruitment.entity.TechStack;
 import org.example.hugmeexp.domain.recruitment.exception.RecruitmentNotFoundException;
 import org.example.hugmeexp.domain.recruitment.repository.RecruitmentRepository;
+import org.example.hugmeexp.domain.recruitment.repository.TagItemRepository;
+import org.example.hugmeexp.domain.recruitment.repository.TechItemRepository;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,6 +40,12 @@ public class RecruitmentServiceTest {
 
     @Mock
     private RecruitmentRepository recruitmentRepository;
+
+    @Mock
+    private TechItemRepository techItemRepository;
+
+    @Mock
+    private TagItemRepository tagItemRepository;
 
     @InjectMocks
     private RecruitmentService recruitmentService;
@@ -675,5 +680,75 @@ public class RecruitmentServiceTest {
 
         // Repository 호출 검증
         verify(recruitmentRepository).findByKeyword(keyword, PageRequest.of(0, limit));
+    }
+
+    @Test
+    @DisplayName("채용 공고 필터 옵션 조회 테스트")
+    void getFilterOptions_ShouldReturnAllFilterOptions() throws Exception {
+        // Given
+        List<EducationOptionDTO> educationOptions = RecruitmentService.EDUCATION_OPTIONS;
+        List<Integer> experienceOptions = RecruitmentService.EXPERIENCE_OPTIONS;
+        List<String> workLocations = RecruitmentService.WORK_LOCATIONS;
+        int defaultMinSalary = RecruitmentService.DEFAULT_MIN_SALARY;
+        int defaultMaxSalary = RecruitmentService.DEFAULT_MAX_SALARY;
+
+        List<TechItem> techItems = List.of(
+                new TechItem(1L, "Java", "자바", "java_icon.png"),
+                new TechItem(2L, "Spring", "스프링", "spring_icon.png"),
+                new TechItem(3L, "Python", "파이썬", "python_icon.png")
+        );
+
+        List<TagItem> tagItems = List.of(
+                new TagItem(1L, "신입"),
+                new TagItem(2L, "경력"),
+                new TagItem(3L, "재택근무")
+        );
+
+        when(techItemRepository.findAll()).thenReturn(techItems);
+        when(tagItemRepository.findAll()).thenReturn(tagItems);
+
+        // When
+        RecruitmentFilterResponseDTO result = recruitmentService.getFilterOptions();
+
+        // Then
+        assertEquals(educationOptions.size(), result.getEducationOptions().size());
+        for (int i = 0; i < educationOptions.size(); i++) {
+            assertEquals(educationOptions.get(i).getLabel(), result.getEducationOptions().get(i).getLabel());
+            assertEquals(educationOptions.get(i).getValue(), result.getEducationOptions().get(i).getValue());
+        }
+
+        assertEquals(experienceOptions.size(), result.getExperienceOptions().size());
+        for (int i = 0; i < experienceOptions.size(); i++) {
+            assertEquals(experienceOptions.get(i), result.getExperienceOptions().get(i));
+        }
+
+        assertEquals(3, result.getTechStacks().size());
+        assertEquals("자바", result.getTechStacks().get(0).getLabelKo());
+        assertEquals("Java", result.getTechStacks().get(0).getLabelEn());
+        assertEquals("java_icon.png", result.getTechStacks().get(0).getIconUrl());
+
+        assertEquals("스프링", result.getTechStacks().get(1).getLabelKo());
+        assertEquals("Spring", result.getTechStacks().get(1).getLabelEn());
+        assertEquals("spring_icon.png", result.getTechStacks().get(1).getIconUrl());
+
+        assertEquals("파이썬", result.getTechStacks().get(2).getLabelKo());
+        assertEquals("Python", result.getTechStacks().get(2).getLabelEn());
+        assertEquals("python_icon.png", result.getTechStacks().get(2).getIconUrl());
+
+        assertEquals(workLocations.size(), result.getWorkLocations().size());
+        for (int i = 0; i < workLocations.size(); i++) {
+            assertEquals(workLocations.get(i), result.getWorkLocations().get(i));
+        }
+
+        assertEquals(3, result.getTags().size());
+        assertEquals("신입", result.getTags().get(0).getTagName());
+        assertEquals("경력", result.getTags().get(1).getTagName());
+        assertEquals("재택근무", result.getTags().get(2).getTagName());
+
+        assertEquals(defaultMinSalary, result.getSalaryRange().getMin());
+        assertEquals(defaultMaxSalary, result.getSalaryRange().getMax());
+
+        verify(techItemRepository).findAll();
+        verify(tagItemRepository).findAll();
     }
 }
