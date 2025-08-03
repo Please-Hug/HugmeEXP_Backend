@@ -685,42 +685,24 @@ public class RecruitmentServiceTest {
     @DisplayName("채용 공고 필터 옵션 조회 테스트")
     void getFilterOptions_ShouldReturnAllFilterOptions() throws Exception {
         // Given
-        // RecruitmentService의 상수 가져오기
-        Field educationOptionsField = RecruitmentService.class.getDeclaredField("EDUCATION_OPTIONS");
-        educationOptionsField.setAccessible(true);
-        List<EducationOptionDTO> educationOptions = (List<EducationOptionDTO>) educationOptionsField.get(null);
+        List<EducationOptionDTO> educationOptions = RecruitmentService.EDUCATION_OPTIONS;
+        List<Integer> experienceOptions = RecruitmentService.EXPERIENCE_OPTIONS;
+        List<String> workLocations = RecruitmentService.WORK_LOCATIONS;
+        int defaultMinSalary = RecruitmentService.DEFAULT_MIN_SALARY;
+        int defaultMaxSalary = RecruitmentService.DEFAULT_MAX_SALARY;
 
-        Field experienceOptionsField = RecruitmentService.class.getDeclaredField("EXPERIENCE_OPTIONS");
-        experienceOptionsField.setAccessible(true);
-        List<Integer> experienceOptions = (List<Integer>) experienceOptionsField.get(null);
-
-        Field workLocationsField = RecruitmentService.class.getDeclaredField("WORK_LOCATIONS");
-        workLocationsField.setAccessible(true);
-        List<String> workLocations = (List<String>) workLocationsField.get(null);
-
-        Field defaultMinSalaryField = RecruitmentService.class.getDeclaredField("DEFAULT_MIN_SALARY");
-        defaultMinSalaryField.setAccessible(true);
-        int defaultMinSalary = (int) defaultMinSalaryField.get(null);
-
-        Field defaultMaxSalaryField = RecruitmentService.class.getDeclaredField("DEFAULT_MAX_SALARY");
-        defaultMaxSalaryField.setAccessible(true);
-        int defaultMaxSalary = (int) defaultMaxSalaryField.get(null);
-
-        // TechItem 목 데이터 생성
         List<TechItem> techItems = List.of(
                 new TechItem(1L, "Java", "자바", "java_icon.png"),
                 new TechItem(2L, "Spring", "스프링", "spring_icon.png"),
                 new TechItem(3L, "Python", "파이썬", "python_icon.png")
         );
 
-        // TagItem 목 데이터 생성
         List<TagItem> tagItems = List.of(
                 new TagItem(1L, "신입"),
                 new TagItem(2L, "경력"),
                 new TagItem(3L, "재택근무")
         );
 
-        // Repository mock 설정
         when(techItemRepository.findAll()).thenReturn(techItems);
         when(tagItemRepository.findAll()).thenReturn(tagItems);
 
@@ -728,66 +710,43 @@ public class RecruitmentServiceTest {
         RecruitmentFilterResponseDTO result = recruitmentService.getFilterOptions();
 
         // Then
-        // 교육 옵션 검증
         assertEquals(educationOptions.size(), result.getEducationOptions().size());
         for (int i = 0; i < educationOptions.size(); i++) {
             assertEquals(educationOptions.get(i).getLabel(), result.getEducationOptions().get(i).getLabel());
             assertEquals(educationOptions.get(i).getValue(), result.getEducationOptions().get(i).getValue());
         }
 
-        // 경력 옵션 검증
         assertEquals(experienceOptions.size(), result.getExperienceOptions().size());
         for (int i = 0; i < experienceOptions.size(); i++) {
             assertEquals(experienceOptions.get(i), result.getExperienceOptions().get(i));
         }
 
-        // 기술 스택 검증
         assertEquals(3, result.getTechStacks().size());
+        assertEquals("자바", result.getTechStacks().get(0).getLabelKo());
+        assertEquals("Java", result.getTechStacks().get(0).getLabelEn());
+        assertEquals("java_icon.png", result.getTechStacks().get(0).getIconUrl());
 
-        TechStackDTO techStack1 = result.getTechStacks().get(0);
-        assertEquals(1L, techStack1.getId());
-        assertEquals("자바", techStack1.getLabelKo());
-        assertEquals("Java", techStack1.getLabelEn());
-        assertEquals("java_icon.png", techStack1.getIconUrl());
+        assertEquals("스프링", result.getTechStacks().get(1).getLabelKo());
+        assertEquals("Spring", result.getTechStacks().get(1).getLabelEn());
+        assertEquals("spring_icon.png", result.getTechStacks().get(1).getIconUrl());
 
-        TechStackDTO techStack2 = result.getTechStacks().get(1);
-        assertEquals(2L, techStack2.getId());
-        assertEquals("스프링", techStack2.getLabelKo());
-        assertEquals("Spring", techStack2.getLabelEn());
-        assertEquals("spring_icon.png", techStack2.getIconUrl());
+        assertEquals("파이썬", result.getTechStacks().get(2).getLabelKo());
+        assertEquals("Python", result.getTechStacks().get(2).getLabelEn());
+        assertEquals("python_icon.png", result.getTechStacks().get(2).getIconUrl());
 
-        TechStackDTO techStack3 = result.getTechStacks().get(2);
-        assertEquals(3L, techStack3.getId());
-        assertEquals("파이썬", techStack3.getLabelKo());
-        assertEquals("Python", techStack3.getLabelEn());
-        assertEquals("python_icon.png", techStack3.getIconUrl());
-
-        // 근무 지역 검증
         assertEquals(workLocations.size(), result.getWorkLocations().size());
         for (int i = 0; i < workLocations.size(); i++) {
             assertEquals(workLocations.get(i), result.getWorkLocations().get(i));
         }
 
-        // 태그 검증
         assertEquals(3, result.getTags().size());
+        assertEquals("신입", result.getTags().get(0).getTagName());
+        assertEquals("경력", result.getTags().get(1).getTagName());
+        assertEquals("재택근무", result.getTags().get(2).getTagName());
 
-        TagDTO tag1 = result.getTags().get(0);
-        assertEquals(1L, tag1.getId());
-        assertEquals("신입", tag1.getTagName());
-
-        TagDTO tag2 = result.getTags().get(1);
-        assertEquals(2L, tag2.getId());
-        assertEquals("경력", tag2.getTagName());
-
-        TagDTO tag3 = result.getTags().get(2);
-        assertEquals(3L, tag3.getId());
-        assertEquals("재택근무", tag3.getTagName());
-
-        // 급여 범위 검증
         assertEquals(defaultMinSalary, result.getSalaryRange().getMin());
         assertEquals(defaultMaxSalary, result.getSalaryRange().getMax());
 
-        // Repository 호출 검증
         verify(techItemRepository).findAll();
         verify(tagItemRepository).findAll();
     }

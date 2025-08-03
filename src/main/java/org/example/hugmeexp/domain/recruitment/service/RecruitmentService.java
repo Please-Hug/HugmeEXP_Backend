@@ -25,7 +25,7 @@ public class RecruitmentService {
     private final TechItemRepository techItemRepository;
     private final TagItemRepository tagItemRepository;
 
-    private static final List<EducationOptionDTO> EDUCATION_OPTIONS = List.of(
+    static final List<EducationOptionDTO> EDUCATION_OPTIONS = List.of(
             new EducationOptionDTO("무관", 0),
             new EducationOptionDTO("고졸", 10),
             new EducationOptionDTO("초대졸", 20),
@@ -33,10 +33,10 @@ public class RecruitmentService {
             new EducationOptionDTO("석사", 40),
             new EducationOptionDTO("박사", 50)
     );
-    private static final List<Integer> EXPERIENCE_OPTIONS = List.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
-    private static final List<String> WORK_LOCATIONS  = List.of("판교", "강남", "구로");
-    private static final int DEFAULT_MIN_SALARY = 0;
-    private static final int DEFAULT_MAX_SALARY = 10000;
+    static final List<Integer> EXPERIENCE_OPTIONS = List.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+    static final List<String> WORK_LOCATIONS  = List.of("판교", "강남", "구로");
+    static final int DEFAULT_MIN_SALARY = 0;
+    static final int DEFAULT_MAX_SALARY = 10000;
 
     /**
      * 채용 공고 목록을 조회합니다.
