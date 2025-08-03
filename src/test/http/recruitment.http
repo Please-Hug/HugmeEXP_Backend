@@ -68,6 +68,7 @@ GET {{baseUrl}}/recruitments/99999
 Authorization: Bearer {{accessToken}}
 
 
+
 ### ⭐ 즐겨찾기 등록
 POST {{baseUrl}}/recruitments/bookmarks/1
 Authorization: Bearer {{accessToken}}
@@ -84,3 +85,8 @@ Authorization: Bearer {{accessToken}}
 GET {{baseUrl}}/recruitments/bookmarks
 Authorization: Bearer {{accessToken}}
 
+
+
+### 🎛️ 채용 공고 필터 옵션 조회
+GET {{baseUrl}}/recruitments/filters
+Authorization: Bearer {{accessToken}}
