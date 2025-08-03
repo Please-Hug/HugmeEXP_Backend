@@ -11,6 +11,7 @@ import org.example.hugmeexp.global.entity.BaseEntity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -72,6 +73,6 @@ public class Recruitment extends BaseEntity {
     private List<TechStack> techStacks;
 
     @OneToMany(mappedBy = "recruitment", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Tag> tags;
+    private Set<Tag> tags;
 
 }

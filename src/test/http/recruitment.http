@@ -1,9 +1,9 @@
 @host = localhost
 @port = 8080
-@baseUrl = http://{{host}}:{{port}}/api
+@baseUrl = http://{{host}}:{{port}}/api/v1
 
 ### 🔐 로그인 - accessToken 저장
-POST {{baseUrl}}/login
+POST http://localhost:8080/api/login
 Content-Type: application/json
 
 {
@@ -12,6 +12,7 @@ Content-Type: application/json
 }
 
 > {%
+    console.log("응답본문:",response.body);
     const accessToken = response.body.data.accessToken;
     client.global.set("accessToken", accessToken);
 %}
@@ -21,7 +22,7 @@ GET {{baseUrl}}/recruitments
 Authorization: Bearer {{accessToken}}
 
 ### 🔍 조건 검색 - 경력 2년 이상, 대졸 이상, 서울, 최소 연봉 3000
-GET {{baseUrl}}/recruitments?experience=2&education=30&workLocation=강남&salaryMin=3000
+GET {{baseUrl}}/recruitments?experienceMin=1&experienceMax=5&education=4&workLocation=경기도 성남시 분당구 판교로 235&salaryMin=3000
 Authorization: Bearer {{accessToken}}
 
 ### 🗺️ 지도 기반 조회 - 좌표 설정 포함
