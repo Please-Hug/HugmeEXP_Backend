@@ -9,7 +9,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.recruitment.dto.*;
-import org.example.hugmeexp.domain.recruitment.service.CompanyService;
 import org.example.hugmeexp.domain.recruitment.service.RecruitmentService;
 import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.http.HttpStatus;
@@ -26,7 +25,6 @@ import java.util.List;
 public class RecruitmentController {
 
     private final RecruitmentService recruitmentService;
-    private final CompanyService companyService;
 
     @Operation(
         summary = "채용 공고 목록 조회",
@@ -150,6 +148,39 @@ public class RecruitmentController {
 
         Response<RecruitmentDetailResponseDTO> response = Response.<RecruitmentDetailResponseDTO>builder()
                 .message("채용 공고 상세 조회 성공")
+                .data(result)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Operation(
+        summary = "채용 공고 필터 옵션 조회",
+        description = "채용 목록에서 사용할 수 있는 필터링 조건들을 조회합니다.\n\n" +
+            "- 학력, 경력, 기술스택, 근무지, 태그, 연봉 범위 포함\n" +
+            "- 프론트 필터 렌더링용 메타 데이터로 활용",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "필터 옵션 정상 조회 성공",
+                content = @Content(
+                        mediaType = "application/json",
+                        schema = @Schema(implementation = RecruitmentFilterResponseDTO.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "500",
+                description = "서버 내부 오류"
+            )
+        }
+    )
+    @GetMapping("/filters")
+    public ResponseEntity<Response<RecruitmentFilterResponseDTO>> getFilters(){
+
+        RecruitmentFilterResponseDTO result = recruitmentService.getFilterOptions();
+
+        Response<RecruitmentFilterResponseDTO> response = Response.<RecruitmentFilterResponseDTO>builder()
+                .message("채용 공고 필터 옵션 조회 성공")
                 .data(result)
                 .build();
 
