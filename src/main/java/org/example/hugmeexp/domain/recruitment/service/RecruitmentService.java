@@ -25,6 +25,19 @@ public class RecruitmentService {
     private final TechItemRepository techItemRepository;
     private final TagItemRepository tagItemRepository;
 
+    private static final List<EducationOptionDTO> EDUCATION_OPTIONS = List.of(
+            new EducationOptionDTO("무관", 0),
+            new EducationOptionDTO("고졸", 10),
+            new EducationOptionDTO("초대졸", 20),
+            new EducationOptionDTO("대졸", 30),
+            new EducationOptionDTO("석사", 40),
+            new EducationOptionDTO("박사", 50)
+    );
+    private static final List<Integer> EXPERIENCE_OPTIONS = List.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+    private static final List<String> WORK_LOCATIONS  = List.of("판교", "강남", "구로");
+    private static final int DEFAULT_MIN_SALARY = 0;
+    private static final int DEFAULT_MAX_SALARY = 10000;
+
     /**
      * 채용 공고 목록을 조회합니다.
      * 검색 조건에 따라 필터링된 채용 공고 목록을 반환합니다.
@@ -104,37 +117,25 @@ public class RecruitmentService {
      * @return RecruitmentFilterResponseDTO 필터 옵션 DTO
      */
     public RecruitmentFilterResponseDTO getFilterOptions(){
-        List<EducationOptionDTO> educationOptions = List.of(
-                new EducationOptionDTO("무관",0),
-                new EducationOptionDTO("고졸",10),
-                new  EducationOptionDTO("초대졸",20),
-                new EducationOptionDTO("대졸",30),
-                new EducationOptionDTO("석사",40),
-                new EducationOptionDTO("박사",50)
-        );
-
-        List<Integer> experienceOptions = List.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 
         List<TechStackDTO> techStacks = techItemRepository.findAll().stream()
                 .map(TechStackDTO::from)
                 .toList();
-
-        List<String> workLocations = List.of("판교", "강남", "구로");
 
         List<TagDTO> tags = tagItemRepository.findAll().stream()
                 .map(TagDTO::from)
                 .toList();
 
         SalaryRangeDTO salaryRange = SalaryRangeDTO.builder()
-                .min(0)
-                .max(10000)
+                .min(DEFAULT_MIN_SALARY)
+                .max(DEFAULT_MAX_SALARY)
                 .build();
 
         return RecruitmentFilterResponseDTO.builder()
-                .educationOptions(educationOptions)
-                .experienceOptions(experienceOptions)
+                .educationOptions(EDUCATION_OPTIONS)
+                .experienceOptions(EXPERIENCE_OPTIONS)
                 .techStacks(techStacks)
-                .workLocations(workLocations)
+                .workLocations(WORK_LOCATIONS)
                 .tags(tags)
                 .salaryRange(salaryRange)
                 .build();
