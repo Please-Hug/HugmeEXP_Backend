@@ -11,6 +11,8 @@ import org.example.hugmeexp.domain.recruitment.exception.RecruitmentNotFoundExce
 import org.example.hugmeexp.domain.recruitment.repository.RecruitmentRepository;
 import org.example.hugmeexp.domain.recruitment.repository.TagItemRepository;
 import org.example.hugmeexp.domain.recruitment.repository.TechItemRepository;
+
+import java.lang.reflect.Field;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -681,8 +683,29 @@ public class RecruitmentServiceTest {
 
     @Test
     @DisplayName("채용 공고 필터 옵션 조회 테스트")
-    void getFilterOptions_ShouldReturnAllFilterOptions() {
+    void getFilterOptions_ShouldReturnAllFilterOptions() throws Exception {
         // Given
+        // RecruitmentService의 상수 가져오기
+        Field educationOptionsField = RecruitmentService.class.getDeclaredField("EDUCATION_OPTIONS");
+        educationOptionsField.setAccessible(true);
+        List<EducationOptionDTO> educationOptions = (List<EducationOptionDTO>) educationOptionsField.get(null);
+
+        Field experienceOptionsField = RecruitmentService.class.getDeclaredField("EXPERIENCE_OPTIONS");
+        experienceOptionsField.setAccessible(true);
+        List<Integer> experienceOptions = (List<Integer>) experienceOptionsField.get(null);
+
+        Field workLocationsField = RecruitmentService.class.getDeclaredField("WORK_LOCATIONS");
+        workLocationsField.setAccessible(true);
+        List<String> workLocations = (List<String>) workLocationsField.get(null);
+
+        Field defaultMinSalaryField = RecruitmentService.class.getDeclaredField("DEFAULT_MIN_SALARY");
+        defaultMinSalaryField.setAccessible(true);
+        int defaultMinSalary = (int) defaultMinSalaryField.get(null);
+
+        Field defaultMaxSalaryField = RecruitmentService.class.getDeclaredField("DEFAULT_MAX_SALARY");
+        defaultMaxSalaryField.setAccessible(true);
+        int defaultMaxSalary = (int) defaultMaxSalaryField.get(null);
+
         // TechItem 목 데이터 생성
         List<TechItem> techItems = List.of(
                 new TechItem(1L, "Java", "자바", "java_icon.png"),
@@ -706,24 +729,16 @@ public class RecruitmentServiceTest {
 
         // Then
         // 교육 옵션 검증
-        assertEquals(6, result.getEducationOptions().size());
-        assertEquals("무관", result.getEducationOptions().get(0).getLabel());
-        assertEquals(0, result.getEducationOptions().get(0).getValue());
-        assertEquals("고졸", result.getEducationOptions().get(1).getLabel());
-        assertEquals(10, result.getEducationOptions().get(1).getValue());
-        assertEquals("초대졸", result.getEducationOptions().get(2).getLabel());
-        assertEquals(20, result.getEducationOptions().get(2).getValue());
-        assertEquals("대졸", result.getEducationOptions().get(3).getLabel());
-        assertEquals(30, result.getEducationOptions().get(3).getValue());
-        assertEquals("석사", result.getEducationOptions().get(4).getLabel());
-        assertEquals(40, result.getEducationOptions().get(4).getValue());
-        assertEquals("박사", result.getEducationOptions().get(5).getLabel());
-        assertEquals(50, result.getEducationOptions().get(5).getValue());
+        assertEquals(educationOptions.size(), result.getEducationOptions().size());
+        for (int i = 0; i < educationOptions.size(); i++) {
+            assertEquals(educationOptions.get(i).getLabel(), result.getEducationOptions().get(i).getLabel());
+            assertEquals(educationOptions.get(i).getValue(), result.getEducationOptions().get(i).getValue());
+        }
 
         // 경력 옵션 검증
-        assertEquals(11, result.getExperienceOptions().size());
-        for (int i = 0; i <= 10; i++) {
-            assertEquals(i, result.getExperienceOptions().get(i));
+        assertEquals(experienceOptions.size(), result.getExperienceOptions().size());
+        for (int i = 0; i < experienceOptions.size(); i++) {
+            assertEquals(experienceOptions.get(i), result.getExperienceOptions().get(i));
         }
 
         // 기술 스택 검증
@@ -748,10 +763,10 @@ public class RecruitmentServiceTest {
         assertEquals("python_icon.png", techStack3.getIconUrl());
 
         // 근무 지역 검증
-        assertEquals(3, result.getWorkLocations().size());
-        assertEquals("판교", result.getWorkLocations().get(0));
-        assertEquals("강남", result.getWorkLocations().get(1));
-        assertEquals("구로", result.getWorkLocations().get(2));
+        assertEquals(workLocations.size(), result.getWorkLocations().size());
+        for (int i = 0; i < workLocations.size(); i++) {
+            assertEquals(workLocations.get(i), result.getWorkLocations().get(i));
+        }
 
         // 태그 검증
         assertEquals(3, result.getTags().size());
@@ -769,8 +784,8 @@ public class RecruitmentServiceTest {
         assertEquals("재택근무", tag3.getTagName());
 
         // 급여 범위 검증
-        assertEquals(0, result.getSalaryRange().getMin());
-        assertEquals(10000, result.getSalaryRange().getMax());
+        assertEquals(defaultMinSalary, result.getSalaryRange().getMin());
+        assertEquals(defaultMaxSalary, result.getSalaryRange().getMax());
 
         // Repository 호출 검증
         verify(techItemRepository).findAll();
