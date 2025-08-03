@@ -27,10 +27,9 @@ public class Company {
     @Column(nullable = false)
     private String companyAddress;
 
-    @Column(nullable = false, precision = 15, scale = 8)
+    @Column(precision = 15, scale = 8) // 위도와 경도를 저장하기 위해 BigDecimal 사용
     private BigDecimal latitude; // 위도
-
-    @Column(nullable = false, precision = 15, scale = 8)
+    @Column(precision = 15, scale = 8)
     private BigDecimal longitude; // 경도
 
     @Column(nullable = false)
@@ -40,5 +39,8 @@ public class Company {
 
     @Column(columnDefinition = "TEXT") // TEXT 타입으로도 저장 가능(길이 제한 없음)
     private String companyDescription;
+
+    @Column(unique = true)
+    private Long companySourceId;
 
 }

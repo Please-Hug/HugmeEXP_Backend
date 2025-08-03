@@ -24,8 +24,8 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
      */
     @Query("""
         SELECT new org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO(
-            r.id, r.title, c.companyName, c.companyImageUrl, r.dueDate, r.experience,
-            r.workLocation, r.latitude, r.longitude, r.modifiedAt
+            r.id, r.recruitmentSourceId, r.title, c.companyName, c.companyImageUrl, r.dueDate,
+            r.experienceMin, r.experienceMax, r.workLocation, r.latitude, r.longitude, r.modifiedAt
         )
         FROM Recruitment r
         JOIN r.company c
@@ -33,7 +33,8 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
         LEFT JOIN r.tags t
         WHERE (:#{#cond.salaryMin} IS NULL OR r.salaryMin >= :#{#cond.salaryMin}) AND
               (:#{#cond.salaryMax} IS NULL OR r.salaryMax <= :#{#cond.salaryMax}) AND
-              (:#{#cond.experience} IS NULL OR r.experience = :#{#cond.experience}) AND
+              (:#{#cond.experienceMin} IS NULL OR r.experienceMin <= :#{#cond.experienceMin}) AND
+              (:#{#cond.experienceMax} IS NULL OR r.experienceMax >= :#{#cond.experienceMax}) AND
               (:#{#cond.education} IS NULL OR r.education = :#{#cond.education}) AND
               (:#{#cond.workLocation} IS NULL OR r.workLocation LIKE %:#{#cond.workLocation}%) AND
               (:#{#cond.topLeftLat} IS NULL OR r.latitude >= :#{#cond.topLeftLat}) AND
@@ -42,8 +43,8 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
               (:#{#cond.bottomRightLng} IS NULL OR r.longitude <= :#{#cond.bottomRightLng}) AND
               (:#{#cond.techStacks} IS NULL OR ts.id IN :#{#cond.techStacks}) AND
               (:#{#cond.tags} IS NULL OR t.id IN :#{#cond.tags})
-        GROUP BY r.id, r.title, c.companyName, c.companyImageUrl, r.dueDate, r.experience,
-                 r.workLocation, r.latitude, r.longitude, r.modifiedAt
+        GROUP BY r.id, r.recruitmentSourceId, r.title, c.companyName, c.companyImageUrl, r.dueDate,
+                 r.experienceMin, r.experienceMax, r.workLocation, r.latitude, r.longitude, r.modifiedAt
         HAVING (:#{#cond.techStacks} IS NULL OR COUNT(DISTINCT ts.id) = :#{#cond.techStackCount}) AND
                (:#{#cond.tags} IS NULL OR COUNT(DISTINCT t.id) = :#{#cond.tagCount})
     """)
@@ -59,14 +60,49 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
      */
     @Query("""
         SELECT new org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO(
-            r.id, r.title, c.companyName, c.companyImageUrl, r.dueDate, r.experience,
-            r.workLocation, r.latitude, r.longitude, r.modifiedAt
+            r.id, r.recruitmentSourceId, r.title, c.companyName, c.companyImageUrl, r.dueDate,
+            r.experienceMin, r.experienceMax, r.workLocation, r.latitude, r.longitude, r.modifiedAt
         )
         FROM Recruitment r
         JOIN r.company c
         ORDER BY r.modifiedAt DESC
     """)
     List<RecruitmentResponseDTO> findLatestRecruitments(Pageable pageable);
+
+    /**
+     * 채용 공고의 상세 정보를 ID로 조회합니다.
+     * 회사 정보, 기술 스택, 태그 등을 포함하여 상세 정보를 반환합니다.
+     *
+     * @param id 채용 공고 ID
+     * @return 채용 공고의 상세 정보 (존재하지 않을 경우 Optional.empty())
+     */
+    @Query("""
+        SELECT DISTINCT r FROM Recruitment r
+        JOIN FETCH r.company
+        LEFT JOIN FETCH r.techStacks ts
+        LEFT JOIN FETCH ts.techItem
+        LEFT JOIN FETCH r.tags t
+        LEFT JOIN FETCH t.tagItem
+        WHERE r.id = :id
+    """)
+    Optional<Recruitment> findDetailById(@Param("id") Long id);
+
+    /**
+     * 키워드로 채용 공고를 검색합니다.
+     * 제목 또는 회사 이름에 키워드가 포함된 채용 공고를 반환합니다.
+     *
+     * @param keyword 검색 키워드
+     * @param pageable 페이징 정보
+     * @return 키워드에 해당하는 채용 공고 목록
+     */
+    @Query("""
+        SELECT r FROM Recruitment r
+        JOIN FETCH r.company c
+        WHERE LOWER(r.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+        OR LOWER(c.companyName) LIKE LOWER(CONCAT('%', :keyword, '%'))
+    """)
+    List<Recruitment> findByKeyword(@Param("keyword") String keyword, Pageable pageable);
+
 
     boolean existsRecruitmentBySourceId(String sourceId);
 

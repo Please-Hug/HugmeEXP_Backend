@@ -1,9 +1,19 @@
 package org.example.hugmeexp.domain.recruitment.service;
 
+import org.example.hugmeexp.domain.recruitment.dto.RecruitmentCompanySearchResponseDTO;
+import org.example.hugmeexp.domain.recruitment.dto.RecruitmentDetailResponseDTO;
 import org.example.hugmeexp.domain.recruitment.dto.CompanyRequestDTO;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentRequestDTO;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentSearchConditionDTO;
+import org.example.hugmeexp.domain.recruitment.dto.TechStackDTO;
+import org.example.hugmeexp.domain.recruitment.entity.Company;
+import org.example.hugmeexp.domain.recruitment.entity.Recruitment;
+import org.example.hugmeexp.domain.recruitment.entity.Tag;
+import org.example.hugmeexp.domain.recruitment.entity.TagItem;
+import org.example.hugmeexp.domain.recruitment.entity.TechItem;
+import org.example.hugmeexp.domain.recruitment.entity.TechStack;
+import org.example.hugmeexp.domain.recruitment.exception.RecruitmentNotFoundException;
 import org.example.hugmeexp.domain.recruitment.dto.TechItemRequestDTO;
 import org.example.hugmeexp.domain.recruitment.dto.TagRequestDTO;
 import org.example.hugmeexp.domain.recruitment.entity.Company;
@@ -26,14 +36,20 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -187,7 +203,8 @@ public class RecruitmentServiceTest {
         RecruitmentSearchConditionDTO condition = RecruitmentSearchConditionDTO.builder()
                 .salaryMin(3000)
                 .salaryMax(5000)
-                .experience(3)
+                .experienceMin(3)
+                .experienceMax(7)
                 .education(4)
                 .workLocation("서울")
                 .techStacks(List.of(1L, 2L))
@@ -236,6 +253,8 @@ public class RecruitmentServiceTest {
         RecruitmentSearchConditionDTO condition = RecruitmentSearchConditionDTO.builder()
                 .salaryMin(3000)
                 .salaryMax(5000)
+                .experienceMin(2)
+                .experienceMax(5)
                 .build();
 
         List<RecruitmentResponseDTO> expectedResult = createMockResponseList();
@@ -256,6 +275,8 @@ public class RecruitmentServiceTest {
         RecruitmentSearchConditionDTO condition = RecruitmentSearchConditionDTO.builder()
                 .salaryMin(3000)
                 .salaryMax(5000)
+                .experienceMin(1)
+                .experienceMax(10)
                 .techStacks(null)
                 .tags(null)
                 .build();
@@ -367,17 +388,17 @@ public class RecruitmentServiceTest {
 
         // 첫 번째 응답 DTO
         responses.add(new RecruitmentResponseDTO(
-                1L, "백엔드 개발자 모집", "ABC 회사", "company_image_url_1.jpg",
+                1L, 1001L, "백엔드 개발자 모집", "ABC 회사", "company_image_url_1.jpg",
                 LocalDateTime.of(2023, 12, 31, 23, 59),
-                3, "서울시 강남구", new BigDecimal("37.5"), new BigDecimal("127.0"),
+                3, 5, "서울시 강남구", new BigDecimal("37.5"), new BigDecimal("127.0"),
                 LocalDateTime.now()
         ));
 
         // 두 번째 응답 DTO
         responses.add(new RecruitmentResponseDTO(
-                2L, "프론트엔드 개발자 모집", "XYZ 회사", "company_image_url_2.jpg",
+                2L, 1002L, "프론트엔드 개발자 모집", "XYZ 회사", "company_image_url_2.jpg",
                 LocalDateTime.of(2023, 11, 30, 23, 59),
-                2, "서울시 서초구", new BigDecimal("37.4"), new BigDecimal("127.1"),
+                2, 4, "서울시 서초구", new BigDecimal("37.4"), new BigDecimal("127.1"),
                 LocalDateTime.now()
         ));
 
@@ -391,69 +412,420 @@ public class RecruitmentServiceTest {
 
         // 1. 가장 최근에 수정된 공고 (1일 전)
         responses.add(new RecruitmentResponseDTO(
-                1L, "백엔드 개발자 모집", "ABC 회사", "company_image_url_1.jpg",
+                1L, 1001L, "백엔드 개발자 모집", "ABC 회사", "company_image_url_1.jpg",
                 LocalDateTime.of(2023, 12, 31, 23, 59),
-                3, "서울시 강남구", new BigDecimal("37.5"), new BigDecimal("127.0"),
+                3, 5, "서울시 강남구", new BigDecimal("37.5"), new BigDecimal("127.0"),
                 LocalDateTime.now().minusDays(1)
         ));
 
         // 2. 두 번째로 최근에 수정된 공고 (3일 전)
         responses.add(new RecruitmentResponseDTO(
-                2L, "프론트엔드 개발자 모집", "XYZ 회사", "company_image_url_2.jpg",
+                2L, 1002L, "프론트엔드 개발자 모집", "XYZ 회사", "company_image_url_2.jpg",
                 LocalDateTime.of(2023, 11, 30, 23, 59),
-                2, "서울시 서초구", new BigDecimal("37.4"), new BigDecimal("127.1"),
+                2, 4, "서울시 서초구", new BigDecimal("37.4"), new BigDecimal("127.1"),
                 LocalDateTime.now().minusDays(3)
         ));
 
         // 3. 세 번째로 최근에 수정된 공고 (5일 전)
         responses.add(new RecruitmentResponseDTO(
-                3L, "데이터 엔지니어 모집", "DEF 회사", "company_image_url_3.jpg",
+                3L, 1003L, "데이터 엔지니어 모집", "DEF 회사", "company_image_url_3.jpg",
                 LocalDateTime.of(2023, 12, 15, 23, 59),
-                5, "서울시 송파구", new BigDecimal("37.6"), new BigDecimal("127.2"),
+                5, 7, "서울시 송파구", new BigDecimal("37.6"), new BigDecimal("127.2"),
                 LocalDateTime.now().minusDays(5)
         ));
 
         // 4. 네 번째로 최근에 수정된 공고 (7일 전)
         responses.add(new RecruitmentResponseDTO(
-                4L, "모바일 개발자 모집", "GHI 회사", "company_image_url_4.jpg",
+                4L, 1004L, "모바일 개발자 모집", "GHI 회사", "company_image_url_4.jpg",
                 LocalDateTime.of(2023, 12, 20, 23, 59),
-                4, "서울시 마포구", new BigDecimal("37.55"), new BigDecimal("126.9"),
+                4, 6, "서울시 마포구", new BigDecimal("37.55"), new BigDecimal("126.9"),
                 LocalDateTime.now().minusDays(7)
         ));
 
         // 5. 다섯 번째로 최근에 수정된 공고 (10일 전)
         responses.add(new RecruitmentResponseDTO(
-                5L, "DevOps 엔지니어 모집", "JKL 회사", "company_image_url_5.jpg",
+                5L, 1005L, "DevOps 엔지니어 모집", "JKL 회사", "company_image_url_5.jpg",
                 LocalDateTime.of(2023, 12, 25, 23, 59),
-                2, "서울시 영등포구", new BigDecimal("37.52"), new BigDecimal("126.93"),
+                2, 4, "서울시 영등포구", new BigDecimal("37.52"), new BigDecimal("126.93"),
                 LocalDateTime.now().minusDays(10)
         ));
 
         // 6. 여섯 번째로 최근에 수정된 공고 (14일 전)
         responses.add(new RecruitmentResponseDTO(
-                6L, "QA 엔지니어 모집", "MNO 회사", "company_image_url_6.jpg",
+                6L, 1006L, "QA 엔지니어 모집", "MNO 회사", "company_image_url_6.jpg",
                 LocalDateTime.of(2023, 12, 10, 23, 59),
-                3, "서울시 강동구", new BigDecimal("37.53"), new BigDecimal("127.12"),
+                3, 5, "서울시 강동구", new BigDecimal("37.53"), new BigDecimal("127.12"),
                 LocalDateTime.now().minusDays(14)
         ));
 
         // 7. 일곱 번째로 최근에 수정된 공고 (20일 전)
         responses.add(new RecruitmentResponseDTO(
-                7L, "보안 엔지니어 모집", "PQR 회사", "company_image_url_7.jpg",
+                7L, 1007L, "보안 엔지니어 모집", "PQR 회사", "company_image_url_7.jpg",
                 LocalDateTime.of(2023, 12, 5, 23, 59),
-                6, "서울시 성동구", new BigDecimal("37.54"), new BigDecimal("127.05"),
+                6, 8, "서울시 성동구", new BigDecimal("37.54"), new BigDecimal("127.05"),
                 LocalDateTime.now().minusDays(20)
         ));
 
         // 8. 여덟 번째로 최근에 수정된 공고 (30일 전)
         responses.add(new RecruitmentResponseDTO(
-                8L, "시스템 엔지니어 모집", "STU 회사", "company_image_url_8.jpg",
+                8L, 1008L, "시스템 엔지니어 모집", "STU 회사", "company_image_url_8.jpg",
                 LocalDateTime.of(2023, 11, 15, 23, 59),
-                4, "서울시 중구", new BigDecimal("37.56"), new BigDecimal("126.98"),
+                4, 6, "서울시 중구", new BigDecimal("37.56"), new BigDecimal("126.98"),
                 LocalDateTime.now().minusDays(30)
         ));
 
         return responses;
+    }
+
+    @Test
+    @DisplayName("채용 공고 상세 조회 성공 테스트")
+    void getRecruitmentDetail_Success() {
+        // Given
+        Long recruitmentId = 1L;
+
+        // 회사 정보 생성
+        Company company = Company.builder()
+                .id(1L)
+                .companyName("ABC 회사")
+                .companyAddress("서울시 강남구 테헤란로 123")
+                .latitude(new BigDecimal("37.5"))
+                .longitude(new BigDecimal("127.0"))
+                .establishmentDate(LocalDate.of(2010, 1, 1))
+                .companyImageUrl("company_image_url_1.jpg")
+                .companyDescription("좋은 회사입니다.")
+                .build();
+
+        // 기술 스택 아이템 생성 (생성자 사용)
+        TechItem techItem1 = new TechItem(1L, "Java", "자바", "java_icon.png");
+
+        TechItem techItem2 = new TechItem(2L, "Spring", "스프링", "spring_icon.png");
+
+        // 채용 공고 생성
+        Recruitment recruitment = Recruitment.builder()
+                .id(recruitmentId)
+                .title("백엔드 개발자 모집")
+                .education(4)
+                .experienceMin(3)
+                .experienceMax(5)
+                .qualification("Java, Spring 경험자")
+                .advantage("MSA 경험자 우대")
+                .welfare("점심 제공, 4대 보험")
+                .workLocation("서울시 강남구")
+                .latitude(new BigDecimal("37.5"))
+                .longitude(new BigDecimal("127.0"))
+                .salaryMin(3000)
+                .salaryMax(5000)
+                .link("https://example.com/job/1")
+                .dueDate(LocalDateTime.of(2023, 12, 31, 23, 59))
+                .company(company)
+                .build();
+
+        // 기술 스택 생성 및 연결
+        List<TechStack> techStacks = new ArrayList<>();
+        TechStack techStack1 = TechStack.builder()
+                .id(1L)
+                .recruitment(recruitment)
+                .techItem(techItem1)
+                .build();
+
+        TechStack techStack2 = TechStack.builder()
+                .id(2L)
+                .recruitment(recruitment)
+                .techItem(techItem2)
+                .build();
+
+        techStacks.add(techStack1);
+        techStacks.add(techStack2);
+
+        // 태그 아이템 생성
+        TagItem tagItem1 = new TagItem(1L, "신입");
+        TagItem tagItem2 = new TagItem(2L, "경력");
+
+        // 태그 생성 및 연결
+        Set<Tag> tags = new HashSet<>();
+        Tag tag1 = Tag.builder()
+                .id(1L)
+                .recruitment(recruitment)
+                .tagItem(tagItem1)
+                .build();
+
+        Tag tag2 = Tag.builder()
+                .id(2L)
+                .recruitment(recruitment)
+                .tagItem(tagItem2)
+                .build();
+
+        tags.add(tag1);
+        tags.add(tag2);
+
+        // 채용 공고에 기술 스택과 태그 설정
+        recruitment = recruitment.toBuilder()
+                .techStacks(techStacks)
+                .tags(tags)
+                .build();
+
+        // Repository mock 설정
+        when(recruitmentRepository.findDetailById(recruitmentId)).thenReturn(Optional.of(recruitment));
+
+        // When
+        RecruitmentDetailResponseDTO result = recruitmentService.getRecruitmentDetail(recruitmentId);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(recruitmentId, result.getId());
+        assertEquals("백엔드 개발자 모집", result.getTitle());
+        assertEquals("ABC 회사", result.getCompanyName());
+        assertEquals("company_image_url_1.jpg", result.getCompanyImageUrl());
+        assertEquals("서울시 강남구 테헤란로 123", result.getCompanyAddress());
+        assertEquals(LocalDate.of(2010, 1, 1), result.getEstablishmentDate());
+        assertEquals("좋은 회사입니다.", result.getCompanyDescription());
+        assertEquals(LocalDateTime.of(2023, 12, 31, 23, 59), result.getDueDate());
+        assertEquals(3, result.getExperienceMin());
+        assertEquals(5, result.getExperienceMax());
+        assertEquals(4, result.getEducation());
+        assertEquals(3000, result.getSalaryMin());
+        assertEquals(5000, result.getSalaryMax());
+        assertEquals("Java, Spring 경험자", result.getQualifications());
+        assertEquals("MSA 경험자 우대", result.getAdvantage());
+        assertEquals("점심 제공, 4대 보험", result.getWelfare());
+        assertEquals("https://example.com/job/1", result.getLink());
+
+        // 기술 스택 검증
+        assertEquals(2, result.getTechStacks().size());
+
+        TechStackDTO techStackDTO1 = result.getTechStacks().get(0);
+        assertEquals("자바", techStackDTO1.getLabelKo());
+        assertEquals("Java", techStackDTO1.getLabelEn());
+        assertEquals("java_icon.png", techStackDTO1.getIconUrl());
+
+        TechStackDTO techStackDTO2 = result.getTechStacks().get(1);
+        assertEquals("스프링", techStackDTO2.getLabelKo());
+        assertEquals("Spring", techStackDTO2.getLabelEn());
+        assertEquals("spring_icon.png", techStackDTO2.getIconUrl());
+
+        // Repository 호출 검증
+        verify(recruitmentRepository).findDetailById(recruitmentId);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 채용 공고 상세 조회 테스트")
+    void getRecruitmentDetail_NotFound() {
+        // Given
+        Long nonExistentId = 999L;
+        when(recruitmentRepository.findDetailById(nonExistentId)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(RecruitmentNotFoundException.class, () -> {
+            recruitmentService.getRecruitmentDetail(nonExistentId);
+        });
+
+        // Repository 호출 검증
+        verify(recruitmentRepository).findDetailById(nonExistentId);
+    }
+    @Test
+    @DisplayName("키워드로 채용 공고 검색 - 제목에 키워드가 포함된 경우")
+    void findByKeyword_KeywordInTitle_ShouldReturnMatchingRecruitments() {
+        // Given
+        String keyword = "백엔드";
+        int limit = 10;
+
+        // 회사 정보 생성
+        Company company1 = Company.builder()
+                .id(1L)
+                .companyName("ABC 회사")
+                .companyAddress("서울시 강남구 테헤란로 123")
+                .latitude(new BigDecimal("37.5"))
+                .longitude(new BigDecimal("127.0"))
+                .establishmentDate(LocalDate.of(2010, 1, 1))
+                .companyImageUrl("company_image_url_1.jpg")
+                .companyDescription("좋은 회사입니다.")
+                .build();
+
+        // 채용 공고 생성 (키워드가 제목에 포함됨)
+        Recruitment recruitment1 = Recruitment.builder()
+                .id(1L)
+                .title("백엔드 개발자 모집")
+                .education(4)
+                .experienceMin(3)
+                .experienceMax(5)
+                .workLocation("서울시 강남구")
+                .company(company1)
+                .build();
+
+        List<Recruitment> mockRecruitments = List.of(recruitment1);
+
+        // Repository mock 설정
+        when(recruitmentRepository.findByKeyword(keyword, PageRequest.of(0, limit))).thenReturn(mockRecruitments);
+
+        // When
+        List<RecruitmentCompanySearchResponseDTO> result = recruitmentService.findByKeyword(keyword, limit);
+
+        // Then
+        assertEquals(1, result.size());
+        assertEquals(1L, result.get(0).getRecruitmentId());
+        assertEquals("백엔드 개발자 모집", result.get(0).getTitle());
+        assertEquals(1L, result.get(0).getCompanyId());
+        assertEquals("ABC 회사", result.get(0).getCompanyName());
+
+        // Repository 호출 검증
+        verify(recruitmentRepository).findByKeyword(keyword, PageRequest.of(0, limit));
+    }
+
+    @Test
+    @DisplayName("키워드로 채용 공고 검색 - 회사명에 키워드가 포함된 경우")
+    void findByKeyword_KeywordInCompanyName_ShouldReturnMatchingRecruitments() {
+        // Given
+        String keyword = "XYZ";
+        int limit = 10;
+
+        // 회사 정보 생성 (키워드가 회사명에 포함됨)
+        Company company1 = Company.builder()
+                .id(2L)
+                .companyName("XYZ 회사")
+                .companyAddress("서울시 서초구 서초대로 456")
+                .latitude(new BigDecimal("37.4"))
+                .longitude(new BigDecimal("127.1"))
+                .establishmentDate(LocalDate.of(2015, 5, 5))
+                .companyImageUrl("company_image_url_2.jpg")
+                .companyDescription("혁신적인 회사입니다.")
+                .build();
+
+        // 채용 공고 생성
+        Recruitment recruitment1 = Recruitment.builder()
+                .id(2L)
+                .title("프론트엔드 개발자 모집")
+                .education(4)
+                .experienceMin(2)
+                .experienceMax(4)
+                .workLocation("서울시 서초구")
+                .company(company1)
+                .build();
+
+        List<Recruitment> mockRecruitments = List.of(recruitment1);
+
+        // Repository mock 설정
+        when(recruitmentRepository.findByKeyword(keyword, PageRequest.of(0, limit))).thenReturn(mockRecruitments);
+
+        // When
+        List<RecruitmentCompanySearchResponseDTO> result = recruitmentService.findByKeyword(keyword, limit);
+
+        // Then
+        assertEquals(1, result.size());
+        assertEquals(2L, result.get(0).getRecruitmentId());
+        assertEquals("프론트엔드 개발자 모집", result.get(0).getTitle());
+        assertEquals(2L, result.get(0).getCompanyId());
+        assertEquals("XYZ 회사", result.get(0).getCompanyName());
+
+        // Repository 호출 검증
+        verify(recruitmentRepository).findByKeyword(keyword, PageRequest.of(0, limit));
+    }
+
+    @Test
+    @DisplayName("키워드로 채용 공고 검색 - 일치하는 결과가 없는 경우")
+    void findByKeyword_NoMatches_ShouldReturnEmptyList() {
+        // Given
+        String keyword = "존재하지않는키워드";
+        int limit = 10;
+
+        // Repository mock 설정 - 빈 리스트 반환
+        when(recruitmentRepository.findByKeyword(keyword, PageRequest.of(0, limit))).thenReturn(List.of());
+
+        // When
+        List<RecruitmentCompanySearchResponseDTO> result = recruitmentService.findByKeyword(keyword, limit);
+
+        // Then
+        assertTrue(result.isEmpty());
+
+        // Repository 호출 검증
+        verify(recruitmentRepository).findByKeyword(keyword, PageRequest.of(0, limit));
+    }
+
+    @Test
+    @DisplayName("키워드로 채용 공고 검색 - 결과 제한 테스트")
+    void findByKeyword_LimitResults_ShouldReturnLimitedResults() {
+        // Given
+        String keyword = "개발자";
+        int limit = 2;
+
+        // 회사 정보 생성
+        Company company1 = Company.builder()
+                .id(1L)
+                .companyName("ABC 회사")
+                .companyAddress("서울시 강남구 테헤란로 123")
+                .latitude(new BigDecimal("37.5"))
+                .longitude(new BigDecimal("127.0"))
+                .establishmentDate(LocalDate.of(2010, 1, 1))
+                .companyImageUrl("company_image_url_1.jpg")
+                .companyDescription("좋은 회사입니다.")
+                .build();
+
+        Company company2 = Company.builder()
+                .id(2L)
+                .companyName("XYZ 회사")
+                .companyAddress("서울시 서초구 서초대로 456")
+                .latitude(new BigDecimal("37.4"))
+                .longitude(new BigDecimal("127.1"))
+                .establishmentDate(LocalDate.of(2015, 5, 5))
+                .companyImageUrl("company_image_url_2.jpg")
+                .companyDescription("혁신적인 회사입니다.")
+                .build();
+
+        Company company3 = Company.builder()
+                .id(3L)
+                .companyName("DEF 회사")
+                .companyAddress("서울시 송파구 올림픽로 789")
+                .latitude(new BigDecimal("37.6"))
+                .longitude(new BigDecimal("127.2"))
+                .establishmentDate(LocalDate.of(2012, 3, 3))
+                .companyImageUrl("company_image_url_3.jpg")
+                .companyDescription("성장하는 회사입니다.")
+                .build();
+
+        // 채용 공고 생성
+        Recruitment recruitment1 = Recruitment.builder()
+                .id(1L)
+                .title("백엔드 개발자 모집")
+                .education(4)
+                .experienceMin(3)
+                .experienceMax(5)
+                .workLocation("서울시 강남구")
+                .company(company1)
+                .build();
+
+        Recruitment recruitment2 = Recruitment.builder()
+                .id(2L)
+                .title("프론트엔드 개발자 모집")
+                .education(4)
+                .experienceMin(2)
+                .experienceMax(4)
+                .workLocation("서울시 서초구")
+                .company(company2)
+                .build();
+
+        Recruitment recruitment3 = Recruitment.builder()
+                .id(3L)
+                .title("모바일 개발자 모집")
+                .education(4)
+                .experienceMin(5)
+                .experienceMax(7)
+                .workLocation("서울시 송파구")
+                .company(company3)
+                .build();
+
+        // 3개의 결과가 있지만 limit이 2이므로 2개만 반환되어야 함
+        List<Recruitment> mockRecruitments = List.of(recruitment1, recruitment2);
+
+        // Repository mock 설정
+        when(recruitmentRepository.findByKeyword(keyword, PageRequest.of(0, limit))).thenReturn(mockRecruitments);
+
+        // When
+        List<RecruitmentCompanySearchResponseDTO> result = recruitmentService.findByKeyword(keyword, limit);
+
+        // Then
+        assertEquals(2, result.size());
+
+        // Repository 호출 검증
+        verify(recruitmentRepository).findByKeyword(keyword, PageRequest.of(0, limit));
     }
 
     @Test

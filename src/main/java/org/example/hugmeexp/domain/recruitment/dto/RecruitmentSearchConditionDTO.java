@@ -1,9 +1,6 @@
 package org.example.hugmeexp.domain.recruitment.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -11,12 +8,14 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@Setter
 @Builder(toBuilder = true)
 public class RecruitmentSearchConditionDTO {
 
     private Integer salaryMin;
     private Integer salaryMax;
-    private Integer experience;
+    private Integer experienceMin;
+    private Integer experienceMax;
     private Integer education;
     private List<Long> techStacks;
     private String workLocation;

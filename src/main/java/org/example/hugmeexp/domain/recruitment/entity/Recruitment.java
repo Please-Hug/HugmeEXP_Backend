@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -30,7 +31,9 @@ public class Recruitment extends BaseEntity {
     @Column(nullable = false)
     private Integer education;
     @Column(nullable = false)
-    private Integer experience;
+    private Integer experienceMin;
+    @Column(nullable = false)
+    private Integer experienceMax;
 
     @Lob
     @Column(columnDefinition = "TEXT")
@@ -65,6 +68,9 @@ public class Recruitment extends BaseEntity {
 
     private LocalDateTime dueDate;
 
+    @Column(unique = true)
+    private Long recruitmentSourceId; // 외부 시스템에서의 고유 ID
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", nullable = false)
     @Setter
@@ -85,7 +91,8 @@ public class Recruitment extends BaseEntity {
     public void updateFromRequest(@Valid RecruitmentRequestDTO requestDTO) {
         title = requestDTO.getTitle();
         education = requestDTO.getEducation();
-        experience = requestDTO.getExperience();
+        experienceMin = requestDTO.getExperience();
+        experienceMax = requestDTO.getExperience();
         qualification = requestDTO.getQualification();
         advantage = requestDTO.getAdvantage();
         welfare = requestDTO.getWelfare();
