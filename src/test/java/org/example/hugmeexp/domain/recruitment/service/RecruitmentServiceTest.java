@@ -1,10 +1,6 @@
 package org.example.hugmeexp.domain.recruitment.service;
 
-import org.example.hugmeexp.domain.recruitment.dto.RecruitmentCompanySearchResponseDTO;
-import org.example.hugmeexp.domain.recruitment.dto.RecruitmentDetailResponseDTO;
-import org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO;
-import org.example.hugmeexp.domain.recruitment.dto.RecruitmentSearchConditionDTO;
-import org.example.hugmeexp.domain.recruitment.dto.TechStackDTO;
+import org.example.hugmeexp.domain.recruitment.dto.*;
 import org.example.hugmeexp.domain.recruitment.entity.Company;
 import org.example.hugmeexp.domain.recruitment.entity.Recruitment;
 import org.example.hugmeexp.domain.recruitment.entity.Tag;
@@ -13,6 +9,8 @@ import org.example.hugmeexp.domain.recruitment.entity.TechItem;
 import org.example.hugmeexp.domain.recruitment.entity.TechStack;
 import org.example.hugmeexp.domain.recruitment.exception.RecruitmentNotFoundException;
 import org.example.hugmeexp.domain.recruitment.repository.RecruitmentRepository;
+import org.example.hugmeexp.domain.recruitment.repository.TagItemRepository;
+import org.example.hugmeexp.domain.recruitment.repository.TechItemRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,6 +37,12 @@ public class RecruitmentServiceTest {
 
     @Mock
     private RecruitmentRepository recruitmentRepository;
+
+    @Mock
+    private TechItemRepository techItemRepository;
+
+    @Mock
+    private TagItemRepository tagItemRepository;
 
     @InjectMocks
     private RecruitmentService recruitmentService;
@@ -673,5 +677,103 @@ public class RecruitmentServiceTest {
 
         // Repository 호출 검증
         verify(recruitmentRepository).findByKeyword(keyword, PageRequest.of(0, limit));
+    }
+
+    @Test
+    @DisplayName("채용 공고 필터 옵션 조회 테스트")
+    void getFilterOptions_ShouldReturnAllFilterOptions() {
+        // Given
+        // TechItem 목 데이터 생성
+        List<TechItem> techItems = List.of(
+                new TechItem(1L, "Java", "자바", "java_icon.png"),
+                new TechItem(2L, "Spring", "스프링", "spring_icon.png"),
+                new TechItem(3L, "Python", "파이썬", "python_icon.png")
+        );
+
+        // TagItem 목 데이터 생성
+        List<TagItem> tagItems = List.of(
+                new TagItem(1L, "신입"),
+                new TagItem(2L, "경력"),
+                new TagItem(3L, "재택근무")
+        );
+
+        // Repository mock 설정
+        when(techItemRepository.findAll()).thenReturn(techItems);
+        when(tagItemRepository.findAll()).thenReturn(tagItems);
+
+        // When
+        RecruitmentFilterResponseDTO result = recruitmentService.getFilterOptions();
+
+        // Then
+        // 교육 옵션 검증
+        assertEquals(6, result.getEducationOptions().size());
+        assertEquals("무관", result.getEducationOptions().get(0).getLabel());
+        assertEquals(0, result.getEducationOptions().get(0).getValue());
+        assertEquals("고졸", result.getEducationOptions().get(1).getLabel());
+        assertEquals(10, result.getEducationOptions().get(1).getValue());
+        assertEquals("초대졸", result.getEducationOptions().get(2).getLabel());
+        assertEquals(20, result.getEducationOptions().get(2).getValue());
+        assertEquals("대졸", result.getEducationOptions().get(3).getLabel());
+        assertEquals(30, result.getEducationOptions().get(3).getValue());
+        assertEquals("석사", result.getEducationOptions().get(4).getLabel());
+        assertEquals(40, result.getEducationOptions().get(4).getValue());
+        assertEquals("박사", result.getEducationOptions().get(5).getLabel());
+        assertEquals(50, result.getEducationOptions().get(5).getValue());
+
+        // 경력 옵션 검증
+        assertEquals(11, result.getExperienceOptions().size());
+        for (int i = 0; i <= 10; i++) {
+            assertEquals(i, result.getExperienceOptions().get(i));
+        }
+
+        // 기술 스택 검증
+        assertEquals(3, result.getTechStacks().size());
+
+        TechStackDTO techStack1 = result.getTechStacks().get(0);
+        assertEquals(1L, techStack1.getId());
+        assertEquals("자바", techStack1.getLabelKo());
+        assertEquals("Java", techStack1.getLabelEn());
+        assertEquals("java_icon.png", techStack1.getIconUrl());
+
+        TechStackDTO techStack2 = result.getTechStacks().get(1);
+        assertEquals(2L, techStack2.getId());
+        assertEquals("스프링", techStack2.getLabelKo());
+        assertEquals("Spring", techStack2.getLabelEn());
+        assertEquals("spring_icon.png", techStack2.getIconUrl());
+
+        TechStackDTO techStack3 = result.getTechStacks().get(2);
+        assertEquals(3L, techStack3.getId());
+        assertEquals("파이썬", techStack3.getLabelKo());
+        assertEquals("Python", techStack3.getLabelEn());
+        assertEquals("python_icon.png", techStack3.getIconUrl());
+
+        // 근무 지역 검증
+        assertEquals(3, result.getWorkLocations().size());
+        assertEquals("판교", result.getWorkLocations().get(0));
+        assertEquals("강남", result.getWorkLocations().get(1));
+        assertEquals("구로", result.getWorkLocations().get(2));
+
+        // 태그 검증
+        assertEquals(3, result.getTags().size());
+
+        TagDTO tag1 = result.getTags().get(0);
+        assertEquals(1L, tag1.getId());
+        assertEquals("신입", tag1.getTagName());
+
+        TagDTO tag2 = result.getTags().get(1);
+        assertEquals(2L, tag2.getId());
+        assertEquals("경력", tag2.getTagName());
+
+        TagDTO tag3 = result.getTags().get(2);
+        assertEquals(3L, tag3.getId());
+        assertEquals("재택근무", tag3.getTagName());
+
+        // 급여 범위 검증
+        assertEquals(0, result.getSalaryRange().getMin());
+        assertEquals(10000, result.getSalaryRange().getMax());
+
+        // Repository 호출 검증
+        verify(techItemRepository).findAll();
+        verify(tagItemRepository).findAll();
     }
 }
