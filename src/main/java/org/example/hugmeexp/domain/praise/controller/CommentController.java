@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("api/v1/praises")
+@RequestMapping("/api/v1/praises")
 @RequiredArgsConstructor
 @Tag(name = "PraiseComment" , description = "칭찬댓글 관련 API")
 public class CommentController {
