@@ -19,7 +19,7 @@ import java.util.List;
 
 @Slf4j    // 로깅 어노테이션
 @RestController
-@RequestMapping("/api/recruitments")
+@RequestMapping("/api/v1/recruitments")
 @RequiredArgsConstructor
 @Tag(name = "Recruitments" , description = "채용 공고 관련 API")
 public class RecruitmentController {

@@ -24,8 +24,8 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
      */
     @Query("""
         SELECT new org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO(
-            r.id, r.title, c.companyName, c.companyImageUrl, r.dueDate, r.experienceMin, r.experienceMax,
-            r.workLocation, r.latitude, r.longitude, r.modifiedAt
+            r.id, r.recruitmentSourceId, r.title, c.companyName, c.companyImageUrl, r.dueDate,
+            r.experienceMin, r.experienceMax, r.workLocation, r.latitude, r.longitude, r.modifiedAt
         )
         FROM Recruitment r
         JOIN r.company c
@@ -43,8 +43,8 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
               (:#{#cond.bottomRightLng} IS NULL OR r.longitude <= :#{#cond.bottomRightLng}) AND
               (:#{#cond.techStacks} IS NULL OR ts.id IN :#{#cond.techStacks}) AND
               (:#{#cond.tags} IS NULL OR t.id IN :#{#cond.tags})
-        GROUP BY r.id, r.title, c.companyName, c.companyImageUrl, r.dueDate, r.experienceMin, r.experienceMax,
-                 r.workLocation, r.latitude, r.longitude, r.modifiedAt
+        GROUP BY r.id, r.recruitmentSourceId, r.title, c.companyName, c.companyImageUrl, r.dueDate,
+                 r.experienceMin, r.experienceMax, r.workLocation, r.latitude, r.longitude, r.modifiedAt
         HAVING (:#{#cond.techStacks} IS NULL OR COUNT(DISTINCT ts.id) = :#{#cond.techStackCount}) AND
                (:#{#cond.tags} IS NULL OR COUNT(DISTINCT t.id) = :#{#cond.tagCount})
     """)
@@ -60,8 +60,8 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
      */
     @Query("""
         SELECT new org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO(
-            r.id, r.title, c.companyName, c.companyImageUrl, r.dueDate, r.experienceMin, r.experienceMax,
-            r.workLocation, r.latitude, r.longitude, r.modifiedAt
+            r.id, r.recruitmentSourceId, r.title, c.companyName, c.companyImageUrl, r.dueDate,
+            r.experienceMin, r.experienceMax, r.workLocation, r.latitude, r.longitude, r.modifiedAt
         )
         FROM Recruitment r
         JOIN r.company c

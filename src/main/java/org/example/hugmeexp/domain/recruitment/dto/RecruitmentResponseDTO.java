@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 public class RecruitmentResponseDTO {
 
     private Long id;
+    private Long recruitmentSourceId;
     private String title;
     private String companyName;
     private String companyImageUrl;
@@ -27,10 +28,11 @@ public class RecruitmentResponseDTO {
     private LocalDateTime modifiedAt;
 
     // JPA 에서 사용되는 생성자
-    public RecruitmentResponseDTO(Long id, String title, String companyName, String companyImageUrl,
+    public RecruitmentResponseDTO(Long id, Long recruitmentSourceId, String title, String companyName, String companyImageUrl,
                                   LocalDateTime dueDate, Integer experienceMin, Integer experienceMax, String workLocation,
                                   BigDecimal latitude, BigDecimal longitude, LocalDateTime modifiedAt) {
         this.id = id;
+        this.recruitmentSourceId = recruitmentSourceId;
         this.title = title;
         this.companyName = companyName;
         this.companyImageUrl = companyImageUrl;
@@ -47,6 +49,7 @@ public class RecruitmentResponseDTO {
     public static RecruitmentResponseDTO from(Recruitment recruitment) {
         return RecruitmentResponseDTO.builder()
                 .id(recruitment.getId())
+                .recruitmentSourceId(recruitment.getRecruitmentSourceId())
                 .title(recruitment.getTitle())
                 .companyName(recruitment.getCompany().getCompanyName())
                 .companyImageUrl(recruitment.getCompany().getCompanyImageUrl())
