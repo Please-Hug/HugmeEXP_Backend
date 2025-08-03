@@ -70,7 +70,7 @@ public class Recruitment extends BaseEntity {
     private LocalDateTime dueDate;
 
     @Column(unique = true)
-    private Long recruitmentSourceId; // 외부 시스템에서의 고유 ID
+    private String recruitmentSourceId; // 외부 시스템에서의 고유 ID
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", nullable = false)
@@ -85,9 +85,6 @@ public class Recruitment extends BaseEntity {
     @OneToMany(mappedBy = "recruitment", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<Tag> tags = new HashSet<>();
-
-    @Column(nullable = false)
-    private String sourceId;
 
     public void updateFromRequest(@Valid RecruitmentRequestDTO requestDTO) {
         title = requestDTO.getTitle();
@@ -105,6 +102,6 @@ public class Recruitment extends BaseEntity {
         link = requestDTO.getLink();
         source = requestDTO.getSource();
         dueDate = requestDTO.getDueDate();
-        sourceId = requestDTO.getSourceId();
+        recruitmentSourceId = requestDTO.getRecruitmentSourceId();
     }
 }

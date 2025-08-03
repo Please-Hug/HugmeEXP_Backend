@@ -14,10 +14,10 @@ import org.example.hugmeexp.domain.recruitment.entity.Recruitment;
 public class RecruitmentCompanySearchResponseDTO {
 
     private Long recruitmentId;
-    private Long recruitmentSourceId;
+    private String recruitmentSourceId;
     private String title;
     private Long companyId;
-    private Long companySourceId;
+    private String companySourceId;
     private String companyName;
 
     public static RecruitmentCompanySearchResponseDTO from(Recruitment recruitment) {

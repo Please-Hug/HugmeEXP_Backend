@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -160,22 +161,22 @@ public class RecruitmentService {
 
     @Transactional
     public RecruitmentResponseDTO createOrUpdateRecruitment(RecruitmentRequestDTO requestDTO) {
-        Recruitment recruitment;
+        Optional<Recruitment> existingRecruitment = recruitmentRepository.findByRecruitmentSourceId(requestDTO.getRecruitmentSourceId());
         // 이미 존재한다면 업데이트
-        if (recruitmentRepository.existsRecruitmentBySourceId(requestDTO.getSourceId())) {
-            recruitment = updateRecruitment(requestDTO);
-        } else {
-            // 새로 생성
-            recruitment = createRecruitment(requestDTO);
-        }
-
+        Recruitment recruitment = existingRecruitment
+                .map((existing) -> updateRecruitment(existing, requestDTO))
+                .orElseGet(() -> createRecruitment(requestDTO));
 
         return RecruitmentResponseDTO.from(recruitment);
     }
 
     private Recruitment createRecruitment(RecruitmentRequestDTO requestDTO) {
         // Company를 먼저 저장 (transient 문제 해결)
-        Company savedCompany = companyRepository.save(requestDTO.getCompany().toEntity());
+        //Company savedCompany = companyRepository.save(requestDTO.getCompany().toEntity());
+        Company company = requestDTO.getCompany().toEntity();
+        // Company가 이미 존재하는지 확인
+        Optional<Company> existingCompany = companyRepository.findByCompanySourceId(company.getCompanySourceId());
+        Company savedCompany = existingCompany.orElseGet(() -> companyRepository.save(company));
 
         // Recruitment 엔티티 생성 시 저장된 Company 사용
         Recruitment recruitment = requestDTO.toEntity();
@@ -192,10 +193,7 @@ public class RecruitmentService {
         return recruitment;
     }
 
-    private Recruitment updateRecruitment(RecruitmentRequestDTO requestDTO) {
-        Recruitment recruitment = recruitmentRepository.findBySourceId(requestDTO.getSourceId())
-                .orElseThrow(() -> new BaseCustomException(HttpStatus.NOT_FOUND, "채용 공고를 찾을 수 없습니다.", 404));
-
+    private Recruitment updateRecruitment(Recruitment recruitment, RecruitmentRequestDTO requestDTO) {
         // 기존 채용 공고 업데이트
         recruitment.updateFromRequest(requestDTO);
 

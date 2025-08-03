@@ -17,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 public class RecruitmentRequestDTO {
     @NotBlank
-    private String sourceId;
+    private String recruitmentSourceId;
 
     @NotBlank
     @Size(max = 500, message = "제목은 500자를 초과할 수 없습니다")
@@ -83,7 +83,7 @@ public class RecruitmentRequestDTO {
 
     public Recruitment toEntity() {
         return Recruitment.builder()
-                .sourceId(sourceId)
+                .recruitmentSourceId(recruitmentSourceId)
                 .title(title)
                 .education(education)
                 .experienceMin(experienceMin)
