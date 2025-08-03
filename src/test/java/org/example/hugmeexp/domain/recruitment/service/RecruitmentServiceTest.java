@@ -26,8 +26,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -235,7 +237,7 @@ public class RecruitmentServiceTest {
 
         // 첫 번째 응답 DTO
         responses.add(new RecruitmentResponseDTO(
-                1L, "백엔드 개발자 모집", "ABC 회사", "company_image_url_1.jpg",
+                1L, 1001L, "백엔드 개발자 모집", "ABC 회사", "company_image_url_1.jpg",
                 LocalDateTime.of(2023, 12, 31, 23, 59),
                 3, 5, "서울시 강남구", new BigDecimal("37.5"), new BigDecimal("127.0"),
                 LocalDateTime.now()
@@ -243,7 +245,7 @@ public class RecruitmentServiceTest {
 
         // 두 번째 응답 DTO
         responses.add(new RecruitmentResponseDTO(
-                2L, "프론트엔드 개발자 모집", "XYZ 회사", "company_image_url_2.jpg",
+                2L, 1002L, "프론트엔드 개발자 모집", "XYZ 회사", "company_image_url_2.jpg",
                 LocalDateTime.of(2023, 11, 30, 23, 59),
                 2, 4, "서울시 서초구", new BigDecimal("37.4"), new BigDecimal("127.1"),
                 LocalDateTime.now()
@@ -259,7 +261,7 @@ public class RecruitmentServiceTest {
 
         // 1. 가장 최근에 수정된 공고 (1일 전)
         responses.add(new RecruitmentResponseDTO(
-                1L, "백엔드 개발자 모집", "ABC 회사", "company_image_url_1.jpg",
+                1L, 1001L, "백엔드 개발자 모집", "ABC 회사", "company_image_url_1.jpg",
                 LocalDateTime.of(2023, 12, 31, 23, 59),
                 3, 5, "서울시 강남구", new BigDecimal("37.5"), new BigDecimal("127.0"),
                 LocalDateTime.now().minusDays(1)
@@ -267,7 +269,7 @@ public class RecruitmentServiceTest {
 
         // 2. 두 번째로 최근에 수정된 공고 (3일 전)
         responses.add(new RecruitmentResponseDTO(
-                2L, "프론트엔드 개발자 모집", "XYZ 회사", "company_image_url_2.jpg",
+                2L, 1002L, "프론트엔드 개발자 모집", "XYZ 회사", "company_image_url_2.jpg",
                 LocalDateTime.of(2023, 11, 30, 23, 59),
                 2, 4, "서울시 서초구", new BigDecimal("37.4"), new BigDecimal("127.1"),
                 LocalDateTime.now().minusDays(3)
@@ -275,7 +277,7 @@ public class RecruitmentServiceTest {
 
         // 3. 세 번째로 최근에 수정된 공고 (5일 전)
         responses.add(new RecruitmentResponseDTO(
-                3L, "데이터 엔지니어 모집", "DEF 회사", "company_image_url_3.jpg",
+                3L, 1003L, "데이터 엔지니어 모집", "DEF 회사", "company_image_url_3.jpg",
                 LocalDateTime.of(2023, 12, 15, 23, 59),
                 5, 7, "서울시 송파구", new BigDecimal("37.6"), new BigDecimal("127.2"),
                 LocalDateTime.now().minusDays(5)
@@ -283,7 +285,7 @@ public class RecruitmentServiceTest {
 
         // 4. 네 번째로 최근에 수정된 공고 (7일 전)
         responses.add(new RecruitmentResponseDTO(
-                4L, "모바일 개발자 모집", "GHI 회사", "company_image_url_4.jpg",
+                4L, 1004L, "모바일 개발자 모집", "GHI 회사", "company_image_url_4.jpg",
                 LocalDateTime.of(2023, 12, 20, 23, 59),
                 4, 6, "서울시 마포구", new BigDecimal("37.55"), new BigDecimal("126.9"),
                 LocalDateTime.now().minusDays(7)
@@ -291,7 +293,7 @@ public class RecruitmentServiceTest {
 
         // 5. 다섯 번째로 최근에 수정된 공고 (10일 전)
         responses.add(new RecruitmentResponseDTO(
-                5L, "DevOps 엔지니어 모집", "JKL 회사", "company_image_url_5.jpg",
+                5L, 1005L, "DevOps 엔지니어 모집", "JKL 회사", "company_image_url_5.jpg",
                 LocalDateTime.of(2023, 12, 25, 23, 59),
                 2, 4, "서울시 영등포구", new BigDecimal("37.52"), new BigDecimal("126.93"),
                 LocalDateTime.now().minusDays(10)
@@ -299,7 +301,7 @@ public class RecruitmentServiceTest {
 
         // 6. 여섯 번째로 최근에 수정된 공고 (14일 전)
         responses.add(new RecruitmentResponseDTO(
-                6L, "QA 엔지니어 모집", "MNO 회사", "company_image_url_6.jpg",
+                6L, 1006L, "QA 엔지니어 모집", "MNO 회사", "company_image_url_6.jpg",
                 LocalDateTime.of(2023, 12, 10, 23, 59),
                 3, 5, "서울시 강동구", new BigDecimal("37.53"), new BigDecimal("127.12"),
                 LocalDateTime.now().minusDays(14)
@@ -307,7 +309,7 @@ public class RecruitmentServiceTest {
 
         // 7. 일곱 번째로 최근에 수정된 공고 (20일 전)
         responses.add(new RecruitmentResponseDTO(
-                7L, "보안 엔지니어 모집", "PQR 회사", "company_image_url_7.jpg",
+                7L, 1007L, "보안 엔지니어 모집", "PQR 회사", "company_image_url_7.jpg",
                 LocalDateTime.of(2023, 12, 5, 23, 59),
                 6, 8, "서울시 성동구", new BigDecimal("37.54"), new BigDecimal("127.05"),
                 LocalDateTime.now().minusDays(20)
@@ -315,7 +317,7 @@ public class RecruitmentServiceTest {
 
         // 8. 여덟 번째로 최근에 수정된 공고 (30일 전)
         responses.add(new RecruitmentResponseDTO(
-                8L, "시스템 엔지니어 모집", "STU 회사", "company_image_url_8.jpg",
+                8L, 1008L, "시스템 엔지니어 모집", "STU 회사", "company_image_url_8.jpg",
                 LocalDateTime.of(2023, 11, 15, 23, 59),
                 4, 6, "서울시 중구", new BigDecimal("37.56"), new BigDecimal("126.98"),
                 LocalDateTime.now().minusDays(30)
@@ -389,7 +391,7 @@ public class RecruitmentServiceTest {
         TagItem tagItem2 = new TagItem(2L, "경력");
 
         // 태그 생성 및 연결
-        List<Tag> tags = new ArrayList<>();
+        Set<Tag> tags = new HashSet<>();
         Tag tag1 = Tag.builder()
                 .id(1L)
                 .recruitment(recruitment)

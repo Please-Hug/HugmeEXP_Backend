@@ -22,7 +22,7 @@ import java.util.List;
 
 @Slf4j    // 로깅 어노테이션
 @RestController
-@RequestMapping("/api/recruitments/bookmarks")
+@RequestMapping("/api/v1/recruitments/bookmarks")
 @RequiredArgsConstructor
 @Tag(name = "Bookmarks" , description = "즐겨 찾기 관련 API")
 public class RecruitmentBookmarkController {

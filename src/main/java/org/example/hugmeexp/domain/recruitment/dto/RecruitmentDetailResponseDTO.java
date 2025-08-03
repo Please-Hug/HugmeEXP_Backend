@@ -35,6 +35,7 @@ public class RecruitmentDetailResponseDTO {
     private String welfare;
     private String link;
     private List<TagDTO> tags;
+    private Long recruitmentSourceId;
 
     public static RecruitmentDetailResponseDTO from(Recruitment recruitment) {
         return RecruitmentDetailResponseDTO.builder()
@@ -67,6 +68,7 @@ public class RecruitmentDetailResponseDTO {
                                     .tagName(tag.getTagItem().getTagName())
                                     .build())
                             .toList())
+                .recruitmentSourceId(recruitment.getRecruitmentSourceId())
                 .build();
     }
 }

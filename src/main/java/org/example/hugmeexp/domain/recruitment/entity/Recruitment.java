@@ -11,6 +11,7 @@ import org.example.hugmeexp.global.entity.BaseEntity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -34,13 +35,17 @@ public class Recruitment extends BaseEntity {
     @Column(nullable = false)
     private Integer experienceMax;
 
-
+    @Column(columnDefinition = "TEXT")
     private String qualification; // 자격 요건
+    @Column(columnDefinition = "TEXT")
     private String advantage; // 우대 사항
+    @Column(columnDefinition = "TEXT")
     private String welfare; // 복지 혜택
     private String workLocation; // 근무지
 
+    @Column(precision = 15, scale = 8)
     private BigDecimal latitude; // 위도
+    @Column(precision = 15, scale = 8)
     private BigDecimal longitude; // 경도
 
     @Column(name = "salary_min")
@@ -56,6 +61,9 @@ public class Recruitment extends BaseEntity {
 
     private LocalDateTime dueDate;
 
+    @Column(unique = true)
+    private Long recruitmentSourceId; // 외부 시스템에서의 고유 ID
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", nullable = false)
     private Company company;
@@ -65,6 +73,6 @@ public class Recruitment extends BaseEntity {
     private List<TechStack> techStacks;
 
     @OneToMany(mappedBy = "recruitment", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Tag> tags;
+    private Set<Tag> tags;
 
 }
