@@ -26,8 +26,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -389,7 +391,7 @@ public class RecruitmentServiceTest {
         TagItem tagItem2 = new TagItem(2L, "경력");
 
         // 태그 생성 및 연결
-        List<Tag> tags = new ArrayList<>();
+        Set<Tag> tags = new HashSet<>();
         Tag tag1 = Tag.builder()
                 .id(1L)
                 .recruitment(recruitment)
