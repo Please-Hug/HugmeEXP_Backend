@@ -12,7 +12,6 @@ import org.example.hugmeexp.domain.recruitment.repository.RecruitmentRepository;
 import org.example.hugmeexp.domain.recruitment.repository.TagItemRepository;
 import org.example.hugmeexp.domain.recruitment.repository.TechItemRepository;
 
-import java.lang.reflect.Field;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
