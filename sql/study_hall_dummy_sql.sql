@@ -5,6 +5,9 @@
 -- 현재 시간 설정
 SET @now = NOW();
 
+ALTER TABLE study_hall MODIFY is_deleted BIT NOT NULL DEFAULT 0;
+ALTER TABLE study_room MODIFY is_deleted BIT NOT NULL DEFAULT 0;
+
 -- 스터디홀 데이터 삽입 (정확한 컬럼명 사용)
 INSERT INTO study_hall (
     name,

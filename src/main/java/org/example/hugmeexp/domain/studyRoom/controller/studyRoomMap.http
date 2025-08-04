@@ -45,11 +45,6 @@ Authorization: Bearer {{accessToken}}
   "limit": 20
 }
 
-### DEBUG: 거리 계산 확인
-GET {{baseUrl}}/debug/distance?latitude=37.4979&longitude=127.0276
-Content-Type: application/json
-Authorization: Bearer {{accessToken}}
-
 ### 3. 현재 위치 기반 주변 스터디홀 검색 (홍대입구역 기준)
 POST {{baseUrl}}/map/nearby
 Content-Type: application/json
@@ -117,3 +112,63 @@ Authorization: Bearer {{accessToken}}
   "radius": 2.0,
   "limit": 5
 }
+
+### 🏢 11. 특정 스터디홀의 모든 스터디룸 조회
+GET {{baseUrl}}/halls/1/rooms
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+### 📍 12. 특정 스터디룸 상세 정보 조회
+GET {{baseUrl}}/rooms/1
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+### ⏰ 13. 특정 스터디룸의 예약 가능한 시간 조회 (오늘)
+GET {{baseUrl}}/rooms/1/available-times?date=2024-12-26
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+### ⏰ 14. 특정 스터디룸의 예약 가능한 시간 조회 (내일)
+GET {{baseUrl}}/rooms/1/available-times?date=2024-12-27
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+### 📅 15. 특정 날짜의 스터디룸 예약 현황 조회 (오늘)
+GET {{baseUrl}}/rooms/1/reservations?date=2024-12-26
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+### 📅 16. 특정 날짜의 스터디룸 예약 현황 조회 (내일)
+GET {{baseUrl}}/rooms/1/reservations?date=2024-12-27
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+### 🔍 17. 다른 스터디홀의 스터디룸들 조회 (ID: 2)
+GET {{baseUrl}}/halls/2/rooms
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+### 🔍 18. 다른 스터디룸 상세 정보 조회 (ID: 2)
+GET {{baseUrl}}/rooms/2
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+### ⏰ 19. 다른 스터디룸의 예약 가능 시간 조회
+GET {{baseUrl}}/rooms/2/available-times?date=2024-12-26
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+### 📅 20. 다른 스터디룸의 예약 현황 조회
+GET {{baseUrl}}/rooms/2/reservations?date=2024-12-26
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+### 📊 21. 주말 예약 가능 시간 조회 (토요일)
+GET {{baseUrl}}/rooms/1/available-times?date=2024-12-28
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+### 📊 22. 주말 예약 현황 조회 (일요일)
+GET {{baseUrl}}/rooms/1/reservations?date=2024-12-29
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}

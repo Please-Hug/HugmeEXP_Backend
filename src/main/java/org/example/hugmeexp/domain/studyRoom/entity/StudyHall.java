@@ -8,7 +8,7 @@ import lombok.*;
 import org.example.hugmeexp.domain.studyRoom.dto.request.StudyHallRequest;
 import org.example.hugmeexp.global.entity.BaseEntity;
 
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,10 +48,10 @@ public class StudyHall extends BaseEntity {
     private String thumbnail;
 
     @Column(name = "open_time")
-    private LocalDateTime openTime;
+    private LocalTime openTime;
 
     @Column(name = "close_time")
-    private LocalDateTime closeTime;
+    private LocalTime closeTime;
 
     @OneToMany(mappedBy = "studyHall", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<StudyRoom> studyRooms;
@@ -61,28 +61,32 @@ public class StudyHall extends BaseEntity {
     public void update(StudyHallRequest requestDto) {
         Optional.ofNullable(requestDto.getName()).ifPresent(name -> this.name = name);
         Optional.ofNullable(requestDto.getDescription()).ifPresent(description -> this.description = description);
-        Optional.ofNullable(requestDto.getSimpleAddress()).ifPresent(simpleAddress -> this.simpleAddress = simpleAddress);
-        Optional.ofNullable(requestDto.getAddress()).ifPresent(address -> this.address = address);
-        Optional.ofNullable(requestDto.getLatitude()).ifPresent(latitude -> this.latitude = latitude);
-        Optional.ofNullable(requestDto.getLongitude()).ifPresent(longitude -> this.longitude = longitude);
         Optional.ofNullable(requestDto.getThumbnail()).ifPresent(thumbnail -> this.thumbnail = thumbnail);
         Optional.ofNullable(requestDto.getOpenTime()).ifPresent(openTime -> this.openTime = openTime);
         Optional.ofNullable(requestDto.getCloseTime()).ifPresent(closeTime -> this.closeTime = closeTime);
+
+        // Location 업데이트
+        if (requestDto.getLatitude() != null || requestDto.getLongitude() != null ||
+                requestDto.getAddress() != null || requestDto.getSimpleAddress() != null) {
+
+            if (this.location == null) {
+                this.location = new Location();
+            }
+
+            this.location = Location.of(
+                    requestDto.getLatitude() != null ? requestDto.getLatitude() : this.location.getLatitude(),
+                    requestDto.getLongitude() != null ? requestDto.getLongitude() : this.location.getLongitude(),
+                    requestDto.getAddress() != null ? requestDto.getAddress() : this.location.getAddress(),
+                    requestDto.getSimpleAddress() != null ? requestDto.getSimpleAddress() : this.location.getSimpleAddress()
+            );
+        }
     }
 
-    /**
-     * 스터디 홀을 논리적으로 삭제 처리하는 메서드입니다.
-     */
     public void delete() {
         this.isDeleted = true;
     }
-}
 
     // 비즈니스 메서드들
-
-    /**
-     * 다른 위치로부터의 거리 계산
-     */
     public Double calculateDistanceFrom(Location otherLocation) {
         if (this.location == null) {
             return null;
@@ -90,46 +94,29 @@ public class StudyHall extends BaseEntity {
         return otherLocation.calculateDistanceTo(this.location);
     }
 
-    /**
-     * 이용 가능한 스터디룸 개수
-     */
     public int getAvailableRoomsCount() {
         if (studyRooms == null) {
             return 0;
         }
-        // 실제로는 예약 상태를 확인해야 하지만, 임시로 전체 개수 반환
         return studyRooms.size();
     }
 
-    /**
-     * 전체 스터디룸 개수
-     */
     public int getTotalRoomsCount() {
         return studyRooms != null ? studyRooms.size() : 0;
     }
 
-    /**
-     * 현재 운영 중인지 확인
-     */
     public boolean isOpen() {
         if (openTime == null || closeTime == null) {
             return false;
         }
-
         LocalDateTime now = LocalDateTime.now();
         return now.isAfter(openTime) && now.isBefore(closeTime);
     }
 
-    /**
-     * 위치 정보 업데이트
-     */
     public void updateLocation(Location newLocation) {
         this.location = newLocation;
     }
 
-    /**
-     * 스터디홀 정보 업데이트
-     */
     public void updateInfo(String name, String description, String thumbnail) {
         if (name != null && !name.isBlank()) {
             this.name = name;
@@ -138,15 +125,12 @@ public class StudyHall extends BaseEntity {
         this.thumbnail = thumbnail;
     }
 
-    /**
-     * 운영시간 업데이트
-     */
     public void updateOperatingHours(LocalDateTime openTime, LocalDateTime closeTime) {
         this.openTime = openTime;
         this.closeTime = closeTime;
     }
 
-    // Getter 메서드들 (Location 관련)
+    // Location 관련 Getter 메서드들
     public Double getLatitude() {
         return location != null ? location.getLatitude() : null;
     }

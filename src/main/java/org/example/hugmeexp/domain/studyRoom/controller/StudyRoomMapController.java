@@ -7,9 +7,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.studyRoom.dto.request.StudyHallSearchRequest;
+import org.example.hugmeexp.domain.studyRoom.dto.response.ReservationTimeResponse;
 import org.example.hugmeexp.domain.studyRoom.dto.response.StudyHallLocationResponse;
+import org.example.hugmeexp.domain.studyRoom.dto.response.StudyRoomDetailResponse;
+import org.example.hugmeexp.domain.studyRoom.dto.response.TimeSlotResponse;
 import org.example.hugmeexp.domain.studyRoom.repository.StudyHallRepository;
 import org.example.hugmeexp.domain.studyRoom.service.StudyHallService;
+import org.example.hugmeexp.domain.studyRoom.service.StudyRoomService;
 import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,10 +25,11 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/studyroom")
-public class StudyRoomController {
+public class StudyRoomMapController {
 
     private final StudyHallService studyHallService;
     private final StudyHallRepository studyHallRepository;
+    private final StudyRoomService studyRoomService;
 
     @Operation(summary = "모든 스터디홀 위치 조회", description = "지도에 표시할 모든 스터디홀의 위치 정보를 조회합니다.")
     @GetMapping("/map/halls")
@@ -111,6 +116,64 @@ public class StudyRoomController {
         return ResponseEntity.ok(Response.<List<StudyHallLocationResponse>>builder()
                 .message(String.format("이름 '%s'로 %d개의 스터디홀을 찾았습니다.", name, studyHalls.size()))
                 .data(studyHalls)
+                .build());
+    }
+
+    @Operation(summary = "특정 스터디홀의 모든 스터디룸 조회",
+            description = "특정 스터디홀에 속한 모든 스터디룸 목록을 조회합니다.")
+    @GetMapping("/halls/{studyHallId}/rooms")
+    public ResponseEntity<Response<List<StudyRoomDetailResponse>>> getStudyRoomsInHall(
+            @Parameter(description = "스터디홀 ID", required = true) @PathVariable Long studyHallId) {
+
+        List<StudyRoomDetailResponse> studyRooms = studyRoomService.getStudyRoomsInHall(studyHallId);
+
+        return ResponseEntity.ok(Response.<List<StudyRoomDetailResponse>>builder()
+                .message("스터디룸 목록을 조회했습니다.")
+                .data(studyRooms)
+                .build());
+    }
+
+    @Operation(summary = "특정 스터디룸 상세 정보 조회",
+            description = "특정 스터디룸의 상세 정보를 조회합니다.")
+    @GetMapping("/rooms/{studyRoomId}")
+    public ResponseEntity<Response<StudyRoomDetailResponse>> getStudyRoomDetail(
+            @Parameter(description = "스터디룸 ID", required = true) @PathVariable Long studyRoomId) {
+
+        StudyRoomDetailResponse studyRoom = studyRoomService.getStudyRoomDetail(studyRoomId);
+
+        return ResponseEntity.ok(Response.<StudyRoomDetailResponse>builder()
+                .message("스터디룸 상세 정보를 조회했습니다.")
+                .data(studyRoom)
+                .build());
+    }
+
+    @Operation(summary = "특정 스터디룸의 예약 가능한 시간 조회",
+            description = "특정 날짜의 스터디룸 예약 가능한 시간대를 조회합니다.")
+    @GetMapping("/rooms/{studyRoomId}/available-times")
+    public ResponseEntity<Response<List<TimeSlotResponse>>> getAvailableTimeSlots(
+            @Parameter(description = "스터디룸 ID", required = true) @PathVariable Long studyRoomId,
+            @Parameter(description = "조회할 날짜 (yyyy-MM-dd)", required = true) @RequestParam String date) {
+
+        List<TimeSlotResponse> availableSlots = studyRoomService.getAvailableTimeSlots(studyRoomId, date);
+
+        return ResponseEntity.ok(Response.<List<TimeSlotResponse>>builder()
+                .message("예약 가능한 시간대를 조회했습니다.")
+                .data(availableSlots)
+                .build());
+    }
+
+    @Operation(summary = "특정 날짜의 스터디룸 예약 현황 조회",
+            description = "특정 날짜의 스터디룸 예약 현황을 조회합니다.")
+    @GetMapping("/rooms/{studyRoomId}/reservations")
+    public ResponseEntity<Response<List<ReservationTimeResponse>>> getReservationsByDate(
+            @Parameter(description = "스터디룸 ID", required = true) @PathVariable Long studyRoomId,
+            @Parameter(description = "조회할 날짜 (yyyy-MM-dd)", required = true) @RequestParam String date) {
+
+        List<ReservationTimeResponse> reservations = studyRoomService.getReservationsByDate(studyRoomId, date);
+
+        return ResponseEntity.ok(Response.<List<ReservationTimeResponse>>builder()
+                .message("예약 현황을 조회했습니다.")
+                .data(reservations)
                 .build());
     }
 }

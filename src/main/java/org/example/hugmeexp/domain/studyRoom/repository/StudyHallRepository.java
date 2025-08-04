@@ -8,23 +8,24 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
-
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface StudyHallRepository extends JpaRepository<StudyHall, Long> {
 
-    // 삭제되지 않은 홀 목록을 페이징하여 조회하는 메서드
+    /**
+     * 삭제되지 않은 모든 스터디홀 조회 (페이징)
+     */
     Page<StudyHall> findAllByIsDeletedFalse(Pageable pageable);
 
-    // 삭제되지 않은 특정 홀만 조회하는 메서드
-    Optional<StudyHall> findByIdAndIsDeletedFalse(Long studyHallId);
+    /**
+     * 삭제되지 않은 특정 스터디홀 조회
+     */
+    Optional<StudyHall> findByIdAndIsDeletedFalse(Long id);
 
     /**
      * 성능 최적화된 주변 스터디홀 검색
-     * 1. 사각형 영역으로 미리 필터링 (WHERE)
-     * 2. 정확한 원형 거리 계산 (HAVING)
      */
     @Query(value = """
         SELECT * FROM (
@@ -43,6 +44,7 @@ public interface StudyHallRepository extends JpaRepository<StudyHall, Long> {
               AND sh.longitude BETWEEN :minLng AND :maxLng
               AND sh.latitude IS NOT NULL 
               AND sh.longitude IS NOT NULL
+              AND sh.is_deleted = false
         ) t
         WHERE t.distance_km <= :radiusInKm
         ORDER BY t.distance_km ASC
@@ -62,22 +64,23 @@ public interface StudyHallRepository extends JpaRepository<StudyHall, Long> {
     /**
      * 모든 스터디홀 조회 (StudyRoom 정보 포함)
      */
-    @Query("SELECT sh FROM StudyHall sh LEFT JOIN FETCH sh.studyRooms")
+    @Query("SELECT sh FROM StudyHall sh LEFT JOIN FETCH sh.studyRooms WHERE sh.isDeleted = false")
     List<StudyHall> findAllWithStudyRooms();
 
     /**
      * 특정 스터디홀 조회 (StudyRoom 정보 포함)
      */
-    @Query("SELECT sh FROM StudyHall sh LEFT JOIN FETCH sh.studyRooms WHERE sh.id = :id")
+    @Query("SELECT sh FROM StudyHall sh LEFT JOIN FETCH sh.studyRooms WHERE sh.id = :id AND sh.isDeleted = false")
     StudyHall findByIdWithStudyRooms(@Param("id") Long id);
 
     /**
      * 이름으로 스터디홀 검색
      */
-    List<StudyHall> findByNameContainingIgnoreCase(String name);
+    List<StudyHall> findByNameContainingIgnoreCaseAndIsDeletedFalse(String name);
 
     /**
      * 주소로 스터디홀 검색
      */
-    List<StudyHall> findByLocationAddressContainingIgnoreCase(String address);
+    @Query("SELECT sh FROM StudyHall sh WHERE sh.location.address LIKE %:address% AND sh.isDeleted = false")
+    List<StudyHall> findByLocationAddressContainingIgnoreCase(@Param("address") String address);
 }
