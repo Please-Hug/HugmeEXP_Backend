@@ -896,7 +896,6 @@ public class RecruitmentServiceTest {
     void createOrUpdateRecruitment_NoTechStacks_Success() {
         // given
         recruitmentRequestDTO.setRequiredSkills(null);
-        when(recruitmentRepository.existsByRecruitmentSourceId(anyString())).thenReturn(false);
         when(companyRepository.save(any(Company.class))).thenReturn(company);
         when(recruitmentRepository.save(any(Recruitment.class))).thenReturn(recruitment);
         when(tagItemRepository.findAllByTagNameIn(anySet())).thenReturn(new ArrayList<>());
@@ -917,7 +916,6 @@ public class RecruitmentServiceTest {
     void createOrUpdateRecruitment_NoTags_Success() {
         // given
         recruitmentRequestDTO.setTags(null);
-        when(recruitmentRepository.existsByRecruitmentSourceId(anyString())).thenReturn(false);
         when(companyRepository.save(any(Company.class))).thenReturn(company);
         when(recruitmentRepository.save(any(Recruitment.class))).thenReturn(recruitment);
         when(techItemRepository.findAllByEnglishNameIn(anySet())).thenReturn(new ArrayList<>());
@@ -951,7 +949,6 @@ public class RecruitmentServiceTest {
         recruitment.getTechStacks().add(existingTechStack1);
         recruitment.getTechStacks().add(existingTechStack2);
 
-        when(recruitmentRepository.existsByRecruitmentSourceId(anyString())).thenReturn(true);
         when(recruitmentRepository.findByRecruitmentSourceId(anyString())).thenReturn(Optional.of(recruitment));
         when(tagItemRepository.findAllByTagNameIn(anySet())).thenReturn(List.of(tagItem1, tagItem2));
 
@@ -983,7 +980,6 @@ public class RecruitmentServiceTest {
         recruitment.getTags().add(existingTag1);
         recruitment.getTags().add(existingTag2);
 
-        when(recruitmentRepository.existsByRecruitmentSourceId(anyString())).thenReturn(true);
         when(recruitmentRepository.findByRecruitmentSourceId(anyString())).thenReturn(Optional.of(recruitment));
         when(techItemRepository.findAllByEnglishNameIn(anySet())).thenReturn(List.of(techItem1, techItem2));
 
@@ -1015,7 +1011,6 @@ public class RecruitmentServiceTest {
 
         recruitment.getTechStacks().add(existingTechStack);
 
-        when(recruitmentRepository.existsByRecruitmentSourceId(anyString())).thenReturn(true);
         when(recruitmentRepository.findByRecruitmentSourceId(anyString())).thenReturn(Optional.of(recruitment));
         when(techItemRepository.findAllByEnglishNameIn(anySet())).thenReturn(List.of(techItem1, techItem2));
         when(techStackRepository.saveAll(anySet())).thenReturn(List.of());
