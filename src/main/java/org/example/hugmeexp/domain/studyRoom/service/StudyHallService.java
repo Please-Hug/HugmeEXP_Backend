@@ -2,11 +2,11 @@ package org.example.hugmeexp.domain.studyRoom.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.example.hugmeexp.domain.studyRoom.dto.mapper.StudyHallMapper;
 import org.example.hugmeexp.domain.studyRoom.dto.request.StudyHallRequest;
 import org.example.hugmeexp.domain.studyRoom.entity.StudyHall;
 import org.example.hugmeexp.domain.studyRoom.repository.StudyHallRepository;
 import org.example.hugmeexp.domain.studyRoom.exception.StudyHallNotFoundException;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -56,6 +56,7 @@ public class StudyHallService {
      * @return 찾아낸 StudyHall 엔티티
      * @throws StudyHallNotFoundException 해당 ID의 홀이 없을 경우
      */
+    @Cacheable(value = "studyHalls", key = "#studyHallId")
     public StudyHall findStudyHallById(Long studyHallId) {
         return studyHallRepository.findByIdAndIsDeletedFalse(studyHallId)
                 .orElseThrow(() -> new StudyHallNotFoundException(studyHallId));
