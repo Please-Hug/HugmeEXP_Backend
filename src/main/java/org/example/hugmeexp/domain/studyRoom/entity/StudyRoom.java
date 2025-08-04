@@ -10,6 +10,7 @@ import java.util.Optional;
 
 @Getter
 @Entity
+@Table(name = "study_room", indexes = @Index(name = "idx_study_room_is_deleted", columnList = "isDeleted"))
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
