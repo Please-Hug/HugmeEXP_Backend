@@ -35,7 +35,7 @@ public class RecruitmentDetailResponseDTO {
     private String welfare;
     private String link;
     private List<TagDTO> tags;
-    private Long recruitmentSourceId;
+    private String recruitmentSourceId;
 
     public static RecruitmentDetailResponseDTO from(Recruitment recruitment) {
         return RecruitmentDetailResponseDTO.builder()

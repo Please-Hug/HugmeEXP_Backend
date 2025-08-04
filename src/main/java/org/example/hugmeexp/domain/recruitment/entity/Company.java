@@ -41,6 +41,6 @@ public class Company {
     private String companyDescription;
 
     @Column(unique = true)
-    private Long companySourceId;
+    private String companySourceId;
 
 }

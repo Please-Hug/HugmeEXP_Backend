@@ -103,4 +103,14 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
     """)
     List<Recruitment> findByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
+
+    boolean existsByRecruitmentSourceId(String recruitmentSourceId);
+
+    @Query("SELECT r FROM Recruitment r " +
+            "LEFT JOIN FETCH r.techStacks ts " +
+            "LEFT JOIN FETCH ts.techItem " +
+            "LEFT JOIN FETCH r.tags t " +
+            "LEFT JOIN FETCH t.tagItem " +
+            "WHERE r.recruitmentSourceId = :recruitmentSourceId")
+    Optional<Recruitment> findByRecruitmentSourceId(String recruitmentSourceId);
 }
