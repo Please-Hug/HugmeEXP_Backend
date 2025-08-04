@@ -1,5 +1,6 @@
 package org.example.hugmeexp.domain.studyRoom.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.hugmeexp.domain.studyRoom.dto.request.StudyRoomRequest;
@@ -31,6 +32,7 @@ public class StudyRoom extends BaseEntity {
 
     private String thumbnail;
 
+    @JsonProperty("isDeleted")
     private boolean isDeleted = false;
 
     // 스터디 룸 정보 수정 메서드

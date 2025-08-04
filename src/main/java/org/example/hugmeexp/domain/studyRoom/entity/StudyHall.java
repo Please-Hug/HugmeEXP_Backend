@@ -1,5 +1,6 @@
 package org.example.hugmeexp.domain.studyRoom.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.hugmeexp.domain.studyRoom.dto.request.StudyHallRequest;
@@ -45,6 +46,7 @@ public class StudyHall extends BaseEntity {
     @OneToMany(mappedBy = "studyHall", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StudyRoom> studyRooms;
 
+    @JsonProperty("isDeleted")
     private boolean isDeleted = false;
 
     public void update(StudyHallRequest requestDto) {
