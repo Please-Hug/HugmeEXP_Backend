@@ -22,14 +22,8 @@ public class CompanyRequestDTO {
     @Size(max = 500, message = "회사 주소는 500자를 초과할 수 없습니다")
     private String companyAddress;
 
-    @DecimalMin(value = "-90.0", message = "위도는 -90.0 이상이어야 합니다")
-    @DecimalMax(value = "90.0", message = "위도는 90.0 이하여야 합니다")
-    @Digits(integer = 2, fraction = 8, message = "위도는 소수점 8자리까지 가능합니다")
     private BigDecimal latitude;
 
-    @DecimalMin(value = "-180.0", message = "경도는 -180.0 이상이어야 합니다")
-    @DecimalMax(value = "180.0", message = "경도는 180.0 이하여야 합니다")
-    @Digits(integer = 3, fraction = 8, message = "경도는 소수점 8자리까지 가능합니다")
     private BigDecimal longitude;
 
     @PastOrPresent(message = "설립일은 현재 날짜 이전이어야 합니다")
@@ -40,6 +34,8 @@ public class CompanyRequestDTO {
 
     private String companyDescription;
 
+    private String companySourceId;
+
     public Company toEntity() {
         return Company.builder()
                 .companyName(companyName)
@@ -49,6 +45,7 @@ public class CompanyRequestDTO {
                 .establishmentDate(establishmentDate)
                 .companyImageUrl(companyImageUrl)
                 .companyDescription(companyDescription)
+                .companySourceId(companySourceId)
                 .build();
     }
 }

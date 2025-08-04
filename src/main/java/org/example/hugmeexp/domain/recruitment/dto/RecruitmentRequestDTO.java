@@ -24,7 +24,7 @@ public class RecruitmentRequestDTO {
     private String title;
 
     @Min(value = 0, message = "교육 수준은 0 이상이어야 합니다")
-    @Max(value = 10, message = "교육 수준은 50 이하여야 합니다")
+    @Max(value = 50, message = "교육 수준은 50 이하여야 합니다")
     private Integer education;
 
     @Min(value = 0, message = "최소 경력은 0 이상이어야 합니다")
@@ -46,14 +46,8 @@ public class RecruitmentRequestDTO {
     @Size(max = 500, message = "근무지는 500자를 초과할 수 없습니다")
     private String workLocation;
 
-    @DecimalMin(value = "-90.0", message = "위도는 -90.0 이상이어야 합니다")
-    @DecimalMax(value = "90.0", message = "위도는 90.0 이하여야 합니다")
-    @Digits(integer = 2, fraction = 8, message = "위도는 소수점 8자리까지 가능합니다")
     private BigDecimal latitude;
 
-    @DecimalMin(value = "-180.0", message = "경도는 -180.0 이상이어야 합니다")
-    @DecimalMax(value = "180.0", message = "경도는 180.0 이하여야 합니다")
-    @Digits(integer = 3, fraction = 8, message = "경도는 소수점 8자리까지 가능합니다")
     private BigDecimal longitude;
 
     @NotNull
