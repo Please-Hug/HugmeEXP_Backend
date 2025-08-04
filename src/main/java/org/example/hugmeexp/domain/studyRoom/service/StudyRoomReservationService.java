@@ -16,9 +16,12 @@ import org.example.hugmeexp.domain.user.repository.UserRepository;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -86,39 +89,39 @@ public class StudyRoomReservationService {
      * @throws InvalidReservationTimeException 예약 시간이 유효하지 않은 경우
      * @throws ReservationConflictException 다른 예약과 시간이 겹치는 경우
      */
+    @Retryable(
+            value = {OptimisticLockingFailureException.class},  //낙관적Lock 예외 발생시, 재시도
+            maxAttempts = 3,    //최대 시도수
+            backoff = @Backoff(delay = 100, multiplier = 2) //100ms 단위로 재시도, 이후 대기시간 2배씩 증가
+    )
     @Transactional
     public Long createReservation(ReservationCreateDto createDto, UserDetails userDetails) {
-        try {
-            User user = userRepository.findByUsername(userDetails.getUsername())
-                    .orElseThrow(UserNotFoundException::new);
 
-            StudyRoom studyRoom = studyRoomRepository.findByIdWithLock(createDto.getStudyRoomId())
-                    .orElseThrow(() -> new StudyRoomNotFoundException(createDto.getStudyRoomId()));
+        User user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(UserNotFoundException::new);
 
-            validateReservationTime(createDto.getReservationStart(), createDto.getReservationEnd());
+        StudyRoom studyRoom = studyRoomRepository.findByIdWithLock(createDto.getStudyRoomId())
+                .orElseThrow(() -> new StudyRoomNotFoundException(createDto.getStudyRoomId()));
 
-            if (createDto.getPartyNum() > studyRoom.getMaxNum()) {
-                throw new StudyRoomCapacityExceededException();
-            }
-            checkTimeConflict(studyRoom, createDto.getReservationStart(), createDto.getReservationEnd());
+        validateReservationTime(createDto.getReservationStart(), createDto.getReservationEnd());
 
-            StudyRoomReservation reservation = StudyRoomReservation.builder()
-                    .user(user)
-                    .studyRoom(studyRoom)
-                    .reservationStart(createDto.getReservationStart())
-                    .reservationEnd(createDto.getReservationEnd())
-                    .partyNum(createDto.getPartyNum())
-                    .build();
+        if (createDto.getPartyNum() > studyRoom.getMaxNum()) {
+            throw new StudyRoomCapacityExceededException();
+        }
+        checkTimeConflict(studyRoom, createDto.getReservationStart(), createDto.getReservationEnd());
 
-            StudyRoomReservation savedReservation = studyRoomReservationRepository.save(reservation);
+        StudyRoomReservation reservation = StudyRoomReservation.builder()
+                .user(user)
+                .studyRoom(studyRoom)
+                .reservationStart(createDto.getReservationStart())
+                .reservationEnd(createDto.getReservationEnd())
+                .partyNum(createDto.getPartyNum())
+                .build();
 
-            return savedReservation.getId();
-        } catch (OptimisticLockingFailureException e){
-            log.debug("in StudyRoomReservation createReservation, optimistic exception occurred");
-            //재시도
-            return createReservation(createDto, userDetails);
+        StudyRoomReservation savedReservation = studyRoomReservationRepository.save(reservation);
+
+        return savedReservation.getId();
     }
-}
 
     /**
      * 예약 상세 정보를 조회하는 메서드
