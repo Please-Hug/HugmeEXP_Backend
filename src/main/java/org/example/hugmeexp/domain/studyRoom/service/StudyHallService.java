@@ -6,6 +6,7 @@ import org.example.hugmeexp.domain.studyRoom.dto.request.StudyHallRequest;
 import org.example.hugmeexp.domain.studyRoom.entity.StudyHall;
 import org.example.hugmeexp.domain.studyRoom.repository.StudyHallRepository;
 import org.example.hugmeexp.domain.studyRoom.exception.StudyHallNotFoundException;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -69,6 +70,7 @@ public class StudyHallService {
      * @return 수정된 StudyHall 엔티티
      */
     @Transactional
+    @CacheEvict(value = "studyHalls", key = "#studyHallId")
     public StudyHall updateStudyHall(Long studyHallId, StudyHallRequest requestDto) {
         StudyHall studyHall = findStudyHallById(studyHallId);
         studyHall.update(requestDto);
@@ -80,6 +82,7 @@ public class StudyHallService {
      * @param studyHallId 삭제할 스터디 홀의 ID
      */
     @Transactional
+    @CacheEvict(value = "studyHalls", key = "#studyHallId")
     public void deleteStudyHall(Long studyHallId) {
         StudyHall studyHall = findStudyHallById(studyHallId);
         studyHall.delete();
