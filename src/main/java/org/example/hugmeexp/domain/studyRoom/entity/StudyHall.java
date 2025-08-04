@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.example.hugmeexp.domain.studyRoom.dto.request.StudyHallRequest;
 import org.example.hugmeexp.global.entity.BaseEntity;
+import org.hibernate.annotations.BatchSize;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,6 +40,7 @@ public class StudyHall extends BaseEntity {
 
     private LocalDateTime closeTime;
 
+    @BatchSize(size = 100)
     @OneToMany(mappedBy = "studyHall", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StudyRoom> studyRooms;
 
