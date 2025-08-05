@@ -17,6 +17,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
+
 import java.util.List;
 
 @Slf4j    // 로깅 어노테이션
@@ -54,7 +56,7 @@ public class RecruitmentController {
     @GetMapping
     public ResponseEntity<Response<List<RecruitmentResponseDTO>>> listRecruitments(
             @Valid @ModelAttribute RecruitmentSearchConditionDTO conditionDTO,
-            @RequestParam(defaultValue = "0") int page){
+            @RequestParam(defaultValue = "0") int page) {
 
         Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(conditionDTO, page);
 
