@@ -95,6 +95,7 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
         )
         FROM Recruitment r
         JOIN r.company c
+        WHERE r.dueDate > CURRENT_TIMESTAMP
         ORDER BY r.modifiedAt DESC
     """)
     List<RecruitmentResponseDTO> findLatestRecruitments(Pageable pageable);
@@ -128,13 +129,16 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
     @Query("""
         SELECT r FROM Recruitment r
         JOIN FETCH r.company c
-        WHERE LOWER(r.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
-        OR LOWER(c.companyName) LIKE LOWER(CONCAT('%', :keyword, '%'))
+        WHERE r.dueDate > CURRENT_TIMESTAMP AND (
+            LOWER(r.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            OR LOWER(c.companyName) LIKE LOWER(CONCAT('%', :keyword, '%'))
+        )
     """)
     List<Recruitment> findByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
 
-    boolean existsByRecruitmentSourceId(String recruitmentSourceId);
+
+
 
     @Query("SELECT r FROM Recruitment r " +
             "LEFT JOIN FETCH r.techStacks ts " +
