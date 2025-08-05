@@ -396,9 +396,9 @@ public class RecruitmentServiceTest {
         RecruitmentSearchConditionDTO condition = RecruitmentSearchConditionDTO.builder().build();
         int page = 0;
 
-        // 50개의 아이템을 생성 (80개만 반환되어야 함)
+        // 130개의 아이템을 생성 (80개만 반환되어야 함)
         List<RecruitmentResponseDTO> mockItems = new ArrayList<>();
-        for (int i = 1; i <= 50; i++) {
+        for (int i = 1; i <= 130; i++) {
             mockItems.add(new RecruitmentResponseDTO(
                 (long) i, "test::" + i, "개발자 모집 " + i, "회사 " + i, "image_" + i + ".jpg",
                 LocalDateTime.now().plusDays(30), // 만료되지 않은 공고
