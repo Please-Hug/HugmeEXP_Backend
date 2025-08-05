@@ -43,13 +43,13 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
                   (r.experienceMax >= :#{#cond.experienceMin} AND r.experienceMin <= :#{#cond.experienceMax})
                 ) AND
                 (:#{#cond.education} IS NULL OR r.education = :#{#cond.education}) AND
-                (:#{#cond.workLocation} IS NULL OR r.workLocation LIKE %:#{#cond.workLocation}%) AND
+                (:#{#cond.workLocation} IS NULL OR r.workLocation LIKE CONCAT('%', :#{#cond.workLocation}, '%')) AND
                 (:#{#cond.topLeftLat} IS NULL OR r.latitude >= :#{#cond.topLeftLat}) AND
                 (:#{#cond.topLeftLng} IS NULL OR r.longitude >= :#{#cond.topLeftLng}) AND
                 (:#{#cond.bottomRightLat} IS NULL OR r.latitude <= :#{#cond.bottomRightLat}) AND
                 (:#{#cond.bottomRightLng} IS NULL OR r.longitude <= :#{#cond.bottomRightLng}) AND
-                (:#{#cond.techStacks} IS NULL OR ts.id IN :#{#cond.techStacks}) AND
-                (:#{#cond.tags} IS NULL OR t.id IN :#{#cond.tags})
+                (:#{#cond.techStacks} IS NULL OR ts.techItem.id IN :#{#cond.techStacks}) AND
+                (:#{#cond.tags} IS NULL OR t.tagItem.id IN :#{#cond.tags})
             GROUP BY r.id, r.recruitmentSourceId, r.title, c.companyName, c.companyImageUrl, r.dueDate,
                 r.experienceMin, r.experienceMax, r.workLocation, r.latitude, r.longitude, r.modifiedAt
             HAVING (:#{#cond.techStacks} IS NULL OR COUNT(DISTINCT ts.id) = :#{#cond.techStackCount}) AND
@@ -70,13 +70,13 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
                      (r.experienceMax >= :#{#cond.experienceMin} AND r.experienceMin <= :#{#cond.experienceMax})
                 ) AND
                 (:#{#cond.education} IS NULL OR r.education = :#{#cond.education}) AND
-                (:#{#cond.workLocation} IS NULL OR r.workLocation LIKE %:#{#cond.workLocation}%) AND
+                (:#{#cond.workLocation} IS NULL OR r.workLocation LIKE CONCAT('%', :#{#cond.workLocation}, '%')) AND
                 (:#{#cond.topLeftLat} IS NULL OR r.latitude >= :#{#cond.topLeftLat}) AND
                 (:#{#cond.topLeftLng} IS NULL OR r.longitude >= :#{#cond.topLeftLng}) AND
                 (:#{#cond.bottomRightLat} IS NULL OR r.latitude <= :#{#cond.bottomRightLat}) AND
                 (:#{#cond.bottomRightLng} IS NULL OR r.longitude <= :#{#cond.bottomRightLng}) AND
-                (:#{#cond.techStacks} IS NULL OR ts.id IN :#{#cond.techStacks}) AND
-                (:#{#cond.tags} IS NULL OR t.id IN :#{#cond.tags})
+                (:#{#cond.techStacks} IS NULL OR ts.techItem.id IN :#{#cond.techStacks}) AND
+                (:#{#cond.tags} IS NULL OR t.tagItem.id IN :#{#cond.tags})
     """)
     Page<RecruitmentResponseDTO> findBySearchConditions(@Param("cond") RecruitmentSearchConditionDTO cond, Pageable pageable);
 
