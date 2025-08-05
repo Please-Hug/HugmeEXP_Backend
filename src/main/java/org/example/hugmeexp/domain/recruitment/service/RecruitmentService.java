@@ -18,16 +18,12 @@ import org.example.hugmeexp.domain.recruitment.repository.TechItemRepository;
 import org.example.hugmeexp.domain.recruitment.repository.TechStackRepository;
 import org.example.hugmeexp.domain.recruitment.repository.TagRepository;
 import org.example.hugmeexp.domain.recruitment.repository.CompanyRepository;
-import org.example.hugmeexp.global.common.exception.BaseCustomException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -161,16 +157,28 @@ public class RecruitmentService {
 
     @Transactional
     public RecruitmentResponseDTO createOrUpdateRecruitment(RecruitmentRequestDTO requestDTO) {
+        // 태그 및 기술 스택의 중복 제거 및 정렬
+        Set<TagRequestDTO> uniqueTags = new TreeSet<>();
+        if (requestDTO.getTags() != null) {
+            uniqueTags.addAll(requestDTO.getTags());
+        }
+        requestDTO.setTags(new ArrayList<>(uniqueTags));
+        Set<TechItemRequestDTO> uniqueTechItems = new TreeSet<>();
+        if (requestDTO.getRequiredSkills() != null) {
+            uniqueTechItems.addAll(requestDTO.getRequiredSkills());
+        }
+        requestDTO.setRequiredSkills(new ArrayList<>(uniqueTechItems));
+        
         Optional<Recruitment> existingRecruitment = recruitmentRepository.findByRecruitmentSourceId(requestDTO.getRecruitmentSourceId());
         // 이미 존재한다면 업데이트
         Recruitment recruitment = existingRecruitment
                 .map((existing) -> updateRecruitment(existing, requestDTO))
-                .orElseGet(() -> createRecruitment(requestDTO));
+                .orElseGet(() -> createRecruitment(requestDTO, uniqueTags, uniqueTechItems));
 
         return RecruitmentResponseDTO.from(recruitment);
     }
 
-    private Recruitment createRecruitment(RecruitmentRequestDTO requestDTO) {
+    private Recruitment createRecruitment(RecruitmentRequestDTO requestDTO, Set<TagRequestDTO> uniqueTags, Set<TechItemRequestDTO> uniqueTechItems) {
         // Company를 먼저 저장 (transient 문제 해결)
         //Company savedCompany = companyRepository.save(requestDTO.getCompany().toEntity());
         Company company = requestDTO.getCompany().toEntity();
@@ -185,10 +193,10 @@ public class RecruitmentService {
         recruitment = recruitmentRepository.save(recruitment);
 
         // 기술 스택 처리를 별도 메서드로 분리
-        processTechStacks(recruitment, requestDTO.getRequiredSkills());
+        processTechStacks(recruitment, uniqueTechItems);
 
         // 태그 처리 추가
-        processTags(recruitment, requestDTO.getTags());
+        processTags(recruitment, uniqueTags);
 
         return recruitment;
     }
@@ -251,9 +259,9 @@ public class RecruitmentService {
 
         // 추가할 기술 스택 생성
         if (!techNamesToAdd.isEmpty()) {
-            List<TechItemRequestDTO> skillsToAdd = newRequiredSkills.stream()
+            Set<TechItemRequestDTO> skillsToAdd = newRequiredSkills.stream()
                     .filter(skill -> techNamesToAdd.contains(skill.getEnglishName()))
-                    .toList();
+                    .collect(Collectors.toSet());
 
             processTechStacks(recruitment, skillsToAdd);
         }
@@ -265,7 +273,7 @@ public class RecruitmentService {
      * 2. 없는 TechItem 생성
      * 3. TechStack 생성 및 저장
      */
-    private void processTechStacks(Recruitment recruitment, List<TechItemRequestDTO> requiredSkills) {
+    private void processTechStacks(Recruitment recruitment, Set<TechItemRequestDTO> requiredSkills) {
         if (requiredSkills == null || requiredSkills.isEmpty()) {
             return;
         }
@@ -293,7 +301,7 @@ public class RecruitmentService {
     /**
      * TechItem을 조회하거나 생성하는 메서드
      */
-    private List<TechItem> getOrCreateTechItems(Set<String> techNames, List<TechItemRequestDTO> requiredSkills) {
+    private List<TechItem> getOrCreateTechItems(Set<String> techNames, Set<TechItemRequestDTO> requiredSkills) {
         // 기존 TechItem 조회
         List<TechItem> existingTechItems = techItemRepository.findAllByEnglishNameIn(techNames);
 
@@ -356,14 +364,15 @@ public class RecruitmentService {
                     .toList();
 
             tagRepository.deleteAllByIdInBatch(tagIdsToRemove);
+            tagsToRemove.forEach(recruitment.getTags()::remove);
             recruitment.getTags().removeAll(tagsToRemove);
         }
 
         // 추가할 태그 생성
         if (!tagNamesToAdd.isEmpty()) {
-            List<TagRequestDTO> tagsToAdd = newTags.stream()
+            Set<TagRequestDTO> tagsToAdd = newTags.stream()
                     .filter(tag -> tagNamesToAdd.contains(tag.getTagName()))
-                    .toList();
+                    .collect(Collectors.toSet());
 
             processTags(recruitment, tagsToAdd);
         }
@@ -375,7 +384,7 @@ public class RecruitmentService {
      * 2. 없는 TagItem 생성
      * 3. Tag 생성 및 저장
      */
-    private void processTags(Recruitment recruitment, List<TagRequestDTO> tags) {
+    private void processTags(Recruitment recruitment, Set<TagRequestDTO> tags) {
         if (tags == null || tags.isEmpty()) {
             return;
         }
@@ -403,7 +412,7 @@ public class RecruitmentService {
     /**
      * TagItem을 조회하거나 생성하는 메서드
      */
-    private List<TagItem> getOrCreateTagItems(Set<String> tagNames, List<TagRequestDTO> tags) {
+    private List<TagItem> getOrCreateTagItems(Set<String> tagNames, Set<TagRequestDTO> tags) {
         // 기존 TagItem 조회
         List<TagItem> existingTagItems = tagItemRepository.findAllByTagNameIn(tagNames);
 
