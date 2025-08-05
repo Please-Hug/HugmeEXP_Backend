@@ -14,6 +14,10 @@ import java.time.format.DateTimeFormatter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReservationTimeResponse {
+
+    // static final로 선언하여 한 번만 생성하고 재사용
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+
     private Long reservationId;
     private LocalDateTime reservationStart;
     private LocalDateTime reservationEnd;
@@ -21,10 +25,10 @@ public class ReservationTimeResponse {
     private String displayTime; // "09:00 - 11:00 (2명)" 형태
 
     public static ReservationTimeResponse from(StudyRoomReservation reservation) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+        // 미리 생성된 formatter 재사용
         String displayTime = String.format("%s - %s (%d명)",
-                reservation.getReservationStart().format(formatter),
-                reservation.getReservationEnd().format(formatter),
+                reservation.getReservationStart().format(TIME_FORMATTER),
+                reservation.getReservationEnd().format(TIME_FORMATTER),
                 reservation.getPartyNum());
 
         return ReservationTimeResponse.builder()
