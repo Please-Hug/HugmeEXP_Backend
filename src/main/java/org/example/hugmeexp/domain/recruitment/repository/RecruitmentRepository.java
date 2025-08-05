@@ -49,7 +49,10 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
                 (:#{#cond.bottomRightLat} IS NULL OR r.latitude <= :#{#cond.bottomRightLat}) AND
                 (:#{#cond.bottomRightLng} IS NULL OR r.longitude <= :#{#cond.bottomRightLng}) AND
                 (:#{#cond.techStacks} IS NULL OR ts.techItem.id IN :#{#cond.techStacks}) AND
-                (:#{#cond.tags} IS NULL OR t.tagItem.id IN :#{#cond.tags})
+                (:#{#cond.tags} IS NULL OR t.tagItem.id IN :#{#cond.tags}) AND
+                (:#{#cond.keyword} IS NULL OR
+                    LOWER(r.title) LIKE LOWER(CONCAT('%', :#{#cond.keyword}, '%')) OR
+                    LOWER(c.companyName) LIKE LOWER(CONCAT('%', :#{#cond.keyword}, '%')))
             GROUP BY r.id, r.recruitmentSourceId, r.title, c.companyName, c.companyImageUrl, r.dueDate,
                 r.experienceMin, r.experienceMax, r.workLocation, r.latitude, r.longitude, r.modifiedAt
             HAVING (:#{#cond.techStacks} IS NULL OR COUNT(DISTINCT ts.id) = :#{#cond.techStackCount}) AND
@@ -59,6 +62,7 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
         countQuery = """
             SELECT COUNT(DISTINCT r.id)
             FROM Recruitment r
+            JOIN r.company c
             LEFT JOIN r.techStacks ts
             LEFT JOIN r.tags t
             WHERE r.dueDate > CURRENT_TIMESTAMP AND
@@ -76,7 +80,10 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
                 (:#{#cond.bottomRightLat} IS NULL OR r.latitude <= :#{#cond.bottomRightLat}) AND
                 (:#{#cond.bottomRightLng} IS NULL OR r.longitude <= :#{#cond.bottomRightLng}) AND
                 (:#{#cond.techStacks} IS NULL OR ts.techItem.id IN :#{#cond.techStacks}) AND
-                (:#{#cond.tags} IS NULL OR t.tagItem.id IN :#{#cond.tags})
+                (:#{#cond.tags} IS NULL OR t.tagItem.id IN :#{#cond.tags}) AND
+                (:#{#cond.keyword} IS NULL OR
+                    LOWER(r.title) LIKE LOWER(CONCAT('%', :#{#cond.keyword}, '%')) OR
+                    LOWER(c.companyName) LIKE LOWER(CONCAT('%', :#{#cond.keyword}, '%')))
     """)
     Page<RecruitmentResponseDTO> findBySearchConditions(@Param("cond") RecruitmentSearchConditionDTO cond, Pageable pageable);
 
