@@ -19,6 +19,7 @@ import org.example.hugmeexp.domain.recruitment.repository.TechStackRepository;
 import org.example.hugmeexp.domain.recruitment.repository.TagRepository;
 import org.example.hugmeexp.domain.recruitment.repository.CompanyRepository;
 import org.example.hugmeexp.global.common.exception.BaseCustomException;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -62,7 +63,7 @@ public class RecruitmentService {
      * @param cond 검색 조건 DTO
      * @return 채용 공고 목록
      */
-    public List<RecruitmentResponseDTO> listRecruitments(RecruitmentSearchConditionDTO cond) {
+    public Page<RecruitmentResponseDTO> listRecruitments(RecruitmentSearchConditionDTO cond, int page) {
         RecruitmentSearchConditionDTO enrichedCond = cond.toBuilder()
                 .techStacks((cond.getTechStacks() == null || cond.getTechStacks().isEmpty()) ? null : cond.getTechStacks())
                 .tags((cond.getTags() == null || cond.getTags().isEmpty()) ? null : cond.getTags())
@@ -70,7 +71,9 @@ public class RecruitmentService {
                 .tagCount((cond.getTags() == null || cond.getTags().isEmpty()) ? null : (long) cond.getTags().size())
                 .build();
 
-        return recruitmentRepository.findBySearchConditions(enrichedCond);
+        Pageable pageable = PageRequest.of(page, 40);
+
+        return recruitmentRepository.findBySearchConditions(enrichedCond, pageable);
     }
 
     /**

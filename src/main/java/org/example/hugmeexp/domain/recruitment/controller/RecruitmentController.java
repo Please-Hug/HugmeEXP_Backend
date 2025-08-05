@@ -12,6 +12,7 @@ import org.example.hugmeexp.domain.recruitment.dto.*;
 import org.example.hugmeexp.domain.recruitment.service.RecruitmentService;
 import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -45,13 +46,14 @@ public class RecruitmentController {
     )
     @GetMapping
     public ResponseEntity<Response<List<RecruitmentResponseDTO>>> listRecruitments(
-            @Valid @ModelAttribute RecruitmentSearchConditionDTO conditionDTO) {
+            @Valid @ModelAttribute RecruitmentSearchConditionDTO conditionDTO,
+            @RequestParam(defaultValue = "0") int page){
 
-        List<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(conditionDTO);
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(conditionDTO, page);
 
         Response<List<RecruitmentResponseDTO>> response = Response.<List<RecruitmentResponseDTO>>builder()
                 .message("채용 공고 목록 조회 성공")
-                .data(result)
+                .data(result.getContent())
                 .build();
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
