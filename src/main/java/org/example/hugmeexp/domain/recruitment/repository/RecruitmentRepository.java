@@ -3,6 +3,7 @@ package org.example.hugmeexp.domain.recruitment.repository;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO;
 import org.example.hugmeexp.domain.recruitment.dto.RecruitmentSearchConditionDTO;
 import org.example.hugmeexp.domain.recruitment.entity.Recruitment;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -16,39 +17,68 @@ import java.util.Optional;
 public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> {
 
     /**
-     * 검색 조건에 맞는 채용 공고 목록을 조회합니다.
-     * 조건에 따라 필터링된 결과를 반환합니다.
+     * 채용 공고 목록을 조회합니다.
+     * 조건에 따라 필터링된 채용 공고를 페이지 단위로 반환합니다.
      *
      * @param cond 검색 조건 DTO
-     * @return 채용 공고 목록
+     * @param pageable 페이징 정보
+     * @return 필터링된 채용 공고 목록 (RecruitmentResponseDTO)
      */
-    @Query("""
-        SELECT new org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO(
-            r.id, r.recruitmentSourceId, r.title, c.companyName, c.companyImageUrl, r.dueDate,
-            r.experienceMin, r.experienceMax, r.workLocation, r.latitude, r.longitude, r.modifiedAt
-        )
-        FROM Recruitment r
-        JOIN r.company c
-        LEFT JOIN r.techStacks ts
-        LEFT JOIN r.tags t
-        WHERE (:#{#cond.salaryMin} IS NULL OR r.salaryMin >= :#{#cond.salaryMin}) AND
-              (:#{#cond.salaryMax} IS NULL OR r.salaryMax <= :#{#cond.salaryMax}) AND
-              (:#{#cond.experienceMin} IS NULL OR r.experienceMin <= :#{#cond.experienceMin}) AND
-              (:#{#cond.experienceMax} IS NULL OR r.experienceMax >= :#{#cond.experienceMax}) AND
-              (:#{#cond.education} IS NULL OR r.education = :#{#cond.education}) AND
-              (:#{#cond.workLocation} IS NULL OR r.workLocation LIKE %:#{#cond.workLocation}%) AND
-              (:#{#cond.topLeftLat} IS NULL OR r.latitude >= :#{#cond.topLeftLat}) AND
-              (:#{#cond.topLeftLng} IS NULL OR r.longitude >= :#{#cond.topLeftLng}) AND
-              (:#{#cond.bottomRightLat} IS NULL OR r.latitude <= :#{#cond.bottomRightLat}) AND
-              (:#{#cond.bottomRightLng} IS NULL OR r.longitude <= :#{#cond.bottomRightLng}) AND
-              (:#{#cond.techStacks} IS NULL OR ts.id IN :#{#cond.techStacks}) AND
-              (:#{#cond.tags} IS NULL OR t.id IN :#{#cond.tags})
-        GROUP BY r.id, r.recruitmentSourceId, r.title, c.companyName, c.companyImageUrl, r.dueDate,
-                 r.experienceMin, r.experienceMax, r.workLocation, r.latitude, r.longitude, r.modifiedAt
-        HAVING (:#{#cond.techStacks} IS NULL OR COUNT(DISTINCT ts.id) = :#{#cond.techStackCount}) AND
-               (:#{#cond.tags} IS NULL OR COUNT(DISTINCT t.id) = :#{#cond.tagCount})
+    @Query(
+        value = """
+            SELECT new org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO(
+                r.id, r.recruitmentSourceId, r.title, c.companyName, c.companyImageUrl, r.dueDate,
+                r.experienceMin, r.experienceMax, r.workLocation, r.latitude, r.longitude, r.modifiedAt
+            )
+            FROM Recruitment r
+            JOIN r.company c
+            LEFT JOIN r.techStacks ts
+            LEFT JOIN r.tags t
+            WHERE r.dueDate > CURRENT_TIMESTAMP AND
+                (:#{#cond.salaryMin} IS NULL OR r.salaryMin >= :#{#cond.salaryMin}) AND
+                (:#{#cond.salaryMax} IS NULL OR r.salaryMax <= :#{#cond.salaryMax}) AND
+                (
+                  (:#{#cond.experienceMin} IS NULL OR :#{#cond.experienceMax} IS NULL)
+                  OR
+                  (r.experienceMax >= :#{#cond.experienceMin} AND r.experienceMin <= :#{#cond.experienceMax})
+                ) AND
+                (:#{#cond.education} IS NULL OR r.education = :#{#cond.education}) AND
+                (:#{#cond.workLocation} IS NULL OR r.workLocation LIKE %:#{#cond.workLocation}%) AND
+                (:#{#cond.topLeftLat} IS NULL OR r.latitude >= :#{#cond.topLeftLat}) AND
+                (:#{#cond.topLeftLng} IS NULL OR r.longitude >= :#{#cond.topLeftLng}) AND
+                (:#{#cond.bottomRightLat} IS NULL OR r.latitude <= :#{#cond.bottomRightLat}) AND
+                (:#{#cond.bottomRightLng} IS NULL OR r.longitude <= :#{#cond.bottomRightLng}) AND
+                (:#{#cond.techStacks} IS NULL OR ts.id IN :#{#cond.techStacks}) AND
+                (:#{#cond.tags} IS NULL OR t.id IN :#{#cond.tags})
+            GROUP BY r.id, r.recruitmentSourceId, r.title, c.companyName, c.companyImageUrl, r.dueDate,
+                r.experienceMin, r.experienceMax, r.workLocation, r.latitude, r.longitude, r.modifiedAt
+            HAVING (:#{#cond.techStacks} IS NULL OR COUNT(DISTINCT ts.id) = :#{#cond.techStackCount}) AND
+                (:#{#cond.tags} IS NULL OR COUNT(DISTINCT t.id) = :#{#cond.tagCount})
+            ORDER BY r.modifiedAt DESC
+            """,
+        countQuery = """
+            SELECT COUNT(DISTINCT r.id)
+            FROM Recruitment r
+            LEFT JOIN r.techStacks ts
+            LEFT JOIN r.tags t
+            WHERE r.dueDate > CURRENT_TIMESTAMP AND
+                (:#{#cond.salaryMin} IS NULL OR r.salaryMin >= :#{#cond.salaryMin}) AND
+                (:#{#cond.salaryMax} IS NULL OR r.salaryMax <= :#{#cond.salaryMax}) AND
+                (
+                    (:#{#cond.experienceMin} IS NULL OR :#{#cond.experienceMax} IS NULL)
+                     OR
+                     (r.experienceMax >= :#{#cond.experienceMin} AND r.experienceMin <= :#{#cond.experienceMax})
+                ) AND
+                (:#{#cond.education} IS NULL OR r.education = :#{#cond.education}) AND
+                (:#{#cond.workLocation} IS NULL OR r.workLocation LIKE %:#{#cond.workLocation}%) AND
+                (:#{#cond.topLeftLat} IS NULL OR r.latitude >= :#{#cond.topLeftLat}) AND
+                (:#{#cond.topLeftLng} IS NULL OR r.longitude >= :#{#cond.topLeftLng}) AND
+                (:#{#cond.bottomRightLat} IS NULL OR r.latitude <= :#{#cond.bottomRightLat}) AND
+                (:#{#cond.bottomRightLng} IS NULL OR r.longitude <= :#{#cond.bottomRightLng}) AND
+                (:#{#cond.techStacks} IS NULL OR ts.id IN :#{#cond.techStacks}) AND
+                (:#{#cond.tags} IS NULL OR t.id IN :#{#cond.tags})
     """)
-    List<RecruitmentResponseDTO> findBySearchConditions(@Param("cond") RecruitmentSearchConditionDTO cond);
+    Page<RecruitmentResponseDTO> findBySearchConditions(@Param("cond") RecruitmentSearchConditionDTO cond, Pageable pageable);
 
 
     /**
@@ -65,6 +95,7 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
         )
         FROM Recruitment r
         JOIN r.company c
+        WHERE r.dueDate > CURRENT_TIMESTAMP
         ORDER BY r.modifiedAt DESC
     """)
     List<RecruitmentResponseDTO> findLatestRecruitments(Pageable pageable);
@@ -98,13 +129,16 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
     @Query("""
         SELECT r FROM Recruitment r
         JOIN FETCH r.company c
-        WHERE LOWER(r.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
-        OR LOWER(c.companyName) LIKE LOWER(CONCAT('%', :keyword, '%'))
+        WHERE r.dueDate > CURRENT_TIMESTAMP AND (
+            LOWER(r.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            OR LOWER(c.companyName) LIKE LOWER(CONCAT('%', :keyword, '%'))
+        )
     """)
     List<Recruitment> findByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
 
-    boolean existsByRecruitmentSourceId(String recruitmentSourceId);
+
+
 
     @Query("SELECT r FROM Recruitment r " +
             "LEFT JOIN FETCH r.techStacks ts " +

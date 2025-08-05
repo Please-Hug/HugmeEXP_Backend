@@ -12,6 +12,7 @@ import org.example.hugmeexp.domain.recruitment.dto.*;
 import org.example.hugmeexp.domain.recruitment.service.RecruitmentService;
 import org.example.hugmeexp.global.common.response.Response;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +32,14 @@ public class RecruitmentController {
 
     @Operation(
         summary = "채용 공고 목록 조회",
-        description = "조건에 따라 채용 공고 목록을 조회합니다",
+        description = """
+            채용 목록에서 사용할 수 있는 다양한 필터 조건에 따라 공고를 조회합니다.
+            
+            - 페이징: 한 페이지당 40개, page 파라미터는 0부터 시작
+            - 마감일이 지난 공고는 자동 제외됩니다
+            - 수정일(modifiedAt) 기준 최신순 정렬
+            - 경력 조건은 입력값과 겹치는 공고 전부 포함
+            """,
         responses = {
             @ApiResponse(
                 responseCode = "200",
@@ -45,13 +53,14 @@ public class RecruitmentController {
     )
     @GetMapping
     public ResponseEntity<Response<List<RecruitmentResponseDTO>>> listRecruitments(
-            @Valid @ModelAttribute RecruitmentSearchConditionDTO conditionDTO) {
+            @Valid @ModelAttribute RecruitmentSearchConditionDTO conditionDTO,
+            @RequestParam(defaultValue = "0") int page){
 
-        List<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(conditionDTO);
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(conditionDTO, page);
 
         Response<List<RecruitmentResponseDTO>> response = Response.<List<RecruitmentResponseDTO>>builder()
                 .message("채용 공고 목록 조회 성공")
-                .data(result)
+                .data(result.getContent())
                 .build();
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
@@ -159,9 +168,12 @@ public class RecruitmentController {
 
     @Operation(
         summary = "채용 공고 필터 옵션 조회",
-        description = "채용 목록에서 사용할 수 있는 필터링 조건들을 조회합니다.\n\n" +
-            "- 학력, 경력, 기술스택, 근무지, 태그, 연봉 범위 포함\n" +
-            "- 프론트 필터 렌더링용 메타 데이터로 활용",
+        description = """
+            채용 목록에서 사용할 수 있는 필터링 조건들을 조회합니다.
+            
+            - 학력, 경력, 기술스택, 근무지, 태그, 연봉 범위 포함
+            - 프론트 필터 렌더링용 메타 데이터로 활용
+            """,
         responses = {
             @ApiResponse(
                 responseCode = "200",
