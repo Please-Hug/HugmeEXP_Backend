@@ -19,11 +19,14 @@ import org.example.hugmeexp.domain.recruitment.repository.TechStackRepository;
 import org.example.hugmeexp.domain.recruitment.repository.TagRepository;
 import org.example.hugmeexp.domain.recruitment.repository.CompanyRepository;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -55,22 +58,141 @@ public class RecruitmentService {
     /**
      * 채용 공고 목록을 조회합니다.
      * 검색 조건에 따라 필터링된 채용 공고를 페이지 단위로 반환합니다.
+     * 필터링된 ID를 먼저 가져온 후 페이징을 적용하여 빈 결과 문제를 해결합니다.
      *
-     * @param cond 검색 조건 DTO
+     * @param conditionDTO 검색 조건 DTO
      * @param page 페이지 번호 (0부터 시작)
      * @return 필터링된 채용 공고 목록 (RecruitmentResponseDTO)
      */
-    public Page<RecruitmentResponseDTO> listRecruitments(RecruitmentSearchConditionDTO cond, int page) {
-        RecruitmentSearchConditionDTO enrichedCond = cond.toBuilder()
-                .techStacks((cond.getTechStacks() == null || cond.getTechStacks().isEmpty()) ? null : cond.getTechStacks())
-                .tags((cond.getTags() == null || cond.getTags().isEmpty()) ? null : cond.getTags())
-                .techStackCount((cond.getTechStacks() == null || cond.getTechStacks().isEmpty()) ? null : (long) cond.getTechStacks().size())
-                .tagCount((cond.getTags() == null || cond.getTags().isEmpty()) ? null : (long) cond.getTags().size())
-                .build();
-
-        Pageable pageable = PageRequest.of(page, 40);
-
-        return recruitmentRepository.findBySearchConditions(enrichedCond, pageable);
+    public Page<RecruitmentResponseDTO> listRecruitments(RecruitmentSearchConditionDTO conditionDTO, int page) {
+        // 페이지 설정 (40개씩)
+        Pageable pageable = createPageable(page);
+        
+        // 필터링된 ID 목록 조회 및 좌표 필터링 적용
+        List<Long> filteredIds = getFilteredIds(conditionDTO);
+        
+        if (filteredIds.isEmpty()) {
+            return Page.empty(pageable);
+        }
+        
+        // 페이징 적용 및 결과 반환
+        return createPageResult(filteredIds, pageable);
+    }
+    
+    /**
+     * 페이지에블 객체를 생성합니다.
+     * 
+     * @param page 페이지 번호
+     * @return 페이지에블 객체
+     */
+    private Pageable createPageable(int page) {
+        return PageRequest.of(page, 40, Sort.by(Sort.Direction.DESC, "modifiedAt"));
+    }
+    
+    /**
+     * 검색 조건에 따라 필터링된 채용 공고 ID 목록을 가져오고,
+     * 좌표 필터링이 있는 경우 추가 필터링을 적용합니다.
+     * 
+     * @param conditionDTO 검색 조건 DTO
+     * @return 필터링된 ID 목록
+     */
+    private List<Long> getFilteredIds(RecruitmentSearchConditionDTO conditionDTO) {
+        // 기본 필터링된 ID 목록 조회
+        List<Long> filteredIds = recruitmentRepository.findIdsBySearchConditions(conditionDTO);
+        
+        // 좌표 필터링이 있는 경우, 서비스 레이어에서 직접 필터링 수행
+        if (hasCoordinateFilter(conditionDTO)) {
+            filteredIds = applyCoordinateFilter(filteredIds, conditionDTO);
+        }
+        
+        return filteredIds;
+    }
+    
+    /**
+     * 좌표 필터링 조건이 있는지 확인합니다.
+     * 
+     * @param conditionDTO 검색 조건 DTO
+     * @return 좌표 필터링 조건 존재 여부
+     */
+    private boolean hasCoordinateFilter(RecruitmentSearchConditionDTO conditionDTO) {
+        return conditionDTO.getTopLeftLat() != null && conditionDTO.getTopLeftLng() != null && 
+               conditionDTO.getBottomRightLat() != null && conditionDTO.getBottomRightLng() != null;
+    }
+    
+    /**
+     * 좌표 필터링을 적용합니다.
+     * 
+     * @param filteredIds 기본 필터링된 ID 목록
+     * @param conditionDTO 검색 조건 DTO
+     * @return 좌표 필터링이 적용된 ID 목록
+     */
+    private List<Long> applyCoordinateFilter(List<Long> filteredIds, RecruitmentSearchConditionDTO conditionDTO) {
+        // 필터링된 ID로 모든 채용 공고 조회
+        List<RecruitmentResponseDTO> allRecruitments = recruitmentRepository.findByIds(filteredIds);
+        
+        // 좌표 필터링 적용
+        List<RecruitmentResponseDTO> coordinateFilteredRecruitments = allRecruitments.stream()
+            .filter(r -> isWithinCoordinateBounds(r, conditionDTO))
+            .collect(Collectors.toList());
+        
+        // 필터링된 ID 목록 반환
+        return coordinateFilteredRecruitments.stream()
+            .map(RecruitmentResponseDTO::getId)
+            .collect(Collectors.toList());
+    }
+    
+    /**
+     * 채용 공고가 좌표 범위 내에 있는지 확인합니다.
+     * 
+     * @param recruitment 채용 공고 DTO
+     * @param conditionDTO 검색 조건 DTO
+     * @return 범위 내 포함 여부
+     */
+    private boolean isWithinCoordinateBounds(RecruitmentResponseDTO recruitment, RecruitmentSearchConditionDTO conditionDTO) {
+        if (recruitment.getLatitude() == null || recruitment.getLongitude() == null) {
+            return false;
+        }
+        
+        BigDecimal lat = new BigDecimal(recruitment.getLatitude().toString());
+        BigDecimal lng = new BigDecimal(recruitment.getLongitude().toString());
+        
+        // 위도 범위 계산 (입력 순서에 관계없이 항상 최소/최대 계산)
+        BigDecimal minLat = conditionDTO.getTopLeftLat().min(conditionDTO.getBottomRightLat());
+        BigDecimal maxLat = conditionDTO.getTopLeftLat().max(conditionDTO.getBottomRightLat());
+        
+        // 경도 범위 계산 (입력 순서에 관계없이 항상 최소/최대 계산)
+        BigDecimal minLng = conditionDTO.getTopLeftLng().min(conditionDTO.getBottomRightLng());
+        BigDecimal maxLng = conditionDTO.getTopLeftLng().max(conditionDTO.getBottomRightLng());
+        
+        // 위도 범위 내에 있는지 확인
+        boolean latInRange = lat.compareTo(minLat) >= 0 && lat.compareTo(maxLat) <= 0;
+        
+        // 경도 범위 내에 있는지 확인
+        boolean lngInRange = lng.compareTo(minLng) >= 0 && lng.compareTo(maxLng) <= 0;
+        
+        return latInRange && lngInRange;
+    }
+    
+    /**
+     * 필터링된 ID 목록에 페이징을 적용하고 결과를 반환합니다.
+     * 
+     * @param filteredIds 필터링된 ID 목록
+     * @param pageable 페이지에블 객체
+     * @return 페이징된 결과
+     */
+    private Page<RecruitmentResponseDTO> createPageResult(List<Long> filteredIds, Pageable pageable) {
+        // 페이징 정보 설정
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), filteredIds.size());
+        
+        // 페이징된 ID 목록
+        List<Long> pagedIds = filteredIds.subList(start, end);
+        
+        // ID 목록으로 채용 공고 조회
+        List<RecruitmentResponseDTO> content = recruitmentRepository.findByIds(pagedIds);
+        
+        // Page 객체 생성하여 반환
+        return new PageImpl<>(content, pageable, filteredIds.size());
     }
 
     /**
