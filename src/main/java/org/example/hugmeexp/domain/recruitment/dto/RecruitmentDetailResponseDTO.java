@@ -59,7 +59,7 @@ public class RecruitmentDetailResponseDTO {
                                 .labelEn(ts.getTechItem().getEnglishName())
                                 .iconUrl(ts.getTechItem().getIconUrl())
                                 .build())
-                        .toList())
+                        .distinct().toList())
                 .advantage(recruitment.getAdvantage())
                 .qualifications(recruitment.getQualification())
                 .welfare(recruitment.getWelfare())
@@ -69,7 +69,7 @@ public class RecruitmentDetailResponseDTO {
                                     .id(tag.getTagItem().getId())
                                     .tagName(tag.getTagItem().getTagName())
                                     .build())
-                            .toList())
+                        .distinct().toList())
                 .recruitmentSourceId(recruitment.getRecruitmentSourceId())
                 .build();
     }

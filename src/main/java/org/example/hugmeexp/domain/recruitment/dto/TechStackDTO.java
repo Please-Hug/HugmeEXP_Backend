@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.hugmeexp.domain.recruitment.entity.TechItem;
 
+import java.util.Objects;
+
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
@@ -24,5 +26,17 @@ public class TechStackDTO {
                 .labelEn(techItem.getEnglishName())
                 .iconUrl(techItem.getIconUrl())
                 .build();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        TechStackDTO that = (TechStackDTO) o;
+        return Objects.equals(labelKo, that.labelKo) && Objects.equals(labelEn, that.labelEn) && Objects.equals(iconUrl, that.iconUrl);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(labelKo, labelEn, iconUrl);
     }
 }
