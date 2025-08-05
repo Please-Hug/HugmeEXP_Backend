@@ -45,14 +45,6 @@ public class TechItemRequestDTO implements Comparable<TechItemRequestDTO> {
     @Override
     public int compareTo(TechItemRequestDTO o) {
         if (o == null) return 1; // null is considered greater
-        int englishComparison = this.englishName.compareTo(o.englishName);
-        if (englishComparison != 0) {
-            return englishComparison;
-        }
-        int koreanComparison = this.koreanName.compareTo(o.koreanName);
-        if (koreanComparison != 0) {
-            return koreanComparison;
-        }
-        return this.iconUrl.compareTo(o.iconUrl);
+        return this.englishName.compareTo(o.englishName);
     }
 }
