@@ -20,7 +20,6 @@ import java.util.Optional;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "study_hall")
 public class StudyHall extends BaseEntity {
 
     @Id
