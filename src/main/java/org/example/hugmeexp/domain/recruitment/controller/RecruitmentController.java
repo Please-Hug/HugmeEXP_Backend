@@ -161,9 +161,12 @@ public class RecruitmentController {
 
     @Operation(
         summary = "채용 공고 필터 옵션 조회",
-        description = "채용 목록에서 사용할 수 있는 필터링 조건들을 조회합니다.\n\n" +
-            "- 학력, 경력, 기술스택, 근무지, 태그, 연봉 범위 포함\n" +
-            "- 프론트 필터 렌더링용 메타 데이터로 활용",
+        description = """
+            채용 목록에서 사용할 수 있는 필터링 조건들을 조회합니다.
+            
+            - 학력, 경력, 기술스택, 근무지, 태그, 연봉 범위 포함
+            - 프론트 필터 렌더링용 메타 데이터로 활용
+            """,
         responses = {
             @ApiResponse(
                 responseCode = "200",

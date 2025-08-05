@@ -18,11 +18,9 @@ import org.example.hugmeexp.domain.recruitment.repository.TechItemRepository;
 import org.example.hugmeexp.domain.recruitment.repository.TechStackRepository;
 import org.example.hugmeexp.domain.recruitment.repository.TagRepository;
 import org.example.hugmeexp.domain.recruitment.repository.CompanyRepository;
-import org.example.hugmeexp.global.common.exception.BaseCustomException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

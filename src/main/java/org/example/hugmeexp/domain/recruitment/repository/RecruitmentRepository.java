@@ -68,7 +68,7 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
                     (:#{#cond.experienceMin} IS NULL OR :#{#cond.experienceMax} IS NULL)
                      OR
                      (r.experienceMax >= :#{#cond.experienceMin} AND r.experienceMin <= :#{#cond.experienceMax})
-                ) AND                                                                      
+                ) AND
                 (:#{#cond.education} IS NULL OR r.education = :#{#cond.education}) AND
                 (:#{#cond.workLocation} IS NULL OR r.workLocation LIKE %:#{#cond.workLocation}%) AND
                 (:#{#cond.topLeftLat} IS NULL OR r.latitude >= :#{#cond.topLeftLat}) AND
