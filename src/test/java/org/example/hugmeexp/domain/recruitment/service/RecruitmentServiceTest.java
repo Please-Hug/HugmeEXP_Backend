@@ -1079,6 +1079,100 @@ public class RecruitmentServiceTest {
     }
 
     @Test
+    @DisplayName("키워드로 채용 공고 필터링 테스트")
+    void listRecruitments_WithKeyword_ShouldFilterByKeyword() {
+        // Given
+        String keyword = "백엔드";
+        RecruitmentSearchConditionDTO condition = RecruitmentSearchConditionDTO.builder()
+                .keyword(keyword)
+                .build();
+
+        int page = 0;
+        List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 40);
+
+        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
+            .thenReturn(expectedPage);
+
+        // When
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
+
+        // Then
+        assertEquals(expectedPage.getContent(), result.getContent());
+        verify(recruitmentRepository).findBySearchConditions(
+            argThat(cond -> keyword.equals(cond.getKeyword())),
+            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 40)
+        );
+    }
+
+    @Test
+    @DisplayName("빈 키워드로 채용 공고 필터링 테스트")
+    void listRecruitments_WithEmptyKeyword_ShouldPassNullKeyword() {
+        // Given
+        RecruitmentSearchConditionDTO condition = RecruitmentSearchConditionDTO.builder()
+                .keyword("")
+                .build();
+
+        int page = 0;
+        List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 40);
+
+        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
+            .thenReturn(expectedPage);
+
+        // When
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
+
+        // Then
+        assertEquals(expectedPage.getContent(), result.getContent());
+        verify(recruitmentRepository).findBySearchConditions(
+            argThat(cond -> cond.getKeyword() == null),
+            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 40)
+        );
+    }
+
+    @Test
+    @DisplayName("키워드와 다른 조건으로 채용 공고 필터링 테스트")
+    void listRecruitments_WithKeywordAndOtherConditions_ShouldFilterCorrectly() {
+        // Given
+        String keyword = "개발자";
+        RecruitmentSearchConditionDTO condition = RecruitmentSearchConditionDTO.builder()
+                .keyword(keyword)
+                .salaryMin(3000)
+                .salaryMax(5000)
+                .experienceMin(3)
+                .experienceMax(7)
+                .education(4)
+                .techStacks(List.of(1L, 2L))
+                .build();
+
+        int page = 0;
+        List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 40);
+
+        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
+            .thenReturn(expectedPage);
+
+        // When
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
+
+        // Then
+        assertEquals(expectedPage.getContent(), result.getContent());
+        verify(recruitmentRepository).findBySearchConditions(
+            argThat(cond -> 
+                keyword.equals(cond.getKeyword()) && 
+                cond.getSalaryMin() == 3000 &&
+                cond.getSalaryMax() == 5000 &&
+                cond.getExperienceMin() == 3 &&
+                cond.getExperienceMax() == 7 &&
+                cond.getEducation() == 4 &&
+                cond.getTechStackCount() == 2L
+            ),
+            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 40)
+        );
+    }
+
+    @Test
     @DisplayName("채용 공고 필터 옵션 조회 테스트")
     void getFilterOptions_ShouldReturnAllFilterOptions() throws Exception {
         // Given
