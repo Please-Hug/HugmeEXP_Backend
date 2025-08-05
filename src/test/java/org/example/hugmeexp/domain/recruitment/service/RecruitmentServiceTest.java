@@ -24,6 +24,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
@@ -204,18 +206,22 @@ public class RecruitmentServiceTest {
                 .bottomRightLng(new BigDecimal("127.0"))
                 .build();
 
-        List<RecruitmentResponseDTO> expectedResult = createMockResponseList();
-        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class))).thenReturn(expectedResult);
+        int page = 0;
+        List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 40);
+
+        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
+            .thenReturn(expectedPage);
 
         // When
-        List<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition);
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
 
         // Then
-        assertEquals(expectedResult, result);
-        verify(recruitmentRepository).findBySearchConditions(argThat(cond ->
-            cond.getTechStackCount() == 2L &&
-            cond.getTagCount() == 2L
-        ));
+        assertEquals(expectedPage.getContent(), result.getContent());
+        verify(recruitmentRepository).findBySearchConditions(
+            argThat(cond -> cond.getTechStackCount() == 2L && cond.getTagCount() == 2L),
+            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 40)
+        );
     }
 
     @Test
@@ -224,15 +230,22 @@ public class RecruitmentServiceTest {
         // Given
         RecruitmentSearchConditionDTO condition = RecruitmentSearchConditionDTO.builder().build();
 
-        List<RecruitmentResponseDTO> expectedResult = createMockResponseList();
-        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class))).thenReturn(expectedResult);
+        int page = 0;
+        List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 40);
+
+        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
+            .thenReturn(expectedPage);
 
         // When
-        List<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition);
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
 
         // Then
-        assertEquals(expectedResult, result);
-        verify(recruitmentRepository).findBySearchConditions(any(RecruitmentSearchConditionDTO.class));
+        assertEquals(expectedPage.getContent(), result.getContent());
+        verify(recruitmentRepository).findBySearchConditions(
+            any(RecruitmentSearchConditionDTO.class),
+            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 40)
+        );
     }
 
     @Test
@@ -246,15 +259,22 @@ public class RecruitmentServiceTest {
                 .experienceMax(5)
                 .build();
 
-        List<RecruitmentResponseDTO> expectedResult = createMockResponseList();
-        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class))).thenReturn(expectedResult);
+        int page = 0;
+        List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 40);
+
+        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
+            .thenReturn(expectedPage);
 
         // When
-        List<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition);
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
 
         // Then
-        assertEquals(expectedResult, result);
-        verify(recruitmentRepository).findBySearchConditions(any(RecruitmentSearchConditionDTO.class));
+        assertEquals(expectedPage.getContent(), result.getContent());
+        verify(recruitmentRepository).findBySearchConditions(
+            any(RecruitmentSearchConditionDTO.class),
+            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 40)
+        );
     }
 
     @Test
@@ -270,18 +290,22 @@ public class RecruitmentServiceTest {
                 .tags(null)
                 .build();
 
-        List<RecruitmentResponseDTO> expectedResult = createMockResponseList();
-        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class))).thenReturn(expectedResult);
+        int page = 0;
+        List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 40);
+
+        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
+            .thenReturn(expectedPage);
 
         // When
-        List<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition);
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
 
         // Then
-        assertEquals(expectedResult, result);
-        verify(recruitmentRepository).findBySearchConditions(argThat(cond ->
-            cond.getTechStackCount() == null &&
-            cond.getTagCount() == null
-        ));
+        assertEquals(expectedPage.getContent(), result.getContent());
+        verify(recruitmentRepository).findBySearchConditions(
+            argThat(cond -> cond.getTechStackCount() == null && cond.getTagCount() == null),
+            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 40)
+        );
     }
 
     @Test
@@ -293,18 +317,22 @@ public class RecruitmentServiceTest {
                 .tags(List.of())
                 .build();
 
-        List<RecruitmentResponseDTO> expectedResult = createMockResponseList();
-        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class))).thenReturn(expectedResult);
+        int page = 0;
+        List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 40);
+
+        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
+            .thenReturn(expectedPage);
 
         // When
-        List<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition);
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
 
         // Then
-        assertEquals(expectedResult, result);
-        verify(recruitmentRepository).findBySearchConditions(argThat(cond ->
-            cond.getTechStackCount() == null &&
-            cond.getTagCount() == null
-        ));
+        assertEquals(expectedPage.getContent(), result.getContent());
+        verify(recruitmentRepository).findBySearchConditions(
+            argThat(cond -> cond.getTechStackCount() == null && cond.getTagCount() == null),
+            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 40)
+        );
     }
 
     @Test
@@ -316,15 +344,22 @@ public class RecruitmentServiceTest {
                 .tags(null)
                 .build();
 
-        List<RecruitmentResponseDTO> expectedResult = createMockResponseList();
-        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class))).thenReturn(expectedResult);
+        int page = 0;
+        List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 40);
+
+        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
+            .thenReturn(expectedPage);
 
         // When
-        List<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition);
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
 
         // Then
-        assertEquals(expectedResult, result);
-        verify(recruitmentRepository).findBySearchConditions(any(RecruitmentSearchConditionDTO.class));
+        assertEquals(expectedPage.getContent(), result.getContent());
+        verify(recruitmentRepository).findBySearchConditions(
+            argThat(cond -> cond.getTechStackCount() == 3L && cond.getTagCount() == null),
+            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 40)
+        );
     }
 
     @Test
@@ -336,15 +371,236 @@ public class RecruitmentServiceTest {
                 .tags(List.of(1L, 2L))
                 .build();
 
-        List<RecruitmentResponseDTO> expectedResult = createMockResponseList();
-        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class))).thenReturn(expectedResult);
+        int page = 0;
+        List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 40);
+
+        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
+            .thenReturn(expectedPage);
 
         // When
-        List<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition);
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
 
         // Then
-        assertEquals(expectedResult, result);
-        verify(recruitmentRepository).findBySearchConditions(any(RecruitmentSearchConditionDTO.class));
+        assertEquals(expectedPage.getContent(), result.getContent());
+        verify(recruitmentRepository).findBySearchConditions(
+            argThat(cond -> cond.getTechStackCount() == null && cond.getTagCount() == 2L),
+            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 40)
+        );
+    }
+
+    @Test
+    @DisplayName("채용 공고 목록 조회 - 페이지네이션 테스트 (40개 항목)")
+    void listRecruitments_ShouldReturnPageWith40Items() {
+        // Given
+        RecruitmentSearchConditionDTO condition = RecruitmentSearchConditionDTO.builder().build();
+        int page = 0;
+
+        // 50개의 아이템을 생성 (40개만 반환되어야 함)
+        List<RecruitmentResponseDTO> mockItems = new ArrayList<>();
+        for (int i = 1; i <= 50; i++) {
+            mockItems.add(new RecruitmentResponseDTO(
+                (long) i, "test::" + i, "개발자 모집 " + i, "회사 " + i, "image_" + i + ".jpg",
+                LocalDateTime.now().plusDays(30), // 만료되지 않은 공고
+                2, 5, "서울시", new BigDecimal("37.5"), new BigDecimal("127.0"),
+                LocalDateTime.now().minusDays(i) // 최신순으로 정렬되도록 설정
+            ));
+        }
+
+        // 첫 페이지에는 40개의 아이템만 포함되어야 함
+        Page<RecruitmentResponseDTO> mockPage = new PageImpl<>(
+            mockItems.subList(0, 40), 
+            PageRequest.of(page, 40), 
+            mockItems.size()
+        );
+
+        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
+            .thenReturn(mockPage);
+
+        // When
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
+
+        // Then
+        assertEquals(40, result.getContent().size()); // 페이지당 40개 항목
+        assertEquals(50, result.getTotalElements()); // 전체 50개 항목
+        assertEquals(2, result.getTotalPages()); // 총 2페이지 (40 + 10)
+        verify(recruitmentRepository).findBySearchConditions(
+            any(RecruitmentSearchConditionDTO.class),
+            argThat(pageable -> pageable.getPageSize() == 40)
+        );
+    }
+
+    @Test
+    @DisplayName("채용 공고 목록 조회 - 최신순 정렬 테스트")
+    void listRecruitments_ShouldReturnSortedByModifiedAtDesc() {
+        // Given
+        RecruitmentSearchConditionDTO condition = RecruitmentSearchConditionDTO.builder().build();
+        int page = 0;
+
+        // 여러 날짜의 수정일을 가진 아이템 생성
+        List<RecruitmentResponseDTO> mockItems = new ArrayList<>();
+        for (int i = 1; i <= 10; i++) {
+            mockItems.add(new RecruitmentResponseDTO(
+                (long) i, "test::" + i, "개발자 모집 " + i, "회사 " + i, "image_" + i + ".jpg",
+                LocalDateTime.now().plusDays(30),
+                2, 5, "서울시", new BigDecimal("37.5"), new BigDecimal("127.0"),
+                LocalDateTime.now().minusDays(i) // 최신순으로 정렬되도록 설정
+            ));
+        }
+
+        Page<RecruitmentResponseDTO> mockPage = createMockResponsePage(mockItems, page, 40);
+        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
+            .thenReturn(mockPage);
+
+        // When
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
+
+        // Then
+        List<RecruitmentResponseDTO> content = result.getContent();
+
+        // 결과가 수정일 기준 내림차순으로 정렬되어 있는지 확인
+        for (int i = 0; i < content.size() - 1; i++) {
+            LocalDateTime current = content.get(i).getModifiedAt();
+            LocalDateTime next = content.get(i + 1).getModifiedAt();
+            assertTrue(current.isAfter(next) || current.isEqual(next), 
+                    "결과는 수정일 기준 내림차순으로 정렬되어야 합니다");
+        }
+    }
+
+    @Test
+    @DisplayName("채용 공고 목록 조회 - 만료된 공고 제외 테스트")
+    void listRecruitments_ShouldExcludeExpiredRecruitments() {
+        // Given
+        RecruitmentSearchConditionDTO condition = RecruitmentSearchConditionDTO.builder().build();
+        int page = 0;
+
+        // 만료된 공고와 유효한 공고를 모두 포함하는 목록 생성
+        List<RecruitmentResponseDTO> allItems = new ArrayList<>();
+
+        // 만료된 공고 (dueDate가 현재보다 이전)
+        for (int i = 1; i <= 5; i++) {
+            allItems.add(new RecruitmentResponseDTO(
+                (long) i, "expired::" + i, "만료된 공고 " + i, "회사 " + i, "image_" + i + ".jpg",
+                LocalDateTime.now().minusDays(i), // 만료된 공고
+                2, 5, "서울시", new BigDecimal("37.5"), new BigDecimal("127.0"),
+                LocalDateTime.now().minusDays(30)
+            ));
+        }
+
+        // 유효한 공고 (dueDate가 현재보다 이후)
+        List<RecruitmentResponseDTO> validItems = new ArrayList<>();
+        for (int i = 6; i <= 10; i++) {
+            RecruitmentResponseDTO validItem = new RecruitmentResponseDTO(
+                (long) i, "valid::" + i, "유효한 공고 " + i, "회사 " + i, "image_" + i + ".jpg",
+                LocalDateTime.now().plusDays(i), // 유효한 공고
+                2, 5, "서울시", new BigDecimal("37.5"), new BigDecimal("127.0"),
+                LocalDateTime.now().minusDays(i)
+            );
+            allItems.add(validItem);
+            validItems.add(validItem);
+        }
+
+        // 레포지토리는 이미 만료된 공고를 필터링한 결과를 반환해야 함
+        Page<RecruitmentResponseDTO> mockPage = createMockResponsePage(validItems, page, 40);
+        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
+            .thenReturn(mockPage);
+
+        // When
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
+
+        // Then
+        assertEquals(5, result.getContent().size()); // 유효한 공고만 5개
+
+        // 모든 공고의 dueDate가 현재 시간 이후인지 확인
+        LocalDateTime now = LocalDateTime.now();
+        for (RecruitmentResponseDTO item : result.getContent()) {
+            assertTrue(item.getDueDate().isAfter(now), 
+                    "모든 공고는 현재 시간 이후의 dueDate를 가져야 합니다");
+            assertTrue(item.getRecruitmentSourceId().startsWith("valid::"), 
+                    "모든 공고는 유효한 공고여야 합니다");
+        }
+    }
+
+    @Test
+    @DisplayName("채용 공고 목록 조회 - 경력 범위 필터링 테스트")
+    void listRecruitments_ShouldFilterByExperienceRange() {
+        // Given
+        // 경력 범위 3-5년으로 검색 조건 설정
+        RecruitmentSearchConditionDTO condition = RecruitmentSearchConditionDTO.builder()
+                .experienceMin(3)
+                .experienceMax(5)
+                .build();
+        int page = 0;
+
+        // 다양한 경력 범위를 가진 공고 생성
+        List<RecruitmentResponseDTO> allItems = new ArrayList<>();
+
+        // 1. 경력 범위가 1-2년 (조건에 맞지 않음)
+        allItems.add(new RecruitmentResponseDTO(
+            1L, "exp::1", "경력 1-2년 공고", "회사 1", "image_1.jpg",
+            LocalDateTime.now().plusDays(30),
+            1, 2, "서울시", new BigDecimal("37.5"), new BigDecimal("127.0"),
+            LocalDateTime.now().minusDays(1)
+        ));
+
+        // 2. 경력 범위가 2-4년 (조건과 겹침 - 포함되어야 함)
+        RecruitmentResponseDTO overlapping1 = new RecruitmentResponseDTO(
+            2L, "exp::2", "경력 2-4년 공고", "회사 2", "image_2.jpg",
+            LocalDateTime.now().plusDays(30),
+            2, 4, "서울시", new BigDecimal("37.5"), new BigDecimal("127.0"),
+            LocalDateTime.now().minusDays(2)
+        );
+        allItems.add(overlapping1);
+
+        // 3. 경력 범위가 3-5년 (조건과 정확히 일치 - 포함되어야 함)
+        RecruitmentResponseDTO exact = new RecruitmentResponseDTO(
+            3L, "exp::3", "경력 3-5년 공고", "회사 3", "image_3.jpg",
+            LocalDateTime.now().plusDays(30),
+            3, 5, "서울시", new BigDecimal("37.5"), new BigDecimal("127.0"),
+            LocalDateTime.now().minusDays(3)
+        );
+        allItems.add(exact);
+
+        // 4. 경력 범위가 4-6년 (조건과 겹침 - 포함되어야 함)
+        RecruitmentResponseDTO overlapping2 = new RecruitmentResponseDTO(
+            4L, "exp::4", "경력 4-6년 공고", "회사 4", "image_4.jpg",
+            LocalDateTime.now().plusDays(30),
+            4, 6, "서울시", new BigDecimal("37.5"), new BigDecimal("127.0"),
+            LocalDateTime.now().minusDays(4)
+        );
+        allItems.add(overlapping2);
+
+        // 5. 경력 범위가 6-8년 (조건에 맞지 않음)
+        allItems.add(new RecruitmentResponseDTO(
+            5L, "exp::5", "경력 6-8년 공고", "회사 5", "image_5.jpg",
+            LocalDateTime.now().plusDays(30),
+            6, 8, "서울시", new BigDecimal("37.5"), new BigDecimal("127.0"),
+            LocalDateTime.now().minusDays(5)
+        ));
+
+        // 조건에 맞는 공고만 포함하는 리스트
+        List<RecruitmentResponseDTO> matchingItems = List.of(overlapping1, exact, overlapping2);
+
+        // 레포지토리는 이미 경력 범위로 필터링한 결과를 반환해야 함
+        Page<RecruitmentResponseDTO> mockPage = createMockResponsePage(matchingItems, page, 40);
+        when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
+            .thenReturn(mockPage);
+
+        // When
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
+
+        // Then
+        assertEquals(3, result.getContent().size()); // 조건에 맞는 공고 3개
+
+        // 모든 공고가 경력 범위 조건과 겹치는지 확인
+        for (RecruitmentResponseDTO item : result.getContent()) {
+            boolean rangeOverlaps = 
+                (item.getExperienceMax() >= condition.getExperienceMin() && 
+                 item.getExperienceMin() <= condition.getExperienceMax());
+
+            assertTrue(rangeOverlaps, 
+                    "모든 공고는 경력 범위 조건과 겹쳐야 합니다");
+        }
     }
 
     @Test
@@ -367,7 +623,7 @@ public class RecruitmentServiceTest {
             LocalDateTime current = result.get(i).getModifiedAt();
             LocalDateTime next = result.get(i + 1).getModifiedAt();
             assertTrue(current.isAfter(next) || current.isEqual(next), 
-                    "Results should be sorted by modifiedAt in descending order");
+                    "결과는 수정일 기준 내림차순으로 정렬되어야 합니다");
         }
     }
 
@@ -392,6 +648,11 @@ public class RecruitmentServiceTest {
         ));
 
         return responses;
+    }
+
+    // 테스트용 Page 객체 생성 헬퍼 메소드
+    private Page<RecruitmentResponseDTO> createMockResponsePage(List<RecruitmentResponseDTO> content, int page, int size) {
+        return new PageImpl<>(content, PageRequest.of(page, size), content.size());
     }
 
     // 수정일 기준 내림차순으로 정렬된 테스트용 응답 DTO 리스트 생성 헬퍼 메소드
