@@ -11,12 +11,13 @@ import org.example.hugmeexp.domain.studyRoom.exception.LocationServiceException;
 import org.example.hugmeexp.domain.studyRoom.exception.StudyHallNotFoundException;
 import org.example.hugmeexp.domain.studyRoom.projection.StudyHallWithDistanceProjection;
 import org.example.hugmeexp.domain.studyRoom.repository.StudyHallRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -73,6 +74,7 @@ public class StudyHallService {
     /**
      * 특정 ID로 스터디 홀을 조회합니다.
      */
+    @Cacheable(value = "studyHalls", key = "#studyHallId")
     public StudyHall findStudyHallById(Long studyHallId) {
         return studyHallRepository.findByIdAndIsDeletedFalse(studyHallId)
                 .orElseThrow(() -> new StudyHallNotFoundException(studyHallId));
@@ -82,6 +84,7 @@ public class StudyHallService {
      * 특정 스터디 홀의 정보를 수정합니다.
      */
     @Transactional
+    @CacheEvict(value = "studyHalls", key = "#studyHallId")
     public StudyHall updateStudyHall(Long studyHallId, StudyHallRequest requestDto) {
         StudyHall studyHall = findStudyHallById(studyHallId);
         studyHall.update(requestDto);
@@ -92,6 +95,7 @@ public class StudyHallService {
      * 특정 스터디 홀을 삭제합니다.
      */
     @Transactional
+    @CacheEvict(value = "studyHalls", key = "#studyHallId")
     public void deleteStudyHall(Long studyHallId) {
         StudyHall studyHall = findStudyHallById(studyHallId);
         studyHall.delete();

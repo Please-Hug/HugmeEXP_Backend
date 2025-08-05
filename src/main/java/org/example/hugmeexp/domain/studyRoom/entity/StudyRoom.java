@@ -1,5 +1,6 @@
 package org.example.hugmeexp.domain.studyRoom.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.hugmeexp.domain.studyRoom.dto.request.StudyRoomRequest;
@@ -9,6 +10,7 @@ import java.util.Optional;
 
 @Getter
 @Entity
+@Table(name = "study_room", indexes = @Index(name = "idx_study_room_is_deleted", columnList = "isDeleted"))
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -30,6 +32,7 @@ public class StudyRoom extends BaseEntity {
     private String thumbnail;
 
     @Builder.Default
+    @JsonProperty("isDeleted")
     private boolean isDeleted = false;
 
     // 스터디 룸 정보 수정 메서드
