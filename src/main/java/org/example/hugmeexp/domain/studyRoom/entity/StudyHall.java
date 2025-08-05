@@ -1,9 +1,11 @@
 package org.example.hugmeexp.domain.studyRoom.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.hugmeexp.domain.studyRoom.dto.request.StudyHallRequest;
 import org.example.hugmeexp.global.entity.BaseEntity;
+import org.hibernate.annotations.BatchSize;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,6 +13,7 @@ import java.util.Optional;
 
 @Getter
 @Entity
+@Table(name = "study_hall", indexes = @Index(name = "idx_study_hall_is_deleted", columnList = "isDeleted"))
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -39,9 +42,11 @@ public class StudyHall extends BaseEntity {
 
     private LocalDateTime closeTime;
 
+    @BatchSize(size = 100)
     @OneToMany(mappedBy = "studyHall", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StudyRoom> studyRooms;
 
+    @JsonProperty("isDeleted")
     private boolean isDeleted = false;
 
     public void update(StudyHallRequest requestDto) {
