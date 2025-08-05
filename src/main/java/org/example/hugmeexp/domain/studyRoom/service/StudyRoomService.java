@@ -129,11 +129,9 @@ public class StudyRoomService {
     /**
      * 특정 스터디룸의 예약 가능한 시간대 조회
      */
-    public List<TimeSlotResponse> getAvailableTimeSlots(Long studyRoomId, String dateStr) {
+    public List<TimeSlotResponse> getAvailableTimeSlots(Long studyRoomId, LocalDate date) {
         StudyRoom studyRoom = studyRoomRepository.findByIdAndIsDeletedFalse(studyRoomId)
                 .orElseThrow(() -> new StudyRoomNotFoundException(studyRoomId));
-
-        LocalDate date = LocalDate.parse(dateStr);
 
         StudyHall studyHall = studyRoom.getStudyHall();
         LocalTime openTime = studyHall.getOpenTime() != null ? studyHall.getOpenTime() : LocalTime.of(9, 0);

@@ -18,6 +18,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Tag(name = "StudyRoom", description = "스터디룸 관련 API")
@@ -152,7 +153,7 @@ public class StudyRoomMapController {
     public ResponseEntity<Response<List<TimeSlotResponse>>> getAvailableTimeSlots(
             @Parameter(description = "스터디룸 ID", required = true) @PathVariable Long studyRoomId,
             @Parameter(description = "조회할 날짜 (yyyy-MM-dd)", required = true)
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") String date) {
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
 
         List<TimeSlotResponse> availableSlots = studyRoomService.getAvailableTimeSlots(studyRoomId, date);
 

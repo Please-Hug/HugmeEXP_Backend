@@ -9,6 +9,7 @@ import org.example.hugmeexp.domain.studyRoom.entity.Location;
 import org.example.hugmeexp.domain.studyRoom.entity.StudyHall;
 import org.example.hugmeexp.domain.studyRoom.exception.LocationServiceException;
 import org.example.hugmeexp.domain.studyRoom.exception.StudyHallNotFoundException;
+import org.example.hugmeexp.domain.studyRoom.projection.StudyHallWithDistanceProjection;
 import org.example.hugmeexp.domain.studyRoom.repository.StudyHallRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -113,8 +115,8 @@ public class StudyHallService {
                 request.getLatitude(), request.getLongitude(), request.getRadius());
 
         // 사각형 영역 계산 (성능 최적화용)
-        double kmPerDegreeLat = 111.0; // 위도 1도당 약 111km
-        double kmPerDegreeLng = 111.0 * Math.cos(Math.toRadians(request.getLatitude())); // 경도는 위도에 따라 변함
+        double kmPerDegreeLat = 111.0;
+        double kmPerDegreeLng = 111.0 * Math.cos(Math.toRadians(request.getLatitude()));
 
         double deltaLat = request.getRadius() / kmPerDegreeLat;
         double deltaLng = request.getRadius() / kmPerDegreeLng;
@@ -124,8 +126,8 @@ public class StudyHallService {
         double minLng = request.getLongitude() - deltaLng;
         double maxLng = request.getLongitude() + deltaLng;
 
-        // 최적화된 Native Query 사용
-        List<Object[]> results = studyHallRepository.findNearbyStudyHallsOptimized(
+        // Interface Projection 사용
+        List<StudyHallWithDistanceProjection> projections = studyHallRepository.findNearbyStudyHallsWithProjection(
                 request.getLatitude(),
                 request.getLongitude(),
                 minLat, maxLat, minLng, maxLng,
@@ -133,20 +135,10 @@ public class StudyHallService {
                 request.getLimit()
         );
 
-        List<StudyHallLocationResponse> responses = new ArrayList<>();
-
-        for (Object[] result : results) {
-            try {
-                StudyHall studyHall = mapResultToStudyHall(result);
-                Double distance = ((Number) result[result.length - 1]).doubleValue();
-
-                StudyHallLocationResponse response = StudyHallLocationResponse.from(studyHall, distance);
-                responses.add(response);
-
-            } catch (Exception e) {
-                log.error("Error mapping study hall result", e);
-            }
-        }
+        // Projection을 Response DTO로 변환
+        List<StudyHallLocationResponse> responses = projections.stream()
+                .map(this::convertProjectionToResponse)
+                .collect(Collectors.toList());
 
         log.info("Found {} nearby study halls", responses.size());
         return responses;
@@ -210,25 +202,23 @@ public class StudyHallService {
     }
 
     /**
-     * Native query 결과를 StudyHall 엔티티로 매핑
+     * Native Query 결과(Interface Projection) → Response DTO로 변환
      */
-    private StudyHall mapResultToStudyHall(Object[] result) {
-        // Location 객체 생성
-        Location location = Location.of(
-                (Double) result[6],  // latitude
-                (Double) result[7],  // longitude
-                (String) result[3],  // address
-                (String) result[10]  // simpleAddress
-        );
-
-        return StudyHall.builder()
-                .id(((Number) result[0]).longValue())
-                .name((String) result[8])
-                .description((String) result[5])
-                .location(location)
-                .thumbnail((String) result[11])
-                .openTime(result[9] != null ? ((java.sql.Time) result[9]).toLocalTime() : null)
-                .closeTime(result[4] != null ? ((java.sql.Time) result[4]).toLocalTime() : null)
+    private StudyHallLocationResponse convertProjectionToResponse(StudyHallWithDistanceProjection projection) {
+        return StudyHallLocationResponse.builder()
+                .id(projection.getId())
+                .name(projection.getName())
+                .description(projection.getDescription())
+                .simpleAddress(projection.getSimpleAddress())
+                .address(projection.getAddress())
+                .latitude(projection.getLatitude())
+                .longitude(projection.getLongitude())
+                .thumbnail(projection.getThumbnail())
+                .openTime(projection.getOpenTime())
+                .closeTime(projection.getCloseTime())
+                .distance(projection.getDistance())
+                .totalRooms(0) // 기본값, 필요시 별도 조회
+                .availableRooms(0) // 기본값, 필요시 별도 조회
                 .build();
     }
 }

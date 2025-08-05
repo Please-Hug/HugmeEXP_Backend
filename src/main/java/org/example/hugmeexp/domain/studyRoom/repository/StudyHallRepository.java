@@ -1,6 +1,7 @@
 package org.example.hugmeexp.domain.studyRoom.repository;
 
 import org.example.hugmeexp.domain.studyRoom.entity.StudyHall;
+import org.example.hugmeexp.domain.studyRoom.projection.StudyHallWithDistanceProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,32 +26,39 @@ public interface StudyHallRepository extends JpaRepository<StudyHall, Long> {
     Optional<StudyHall> findByIdAndIsDeletedFalse(Long id);
 
     /**
-     * 성능 최적화된 주변 스터디홀 검색
+     * 주변 스터디홀 검색, 인덱스 하드코딩을 피하기 위해 jpql의 constructor expression을 사용하여 DTO로 반환
      */
     @Query(value = """
-        SELECT * FROM (
-            SELECT sh.*, 
-                   (6371 * ACOS(
-                       GREATEST(-1, LEAST(1,
-                           COS(RADIANS(:latitude)) * 
-                           COS(RADIANS(sh.latitude)) * 
-                           COS(RADIANS(sh.longitude) - RADIANS(:longitude)) + 
-                           SIN(RADIANS(:latitude)) * 
-                           SIN(RADIANS(sh.latitude))
-                       ))
-                   )) as distance_km
-            FROM study_hall sh 
-            WHERE sh.latitude BETWEEN :minLat AND :maxLat
-              AND sh.longitude BETWEEN :minLng AND :maxLng
-              AND sh.latitude IS NOT NULL 
-              AND sh.longitude IS NOT NULL
-              AND sh.is_deleted = false
-        ) t
-        WHERE t.distance_km <= :radiusInKm
-        ORDER BY t.distance_km ASC
-        LIMIT :limit
-        """, nativeQuery = true)
-    List<Object[]> findNearbyStudyHallsOptimized(
+    SELECT sh.studyhall_id as id,
+           sh.name as name,
+           sh.description as description,
+           sh.latitude as latitude,
+           sh.longitude as longitude,
+           sh.address as address,
+           sh.simple_address as simpleAddress,
+           sh.thumbnail_url as thumbnail,
+           sh.open_time as openTime,
+           sh.close_time as closeTime,
+           (6371 * ACOS(
+               GREATEST(-1, LEAST(1,
+                   COS(RADIANS(:latitude)) * 
+                   COS(RADIANS(sh.latitude)) * 
+                   COS(RADIANS(sh.longitude) - RADIANS(:longitude)) + 
+                   SIN(RADIANS(:latitude)) * 
+                   SIN(RADIANS(sh.latitude))
+               ))
+           )) as distance
+    FROM study_hall sh 
+    WHERE sh.latitude BETWEEN :minLat AND :maxLat
+      AND sh.longitude BETWEEN :minLng AND :maxLng
+      AND sh.latitude IS NOT NULL 
+      AND sh.longitude IS NOT NULL
+      AND sh.is_deleted = false
+    HAVING distance <= :radiusInKm
+    ORDER BY distance ASC
+    LIMIT :limit
+    """, nativeQuery = true)
+    List<StudyHallWithDistanceProjection> findNearbyStudyHallsWithProjection(
             @Param("latitude") Double latitude,
             @Param("longitude") Double longitude,
             @Param("minLat") Double minLat,
