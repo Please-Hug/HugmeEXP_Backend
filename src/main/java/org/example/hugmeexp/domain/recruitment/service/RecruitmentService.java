@@ -69,7 +69,7 @@ public class RecruitmentService {
                 .keyword((cond.getKeyword() == null || cond.getKeyword().isBlank()) ? null : cond.getKeyword())
                 .build();
 
-        Pageable pageable = PageRequest.of(page, 40);
+        Pageable pageable = PageRequest.of(page, 80);
 
         return recruitmentRepository.findBySearchConditions(enrichedCond, pageable);
     }

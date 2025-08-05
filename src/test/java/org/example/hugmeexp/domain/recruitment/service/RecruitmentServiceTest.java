@@ -208,7 +208,7 @@ public class RecruitmentServiceTest {
 
         int page = 0;
         List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
-        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 40);
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 80);
 
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(expectedPage);
@@ -220,7 +220,7 @@ public class RecruitmentServiceTest {
         assertEquals(expectedPage.getContent(), result.getContent());
         verify(recruitmentRepository).findBySearchConditions(
             argThat(cond -> cond.getTechStackCount() == 2L && cond.getTagCount() == 2L),
-            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 40)
+            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 80)
         );
     }
 
@@ -232,7 +232,7 @@ public class RecruitmentServiceTest {
 
         int page = 0;
         List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
-        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 40);
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 80);
 
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(expectedPage);
@@ -244,7 +244,7 @@ public class RecruitmentServiceTest {
         assertEquals(expectedPage.getContent(), result.getContent());
         verify(recruitmentRepository).findBySearchConditions(
             any(RecruitmentSearchConditionDTO.class),
-            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 40)
+            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 80)
         );
     }
 
@@ -261,7 +261,7 @@ public class RecruitmentServiceTest {
 
         int page = 0;
         List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
-        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 40);
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 80);
 
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(expectedPage);
@@ -273,7 +273,7 @@ public class RecruitmentServiceTest {
         assertEquals(expectedPage.getContent(), result.getContent());
         verify(recruitmentRepository).findBySearchConditions(
             any(RecruitmentSearchConditionDTO.class),
-            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 40)
+            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 80)
         );
     }
 
@@ -292,7 +292,7 @@ public class RecruitmentServiceTest {
 
         int page = 0;
         List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
-        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 40);
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 80);
 
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(expectedPage);
@@ -304,7 +304,7 @@ public class RecruitmentServiceTest {
         assertEquals(expectedPage.getContent(), result.getContent());
         verify(recruitmentRepository).findBySearchConditions(
             argThat(cond -> cond.getTechStackCount() == null && cond.getTagCount() == null),
-            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 40)
+            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 80)
         );
     }
 
@@ -319,7 +319,7 @@ public class RecruitmentServiceTest {
 
         int page = 0;
         List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
-        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 40);
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 80);
 
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(expectedPage);
@@ -331,7 +331,7 @@ public class RecruitmentServiceTest {
         assertEquals(expectedPage.getContent(), result.getContent());
         verify(recruitmentRepository).findBySearchConditions(
             argThat(cond -> cond.getTechStackCount() == null && cond.getTagCount() == null),
-            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 40)
+            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 80)
         );
     }
 
@@ -346,7 +346,7 @@ public class RecruitmentServiceTest {
 
         int page = 0;
         List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
-        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 40);
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 80);
 
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(expectedPage);
@@ -358,7 +358,7 @@ public class RecruitmentServiceTest {
         assertEquals(expectedPage.getContent(), result.getContent());
         verify(recruitmentRepository).findBySearchConditions(
             argThat(cond -> cond.getTechStackCount() == 3L && cond.getTagCount() == null),
-            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 40)
+            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 80)
         );
     }
 
@@ -373,7 +373,7 @@ public class RecruitmentServiceTest {
 
         int page = 0;
         List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
-        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 40);
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 80);
 
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(expectedPage);
@@ -385,18 +385,18 @@ public class RecruitmentServiceTest {
         assertEquals(expectedPage.getContent(), result.getContent());
         verify(recruitmentRepository).findBySearchConditions(
             argThat(cond -> cond.getTechStackCount() == null && cond.getTagCount() == 2L),
-            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 40)
+            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 80)
         );
     }
 
     @Test
-    @DisplayName("채용 공고 목록 조회 - 페이지네이션 테스트 (40개 항목)")
-    void listRecruitments_ShouldReturnPageWith40Items() {
+    @DisplayName("채용 공고 목록 조회 - 페이지네이션 테스트 (80 항목)")
+    void listRecruitments_ShouldReturnPageWith80Items() {
         // Given
         RecruitmentSearchConditionDTO condition = RecruitmentSearchConditionDTO.builder().build();
         int page = 0;
 
-        // 50개의 아이템을 생성 (40개만 반환되어야 함)
+        // 50개의 아이템을 생성 (80개만 반환되어야 함)
         List<RecruitmentResponseDTO> mockItems = new ArrayList<>();
         for (int i = 1; i <= 50; i++) {
             mockItems.add(new RecruitmentResponseDTO(
@@ -407,10 +407,10 @@ public class RecruitmentServiceTest {
             ));
         }
 
-        // 첫 페이지에는 40개의 아이템만 포함되어야 함
+        // 첫 페이지에는 80개의 아이템만 포함되어야 함
         Page<RecruitmentResponseDTO> mockPage = new PageImpl<>(
-            mockItems.subList(0, 40), 
-            PageRequest.of(page, 40), 
+            mockItems.subList(0, 80),
+            PageRequest.of(page, 80),
             mockItems.size()
         );
 
@@ -421,12 +421,12 @@ public class RecruitmentServiceTest {
         Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
 
         // Then
-        assertEquals(40, result.getContent().size()); // 페이지당 40개 항목
-        assertEquals(50, result.getTotalElements()); // 전체 50개 항목
-        assertEquals(2, result.getTotalPages()); // 총 2페이지 (40 + 10)
+        assertEquals(80, result.getContent().size()); // 페이지당 80개 항목
+        assertEquals(130, result.getTotalElements()); // 전체 130개 항목
+        assertEquals(2, result.getTotalPages()); // 총 2페이지 (80 + 10)
         verify(recruitmentRepository).findBySearchConditions(
             any(RecruitmentSearchConditionDTO.class),
-            argThat(pageable -> pageable.getPageSize() == 40)
+            argThat(pageable -> pageable.getPageSize() == 80)
         );
     }
 
@@ -448,7 +448,7 @@ public class RecruitmentServiceTest {
             ));
         }
 
-        Page<RecruitmentResponseDTO> mockPage = createMockResponsePage(mockItems, page, 40);
+        Page<RecruitmentResponseDTO> mockPage = createMockResponsePage(mockItems, page, 80);
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(mockPage);
 
@@ -501,7 +501,7 @@ public class RecruitmentServiceTest {
         }
 
         // 레포지토리는 이미 만료된 공고를 필터링한 결과를 반환해야 함
-        Page<RecruitmentResponseDTO> mockPage = createMockResponsePage(validItems, page, 40);
+        Page<RecruitmentResponseDTO> mockPage = createMockResponsePage(validItems, page, 80);
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(mockPage);
 
@@ -582,7 +582,7 @@ public class RecruitmentServiceTest {
         List<RecruitmentResponseDTO> matchingItems = List.of(overlapping1, exact, overlapping2);
 
         // 레포지토리는 이미 경력 범위로 필터링한 결과를 반환해야 함
-        Page<RecruitmentResponseDTO> mockPage = createMockResponsePage(matchingItems, page, 40);
+        Page<RecruitmentResponseDTO> mockPage = createMockResponsePage(matchingItems, page, 80);
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(mockPage);
 
@@ -1089,7 +1089,7 @@ public class RecruitmentServiceTest {
 
         int page = 0;
         List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
-        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 40);
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 80);
 
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(expectedPage);
@@ -1101,7 +1101,7 @@ public class RecruitmentServiceTest {
         assertEquals(expectedPage.getContent(), result.getContent());
         verify(recruitmentRepository).findBySearchConditions(
             argThat(cond -> keyword.equals(cond.getKeyword())),
-            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 40)
+            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 80)
         );
     }
 
@@ -1115,7 +1115,7 @@ public class RecruitmentServiceTest {
 
         int page = 0;
         List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
-        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 40);
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 80);
 
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(expectedPage);
@@ -1127,7 +1127,7 @@ public class RecruitmentServiceTest {
         assertEquals(expectedPage.getContent(), result.getContent());
         verify(recruitmentRepository).findBySearchConditions(
             argThat(cond -> cond.getKeyword() == null),
-            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 40)
+            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 80)
         );
     }
 
@@ -1148,7 +1148,7 @@ public class RecruitmentServiceTest {
 
         int page = 0;
         List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
-        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 40);
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 80);
 
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(expectedPage);
@@ -1168,7 +1168,7 @@ public class RecruitmentServiceTest {
                 cond.getEducation() == 4 &&
                 cond.getTechStackCount() == 2L
             ),
-            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 40)
+            argThat(pageable -> pageable.getPageNumber() == page && pageable.getPageSize() == 80)
         );
     }
 
