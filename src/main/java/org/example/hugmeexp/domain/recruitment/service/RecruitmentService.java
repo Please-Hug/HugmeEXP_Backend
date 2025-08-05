@@ -66,17 +66,34 @@ public class RecruitmentService {
      */
     public Page<RecruitmentResponseDTO> listRecruitments(RecruitmentSearchConditionDTO conditionDTO, int page) {
         // 페이지 설정 (40개씩)
-        Pageable pageable = createPageable(page);
+        Pageable pageable = PageRequest.of(page, 40, Sort.by(Sort.Direction.DESC, "modifiedAt"));
         
-        // 필터링된 ID 목록 조회 및 좌표 필터링 적용
-        List<Long> filteredIds = getFilteredIds(conditionDTO);
+        // techStacks와 tags 카운트 설정
+        setCountFields(conditionDTO);
         
-        if (filteredIds.isEmpty()) {
-            return Page.empty(pageable);
+        // 레포지토리에서 검색 조건에 맞는 결과 직접 조회
+        return recruitmentRepository.findBySearchConditions(conditionDTO, pageable);
+    }
+    
+    /**
+     * RecruitmentSearchConditionDTO의 techStackCount와 tagCount 필드를 설정합니다.
+     * 
+     * @param conditionDTO 검색 조건 DTO
+     */
+    private void setCountFields(RecruitmentSearchConditionDTO conditionDTO) {
+        // techStacks 카운트 설정
+        if (conditionDTO.getTechStacks() != null && !conditionDTO.getTechStacks().isEmpty()) {
+            conditionDTO.setTechStackCount((long) conditionDTO.getTechStacks().size());
+        } else {
+            conditionDTO.setTechStackCount(null);
         }
         
-        // 페이징 적용 및 결과 반환
-        return createPageResult(filteredIds, pageable);
+        // tags 카운트 설정
+        if (conditionDTO.getTags() != null && !conditionDTO.getTags().isEmpty()) {
+            conditionDTO.setTagCount((long) conditionDTO.getTags().size());
+        } else {
+            conditionDTO.setTagCount(null);
+        }
     }
     
     /**
