@@ -32,7 +32,14 @@ public class RecruitmentController {
 
     @Operation(
         summary = "채용 공고 목록 조회",
-        description = "조건에 따라 채용 공고 목록을 조회합니다",
+        description = """
+            채용 목록에서 사용할 수 있는 다양한 필터 조건에 따라 공고를 조회합니다.
+            
+            - 페이징: 한 페이지당 40개, page 파라미터는 0부터 시작
+            - 마감일이 지난 공고는 자동 제외됩니다
+            - 수정일(modifiedAt) 기준 최신순 정렬
+            - 경력 조건은 입력값과 겹치는 공고 전부 포함
+            """,
         responses = {
             @ApiResponse(
                 responseCode = "200",

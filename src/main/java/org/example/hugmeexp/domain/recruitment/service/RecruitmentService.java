@@ -56,10 +56,11 @@ public class RecruitmentService {
 
     /**
      * 채용 공고 목록을 조회합니다.
-     * 검색 조건에 따라 필터링된 채용 공고 목록을 반환합니다.
+     * 검색 조건에 따라 필터링된 채용 공고를 페이지 단위로 반환합니다.
      *
      * @param cond 검색 조건 DTO
-     * @return 채용 공고 목록
+     * @param page 페이지 번호 (0부터 시작)
+     * @return 필터링된 채용 공고 목록 (RecruitmentResponseDTO)
      */
     public Page<RecruitmentResponseDTO> listRecruitments(RecruitmentSearchConditionDTO cond, int page) {
         RecruitmentSearchConditionDTO enrichedCond = cond.toBuilder()
