@@ -158,12 +158,12 @@ public class RecruitmentService {
     @Transactional
     public RecruitmentResponseDTO createOrUpdateRecruitment(RecruitmentRequestDTO requestDTO) {
         // 태그 및 기술 스택의 중복 제거 및 정렬
-        Set<TagRequestDTO> uniqueTags = new TreeSet<>(Comparator.comparing(TagRequestDTO::getTagName));
+        Set<TagRequestDTO> uniqueTags = new TreeSet<>();
         if (requestDTO.getTags() != null) {
             uniqueTags.addAll(requestDTO.getTags());
         }
         requestDTO.setTags(new ArrayList<>(uniqueTags));
-        Set<TechItemRequestDTO> uniqueTechItems = new TreeSet<>(Comparator.comparing(TechItemRequestDTO::getEnglishName));
+        Set<TechItemRequestDTO> uniqueTechItems = new TreeSet<>();
         if (requestDTO.getRequiredSkills() != null) {
             uniqueTechItems.addAll(requestDTO.getRequiredSkills());
         }
@@ -173,12 +173,12 @@ public class RecruitmentService {
         // 이미 존재한다면 업데이트
         Recruitment recruitment = existingRecruitment
                 .map((existing) -> updateRecruitment(existing, requestDTO))
-                .orElseGet(() -> createRecruitment(requestDTO));
+                .orElseGet(() -> createRecruitment(requestDTO, uniqueTags, uniqueTechItems));
 
         return RecruitmentResponseDTO.from(recruitment);
     }
 
-    private Recruitment createRecruitment(RecruitmentRequestDTO requestDTO) {
+    private Recruitment createRecruitment(RecruitmentRequestDTO requestDTO, Set<TagRequestDTO> uniqueTags, Set<TechItemRequestDTO> uniqueTechItems) {
         // Company를 먼저 저장 (transient 문제 해결)
         //Company savedCompany = companyRepository.save(requestDTO.getCompany().toEntity());
         Company company = requestDTO.getCompany().toEntity();
@@ -193,10 +193,10 @@ public class RecruitmentService {
         recruitment = recruitmentRepository.save(recruitment);
 
         // 기술 스택 처리를 별도 메서드로 분리
-        processTechStacks(recruitment, new HashSet<>(requestDTO.getRequiredSkills()));
+        processTechStacks(recruitment, uniqueTechItems);
 
         // 태그 처리 추가
-        processTags(recruitment, new HashSet<>(requestDTO.getTags()));
+        processTags(recruitment, uniqueTags);
 
         return recruitment;
     }
@@ -365,6 +365,7 @@ public class RecruitmentService {
 
             tagRepository.deleteAllByIdInBatch(tagIdsToRemove);
             tagsToRemove.forEach(recruitment.getTags()::remove);
+            recruitment.getTags().removeAll(tagsToRemove);
         }
 
         // 추가할 태그 생성

@@ -25,8 +25,7 @@ public class CompanyRequestDTO {
     private BigDecimal latitude;
 
     private BigDecimal longitude;
-
-    //@PastOrPresent(message = "설립일은 현재 날짜 이전이어야 합니다")
+    
     private LocalDate establishmentDate;
 
     @Size(max = 1000, message = "회사 이미지 URL은 1000자를 초과할 수 없습니다")

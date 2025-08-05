@@ -9,6 +9,7 @@ import org.example.hugmeexp.domain.recruitment.entity.Recruitment;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @AllArgsConstructor
@@ -59,7 +60,7 @@ public class RecruitmentDetailResponseDTO {
                                 .labelEn(ts.getTechItem().getEnglishName())
                                 .iconUrl(ts.getTechItem().getIconUrl())
                                 .build())
-                        .toList())
+                        .collect(Collectors.toSet()).stream().toList())
                 .advantage(recruitment.getAdvantage())
                 .qualifications(recruitment.getQualification())
                 .welfare(recruitment.getWelfare())
@@ -69,7 +70,7 @@ public class RecruitmentDetailResponseDTO {
                                     .id(tag.getTagItem().getId())
                                     .tagName(tag.getTagItem().getTagName())
                                     .build())
-                            .toList())
+                        .collect(Collectors.toSet()).stream().toList())
                 .recruitmentSourceId(recruitment.getRecruitmentSourceId())
                 .build();
     }
