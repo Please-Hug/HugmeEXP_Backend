@@ -6,7 +6,6 @@ import lombok.*;
 import org.example.hugmeexp.domain.studyRoom.dto.request.StudyRoomRequest;
 import org.example.hugmeexp.global.entity.BaseEntity;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Getter
@@ -32,6 +31,7 @@ public class StudyRoom extends BaseEntity {
 
     private String thumbnail;
 
+    @Builder.Default
     @JsonProperty("isDeleted")
     private boolean isDeleted = false;
 

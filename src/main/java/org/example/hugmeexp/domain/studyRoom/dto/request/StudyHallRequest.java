@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 /**
  * 스터디 홀 생성을 위한 요청 데이터를 담는 DTO 입니다.
@@ -40,8 +40,8 @@ public class StudyHallRequest {
     private String thumbnail;
 
     @NotNull(message = "오픈 시간은 필수입니다.")
-    private LocalDateTime openTime;
+    private LocalTime openTime;
 
     @NotNull(message = "마감 시간은 필수입니다.")
-    private LocalDateTime closeTime;
+    private LocalTime closeTime;
 }
