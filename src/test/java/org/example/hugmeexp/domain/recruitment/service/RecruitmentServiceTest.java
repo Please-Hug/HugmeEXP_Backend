@@ -582,15 +582,15 @@ public class RecruitmentServiceTest {
         // 기술 스택 검증
         assertEquals(2, result.getTechStacks().size());
 
-        TechStackDTO techStackDTO1 = result.getTechStacks().get(0);
-        assertEquals("자바", techStackDTO1.getLabelKo());
-        assertEquals("Java", techStackDTO1.getLabelEn());
-        assertEquals("java_icon.png", techStackDTO1.getIconUrl());
-
-        TechStackDTO techStackDTO2 = result.getTechStacks().get(1);
+        TechStackDTO techStackDTO2 = result.getTechStacks().get(0);
         assertEquals("스프링", techStackDTO2.getLabelKo());
         assertEquals("Spring", techStackDTO2.getLabelEn());
         assertEquals("spring_icon.png", techStackDTO2.getIconUrl());
+
+        TechStackDTO techStackDTO1 = result.getTechStacks().get(1);
+        assertEquals("자바", techStackDTO1.getLabelKo());
+        assertEquals("Java", techStackDTO1.getLabelEn());
+        assertEquals("java_icon.png", techStackDTO1.getIconUrl());
 
         // Repository 호출 검증
         verify(recruitmentRepository).findDetailById(recruitmentId);
