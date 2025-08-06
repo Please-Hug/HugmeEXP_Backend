@@ -35,15 +35,11 @@ public class StudyHallSearchService {
     private final RedisAutoCompleteService autoCompleteService;
 
     /**
-     * Redis Geo를 활용한 위치 기반 검색 (기존 대비 5-10배 빠름)
+     * Redis Geo를 활용한 위치 기반 검색 (성능 측정 제거)
      */
     @Cacheable(value = "nearbyHallsRedis", key = "#request.toString()", unless = "#result.isEmpty()")
     public List<StudyHallLocationResponse> searchNearbyStudyHallsWithRedis(StudyHallSearchRequest request) {
-        log.info("Redis Geo 검색 시작 - lat: {}, lng: {}, radius: {}km",
-                request.getLatitude(), request.getLongitude(), request.getRadius());
-
         try {
-            // 1차: Redis Geo로 빠른 위치 검색
             List<StudyHallLocationResponse> redisResults = redisGeoService.findNearbyStudyHalls(
                     request.getLatitude(),
                     request.getLongitude(),
@@ -52,59 +48,47 @@ public class StudyHallSearchService {
             );
 
             if (!redisResults.isEmpty()) {
-                log.info("Redis Geo 검색 성공 - {} 개 결과", redisResults.size());
                 return applyAdditionalFilters(redisResults, request);
             }
 
-            // 2차: Redis에 데이터가 없으면 DB 검색 (Fallback)
-            log.warn("Redis Geo 데이터 없음, DB 검색으로 Fallback");
+            // Redis에 데이터가 없으면 DB 검색 (Fallback)
             return searchNearbyStudyHallsWithDB(request);
 
         } catch (Exception e) {
-            log.error("Redis Geo 검색 실패, DB 검색으로 Fallback", e);
+            log.debug("Redis Geo 검색 실패, DB 검색으로 Fallback");
             return searchNearbyStudyHallsWithDB(request);
         }
     }
 
     /**
-     * Redis Trie를 활용한 스마트 자동완성 (기존 대비 10-20배 빠름)
+     * Redis Trie를 활용한 스마트 자동완성 (성능 측정 제거)
      */
     public List<String> getSmartAutocompleteSuggestions(String prefix, int limit) {
-        log.debug("Redis 자동완성 검색 - prefix: {}", prefix);
-
         try {
-            // 검색어 기록 (인기도 증가)
             if (StringUtils.hasText(prefix)) {
                 autoCompleteService.recordSearch(prefix);
             }
 
-            // Redis Trie에서 자동완성 조회
-            List<String> suggestions = autoCompleteService.getAutocompleteSuggestions(prefix, limit);
-
-            log.debug("Redis 자동완성 결과 - {} 개", suggestions.size());
-            return suggestions;
+            return autoCompleteService.getAutocompleteSuggestions(prefix, limit);
 
         } catch (Exception e) {
-            log.error("Redis 자동완성 실패, 기본 자동완성으로 Fallback", e);
+            log.debug("Redis 자동완성 실패, 기본 자동완성으로 Fallback");
             return getFallbackAutocompleteSuggestions(prefix, limit);
         }
     }
 
     /**
-     * 📊 통합 검색 - Redis + DB 하이브리드
+     * 통합 검색 - Redis + DB 하이브리드
      */
     public List<StudyHallLocationResponse> hybridSearch(StudyHallSearchRequest request) {
-        // 위치 기반 검색이면 Redis Geo 우선 사용
         if (request.hasValidLocationInfo()) {
             return searchNearbyStudyHallsWithRedis(request);
         }
 
-        // 키워드 검색이면 기존 DB 검색 사용
         if (request.hasValidKeyword()) {
             return searchByKeywordWithDB(request);
         }
 
-        // 전체 조회
         return getAllStudyHallsFromDB(request.getLimit());
     }
 

@@ -7,26 +7,21 @@ import org.example.hugmeexp.domain.studyRoom.dto.request.StudyHallSearchRequest;
 import org.example.hugmeexp.domain.studyRoom.dto.response.StudyHallLocationResponse;
 import org.example.hugmeexp.domain.studyRoom.entity.Location;
 import org.example.hugmeexp.domain.studyRoom.entity.StudyHall;
-import org.example.hugmeexp.domain.studyRoom.exception.LocationServiceException;
 import org.example.hugmeexp.domain.studyRoom.exception.StudyHallNotFoundException;
 import org.example.hugmeexp.domain.studyRoom.projection.StudyHallWithDistanceProjection;
-import org.example.hugmeexp.domain.studyRoom.reids.event.StudyHallCreatedEvent;
-import org.example.hugmeexp.domain.studyRoom.reids.event.StudyHallDeletedEvent;
-import org.example.hugmeexp.domain.studyRoom.reids.event.StudyHallUpdatedEvent;
 import org.example.hugmeexp.domain.studyRoom.reids.service.RedisAutoCompleteService;
 import org.example.hugmeexp.domain.studyRoom.reids.service.RedisGeoService;
 import org.example.hugmeexp.domain.studyRoom.repository.StudyHallRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.time.LocalTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,13 +32,11 @@ public class StudyHallService {
 
     private final StudyHallRepository studyHallRepository;
     private final KakaoMapService kakaoMapService;
-
     private final RedisGeoService redisGeoService;
     private final RedisAutoCompleteService autoCompleteService;
-    private final ApplicationEventPublisher eventPublisher;
 
     /**
-     * 새로운 회의실(스터디 홀)을 생성하고 reids에 동기화하여 데이터베이스에 저장합니다.
+     * 새로운 스터디 홀을 생성하고 Redis에 자동 동기화
      */
     @Transactional
     public StudyHall createStudyHall(StudyHallRequest requestDto) {
@@ -67,8 +60,8 @@ public class StudyHallService {
 
         StudyHall savedHall = studyHallRepository.save(studyHall);
 
-        // 🚀 Redis 동기화 이벤트 발행
-        eventPublisher.publishEvent(new StudyHallCreatedEvent(savedHall));
+        // Redis 동기화 (조용히 처리)
+        syncToRedis(savedHall);
 
         return savedHall;
     }
@@ -84,8 +77,8 @@ public class StudyHallService {
 
         StudyHall updatedHall = studyHallRepository.save(studyHall);
 
-        // 🚀 Redis 동기화 이벤트 발행
-        eventPublisher.publishEvent(new StudyHallUpdatedEvent(updatedHall));
+        // Redis 동기화 (조용히 처리)
+        syncToRedis(updatedHall);
 
         return updatedHall;
     }
@@ -99,11 +92,32 @@ public class StudyHallService {
         StudyHall studyHall = findStudyHallById(studyHallId);
         studyHall.delete();
 
-        // 🚀 Redis 정리 이벤트 발행
-        eventPublisher.publishEvent(new StudyHallDeletedEvent(studyHallId));
+        // Redis에서 제거 (조용히 처리)
+        removeFromRedis(studyHallId);
     }
 
-    // 기존 메소드들은 그대로 유지
+    // === Redis 동기화 (조용한 처리) ===
+
+    private void syncToRedis(StudyHall studyHall) {
+        try {
+            redisGeoService.indexStudyHallLocation(studyHall);
+            autoCompleteService.indexSearchTerms(studyHall);
+        } catch (Exception e) {
+            // Redis 실패해도 DB는 정상 처리됨, 조용히 로그만
+            log.debug("Redis 동기화 실패 (DB는 정상 처리됨) - StudyHall: {}", studyHall.getId());
+        }
+    }
+
+    private void removeFromRedis(Long studyHallId) {
+        try {
+            redisGeoService.removeStudyHallLocation(studyHallId);
+        } catch (Exception e) {
+            log.debug("Redis 삭제 실패 (DB는 정상 처리됨) - StudyHall: {}", studyHallId);
+        }
+    }
+
+    // === 기본 CRUD 메소드들 ===
+
     public Page<StudyHall> findAllStudyHalls(Pageable pageable) {
         return studyHallRepository.findAllByIsDeletedFalse(pageable);
     }
@@ -117,18 +131,14 @@ public class StudyHallService {
     public List<StudyHallLocationResponse> getAllStudyHallsForMap() {
         List<StudyHall> studyHalls = studyHallRepository.findAllWithStudyRooms();
         return studyHalls.stream()
-                .map(this::convertToLocationResponse)
+                .map(StudyHallLocationResponse::from)
                 .toList();
     }
 
-    /**
-     * Redis Geo를 우선 사용하는 주변 검색
-     */
-    public List<StudyHallLocationResponse> searchNearbyStudyHalls(StudyHallSearchRequest request) {
-        log.info("주변 스터디홀 검색 - Redis Geo 우선 시도");
+    // === Redis 기반 검색 메소드들 ===
 
+    public List<StudyHallLocationResponse> searchNearbyStudyHalls(StudyHallSearchRequest request) {
         try {
-            // 1차: Redis Geo 검색 시도
             List<StudyHallLocationResponse> redisResults = redisGeoService.findNearbyStudyHalls(
                     request.getLatitude(),
                     request.getLongitude(),
@@ -137,85 +147,32 @@ public class StudyHallService {
             );
 
             if (!redisResults.isEmpty()) {
-                log.info("Redis Geo 검색 성공: {} 개", redisResults.size());
                 return redisResults;
             }
-
-            log.warn("Redis Geo 데이터 없음, DB 검색으로 fallback");
-
         } catch (Exception e) {
-            log.error("Redis Geo 검색 실패, DB 검색으로 fallback", e);
+            log.debug("Redis Geo 검색 실패, DB 검색으로 fallback");
         }
 
-        // 2차: 기존 DB 검색 (Fallback)
+        // DB Fallback
         return searchNearbyStudyHallsWithDB(request);
     }
 
-    /**
-     * Redis Trie 자동완성
-     */
     public List<String> getSmartAutocompleteSuggestions(String prefix, int limit) {
         try {
             return autoCompleteService.getAutocompleteSuggestions(prefix, limit);
         } catch (Exception e) {
-            log.error("Redis 자동완성 실패, DB fallback", e);
+            log.debug("Redis 자동완성 실패, DB fallback");
             return getBasicAutocompleteSuggestions(prefix, limit);
         }
     }
 
-    /**
-     * 기존 DB 기반 검색 메소드들 (Fallback용)
-     */
-    private List<StudyHallLocationResponse> searchNearbyStudyHallsWithDB(StudyHallSearchRequest request) {
-        BoundingBox boundingBox = calculateBoundingBox(request);
-
-        List<StudyHallWithDistanceProjection> projections = studyHallRepository
-                .findNearbyStudyHallsWithProjection(
-                        request.getLatitude(), request.getLongitude(),
-                        boundingBox.getMinLat(), boundingBox.getMaxLat(),
-                        boundingBox.getMinLng(), boundingBox.getMaxLng(),
-                        request.getRadius(), request.getLimit()
-                );
-
-        return projections.stream()
-                .map(this::convertProjectionToResponse)
-                .collect(Collectors.toList());
-    }
-
-    private List<String> getBasicAutocompleteSuggestions(String prefix, int limit) {
-        if (!StringUtils.hasText(prefix) || prefix.length() < 2) {
-            return Collections.emptyList();
-        }
-
-        List<StudyHall> halls = studyHallRepository
-                .findByNameContainingIgnoreCaseAndIsDeletedFalse(prefix);
-
-        Set<String> suggestions = new LinkedHashSet<>();
-
-        for (StudyHall hall : halls) {
-            if (StringUtils.hasText(hall.getName()) &&
-                    hall.getName().toLowerCase().contains(prefix.toLowerCase())) {
-                suggestions.add(hall.getName());
-            }
-
-            if (StringUtils.hasText(hall.getSimpleAddress()) &&
-                    hall.getSimpleAddress().toLowerCase().contains(prefix.toLowerCase())) {
-                suggestions.add(hall.getSimpleAddress());
-            }
-
-            if (suggestions.size() >= limit) break;
-        }
-
-        return new ArrayList<>(suggestions);
-    }
-
-    // === 기존 검색 메소드들 유지 ===
+    // === StudyRoomMapController에서 호출하는 메서드들 ===
 
     public StudyHallLocationResponse getStudyHallDetail(Long studyHallId) {
         StudyHall studyHall = studyHallRepository.findByIdWithStudyRooms(studyHallId)
                 .orElseThrow(() -> new StudyHallNotFoundException(studyHallId));
 
-        return convertToLocationResponse(studyHall);
+        return StudyHallLocationResponse.from(studyHall);
     }
 
     public StudyHallLocationResponse getStudyHallWithDistance(Long studyHallId, Double currentLat, Double currentLng) {
@@ -233,29 +190,22 @@ public class StudyHallService {
     public List<StudyHallLocationResponse> searchStudyHallsByAddress(String address) {
         List<StudyHall> studyHalls = studyHallRepository.findByLocationAddressContainingIgnoreCase(address);
         return studyHalls.stream()
-                .map(this::convertToLocationResponse)
+                .map(StudyHallLocationResponse::from)
                 .toList();
     }
 
     public List<StudyHallLocationResponse> searchStudyHallsByName(String name) {
         // 검색어 기록 (인기도 증가)
-        autoCompleteService.recordSearch(name);
+        try {
+            autoCompleteService.recordSearch(name);
+        } catch (Exception e) {
+            log.debug("Redis 검색어 기록 실패");
+        }
 
         List<StudyHall> studyHalls = studyHallRepository.findByNameContainingIgnoreCaseAndIsDeletedFalse(name);
         return studyHalls.stream()
-                .map(this::convertToLocationResponse)
+                .map(StudyHallLocationResponse::from)
                 .toList();
-    }
-
-    public Location convertAddressToLocation(String address) {
-        try {
-            Optional<Location> locationOpt = kakaoMapService.addressToCoordinates(address);
-            return locationOpt.orElseThrow(() ->
-                    new LocationServiceException("주소를 좌표로 변환할 수 없습니다: " + address));
-        } catch (Exception e) {
-            log.error("Error mapping study hall result", e);
-            throw new LocationServiceException("주소 변환 중 오류가 발생했습니다: " + address);
-        }
     }
 
     // === Private Helper Methods ===
@@ -267,6 +217,57 @@ public class StudyHallService {
         if (longitude != null && (longitude < -180 || longitude > 180)) {
             throw new IllegalArgumentException("경도는 -180에서 180 사이여야 합니다.");
         }
+    }
+
+    /**
+     * DB 기반 주변 검색 (Fallback용)
+     */
+    private List<StudyHallLocationResponse> searchNearbyStudyHallsWithDB(StudyHallSearchRequest request) {
+        BoundingBox boundingBox = calculateBoundingBox(request);
+
+        List<StudyHallWithDistanceProjection> projections = studyHallRepository
+                .findNearbyStudyHallsWithProjection(
+                        request.getLatitude(), request.getLongitude(),
+                        boundingBox.getMinLat(), boundingBox.getMaxLat(),
+                        boundingBox.getMinLng(), boundingBox.getMaxLng(),
+                        request.getRadius(), request.getLimit()
+                );
+
+        return projections.stream()
+                .map(this::convertProjectionToResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 기본 자동완성 제안 (2글자 이상)
+     */
+    private List<String> getBasicAutocompleteSuggestions(String prefix, int limit) {
+        if (!StringUtils.hasText(prefix) || prefix.length() < 2) {
+            return Collections.emptyList();
+        }
+
+        List<StudyHall> halls = studyHallRepository
+                .findByNameContainingIgnoreCaseAndIsDeletedFalse(prefix);
+
+        Set<String> suggestions = ConcurrentHashMap.newKeySet();
+
+        String lowerPrefix = prefix.toLowerCase();
+
+        for (StudyHall hall : halls) {
+            if (StringUtils.hasText(hall.getName()) &&
+                    hall.getName().toLowerCase().contains(lowerPrefix)) {
+                suggestions.add(hall.getName());
+            }
+
+            if (StringUtils.hasText(hall.getSimpleAddress()) &&
+                    hall.getSimpleAddress().toLowerCase().contains(lowerPrefix)) {
+                suggestions.add(hall.getSimpleAddress());
+            }
+
+            if (suggestions.size() >= limit) break;
+        }
+
+        return new ArrayList<>(suggestions);
     }
 
     private BoundingBox calculateBoundingBox(StudyHallSearchRequest request) {
@@ -282,10 +283,6 @@ public class StudyHallService {
                 .minLng(request.getLongitude() - deltaLng)
                 .maxLng(request.getLongitude() + deltaLng)
                 .build();
-    }
-
-    private StudyHallLocationResponse convertToLocationResponse(StudyHall studyHall) {
-        return StudyHallLocationResponse.from(studyHall);
     }
 
     private StudyHallLocationResponse convertProjectionToResponse(StudyHallWithDistanceProjection projection) {
