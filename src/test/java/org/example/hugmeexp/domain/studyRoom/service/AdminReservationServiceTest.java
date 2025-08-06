@@ -1,4 +1,4 @@
-package org.example.hugmeexp.domain.reservation.service;
+package org.example.hugmeexp.domain.studyRoom.service;
 
 import org.example.hugmeexp.domain.studyRoom.dto.response.ReservationListDto;
 import org.example.hugmeexp.domain.studyRoom.entity.StudyHall;
@@ -13,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.example.hugmeexp.domain.studyRoom.entity.Location;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -38,7 +39,7 @@ class AdminReservationServiceTest {
     void getAllReservations_success() {
         // given
         Pageable pageable = PageRequest.of(0, 10);
-        StudyHall hall = StudyHall.builder().name("Test Hall").simpleAddress("Test Address").build();
+        StudyHall hall = StudyHall.builder().name("Test Hall").location(Location.of(37.5665, 126.9780, "Test Address", "Test Simple Address")).build();
         StudyRoom room = StudyRoom.builder().name("Test Room").studyHall(hall).build();
         List<StudyRoomReservation> reservations = List.of(
                 StudyRoomReservation.builder().id(1L).studyRoom(room).build()
