@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.studyRoom.entity.Location;
+import org.example.hugmeexp.domain.studyRoom.util.DistanceCalculator;
 import org.example.hugmeexp.global.common.config.KakaoMapConfig;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
@@ -14,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -28,7 +31,7 @@ public class KakaoMapService {
     /**
      * 주소를 좌표로 변환 (Geocoding)
      */
-    public Location addressToCoordinates(String address) {
+    public Optional<Location> addressToCoordinates(String address) {
         try {
             String url = UriComponentsBuilder
                     .fromHttpUrl(kakaoMapConfig.getBaseUrl() + kakaoMapConfig.getGeocodingUrl())
@@ -52,22 +55,22 @@ public class KakaoMapService {
                 String resultAddress = firstResult.path("address_name").asText();
 
                 log.info("Geocoding success - address: {} -> lat: {}, lng: {}", address, latitude, longitude);
-                return Location.of(latitude, longitude, resultAddress);
+                return Optional.of(Location.of(latitude, longitude, resultAddress));
             }
 
             log.warn("Geocoding failed - no results for address: {}", address);
-            return null;
+            return Optional.empty();
 
         } catch (Exception e) {
             log.error("Geocoding error for address: {}", address, e);
-            return null;
+            return Optional.empty();
         }
     }
 
     /**
      * 좌표를 주소로 변환 (Reverse Geocoding)
      */
-    public String coordinatesToAddress(Double latitude, Double longitude) {
+    public Optional<String> coordinatesToAddress(Double latitude, Double longitude) {
         try {
             String url = UriComponentsBuilder
                     .fromHttpUrl(kakaoMapConfig.getBaseUrl() + kakaoMapConfig.getCoordToAddressUrl())
@@ -90,20 +93,21 @@ public class KakaoMapService {
                 String address = firstResult.path("address").path("address_name").asText();
 
                 log.info("Reverse geocoding success - lat: {}, lng: {} -> address: {}", latitude, longitude, address);
-                return address;
+                return Optional.of(address);
             }
 
             log.warn("Reverse geocoding failed - no results for coordinates: {}, {}", latitude, longitude);
-            return null;
+            return Optional.empty();
 
         } catch (Exception e) {
             log.error("Reverse geocoding error for coordinates: {}, {}", latitude, longitude, e);
-            return null;
+            return Optional.empty();
         }
     }
 
+
     /**
-     * 두 지점 간의 거리 계산 (Haversine formula)
+     * 두 지점 간의 거리 계산
      * @param lat1 첫 번째 지점의 위도
      * @param lon1 첫 번째 지점의 경도
      * @param lat2 두 번째 지점의 위도
@@ -111,22 +115,18 @@ public class KakaoMapService {
      * @return 거리 (km)
      */
     public Double calculateDistance(Double lat1, Double lon1, Double lat2, Double lon2) {
-        if (lat1 == null || lon1 == null || lat2 == null || lon2 == null) {
-            return null;
-        }
-
-        final int EARTH_RADIUS = 6371; // 지구 반지름 (km)
-
-        double latDistance = Math.toRadians(lat2 - lat1);
-        double lonDistance = Math.toRadians(lon2 - lon1);
-
-        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
-                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
-
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        double distance = EARTH_RADIUS * c;
-
-        return Math.round(distance * 100.0) / 100.0; // 소수점 둘째 자리까지
+        return DistanceCalculator.calculateDistance(lat1, lon1, lat2, lon2);
     }
+
+//    /** 카카오맵 API를 사용한 실제 경로 거리 계산 (향후 확장 가능)
+//     * 카카오맵 길찾기 API 연동하여 실제 이동 거리 계산 가능
+//     * @param lat1
+//     * @param lon1
+//     * @param lat2
+//     * @param lon2
+//     * @return
+//     */
+//    public Double calculateRoutingDistance(Double lat1, Double lon1, Double lat2, Double lon2) {
+//        return DistanceCalculator.calculateDistance(lat1, lon1, lat2, lon2);
+//    }
 }

@@ -84,10 +84,12 @@ public interface StudyRoomReservationRepository extends JpaRepository<StudyRoomR
      */
     @Query("SELECT r FROM StudyRoomReservation r " +
             "WHERE r.studyRoom.id = :studyRoomId " +
-            "AND DATE(r.reservationStart) = :date " +
+            "AND r.reservationStart >= :startOfDay " +
+            "AND r.reservationStart < :endOfDay " +
             "ORDER BY r.reservationStart")
-    List<StudyRoomReservation> findByStudyRoomIdAndDate(
+    List<StudyRoomReservation> findByStudyRoomIdAndDateRange(
             @Param("studyRoomId") Long studyRoomId,
-            @Param("date") LocalDate date);
+            @Param("startOfDay") LocalDateTime startOfDay,
+            @Param("endOfDay") LocalDateTime endOfDay);
 
 }

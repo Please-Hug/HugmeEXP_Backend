@@ -39,7 +39,6 @@ public class StudyRoomDetailResponse {
 
         StudyHall studyHall = studyRoom.getStudyHall();
 
-
         // Null 체크 + 기본값
         if (studyHall == null) {
             return StudyRoomDetailResponse.builder()

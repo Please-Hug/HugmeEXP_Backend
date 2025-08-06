@@ -18,7 +18,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -26,6 +28,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class StudyHallService {
+
+    // 기본 운영시간
+    private static final LocalTime DEFAULT_OPEN_TIME = LocalTime.of(9, 0);
+    private static final LocalTime DEFAULT_CLOSE_TIME = LocalTime.of(22, 0);
 
     private final StudyHallRepository studyHallRepository;
     private final KakaoMapService kakaoMapService;
@@ -35,16 +41,8 @@ public class StudyHallService {
      */
     @Transactional
     public StudyHall createStudyHall(StudyHallRequest requestDto) {
+        validateCoordinates(requestDto.getLatitude(), requestDto.getLongitude());
 
-        // 좌표값 검증
-        if (requestDto.getLatitude() != null && (requestDto.getLatitude() < -90 || requestDto.getLatitude() > 90)) {
-            throw new IllegalArgumentException("위도는 -90에서 90 사이여야 합니다.");
-        }
-        if (requestDto.getLongitude() != null && (requestDto.getLongitude() < -180 || requestDto.getLongitude() > 180)) {
-            throw new IllegalArgumentException("경도는 -180에서 180 사이여야 합니다.");
-        }
-
-        // Location 객체 생성
         Location location = Location.of(
                 requestDto.getLatitude(),
                 requestDto.getLongitude(),
@@ -107,7 +105,7 @@ public class StudyHallService {
     public List<StudyHallLocationResponse> getAllStudyHallsForMap() {
         List<StudyHall> studyHalls = studyHallRepository.findAllWithStudyRooms();
         return studyHalls.stream()
-                .map(StudyHallLocationResponse::from)
+                .map(this::convertToLocationResponse) // 메서드 추출로 중복 제거
                 .toList();
     }
 
@@ -115,31 +113,22 @@ public class StudyHallService {
      * 현재 위치 기반 주변 스터디홀 검색 (최적화된 Native Query 방식)
      */
     public List<StudyHallLocationResponse> searchNearbyStudyHalls(StudyHallSearchRequest request) {
+
         log.info("Searching nearby study halls - lat: {}, lng: {}, radius: {}km",
                 request.getLatitude(), request.getLongitude(), request.getRadius());
 
         // 사각형 영역 계산 (성능 최적화용)
-        double kmPerDegreeLat = 111.0;
-        double kmPerDegreeLng = 111.0 * Math.cos(Math.toRadians(request.getLatitude()));
+        BoundingBox boundingBox = calculateBoundingBox(request);
 
-        double deltaLat = request.getRadius() / kmPerDegreeLat;
-        double deltaLng = request.getRadius() / kmPerDegreeLng;
-
-        double minLat = request.getLatitude() - deltaLat;
-        double maxLat = request.getLatitude() + deltaLat;
-        double minLng = request.getLongitude() - deltaLng;
-        double maxLng = request.getLongitude() + deltaLng;
-
-        // Interface Projection 사용
         List<StudyHallWithDistanceProjection> projections = studyHallRepository.findNearbyStudyHallsWithProjection(
                 request.getLatitude(),
                 request.getLongitude(),
-                minLat, maxLat, minLng, maxLng,
+                boundingBox.getMinLat(), boundingBox.getMaxLat(),
+                boundingBox.getMinLng(), boundingBox.getMaxLng(),
                 request.getRadius(),
                 request.getLimit()
         );
 
-        // Projection을 Response DTO로 변환
         List<StudyHallLocationResponse> responses = projections.stream()
                 .map(this::convertProjectionToResponse)
                 .collect(Collectors.toList());
@@ -155,7 +144,7 @@ public class StudyHallService {
         StudyHall studyHall = studyHallRepository.findByIdWithStudyRooms(studyHallId)
                 .orElseThrow(() -> new StudyHallNotFoundException(studyHallId));
 
-        return StudyHallLocationResponse.from(studyHall);
+        return convertToLocationResponse(studyHall);
     }
 
     /**
@@ -179,7 +168,7 @@ public class StudyHallService {
     public List<StudyHallLocationResponse> searchStudyHallsByAddress(String address) {
         List<StudyHall> studyHalls = studyHallRepository.findByLocationAddressContainingIgnoreCase(address);
         return studyHalls.stream()
-                .map(StudyHallLocationResponse::from)
+                .map(this::convertToLocationResponse)
                 .toList();
     }
 
@@ -189,20 +178,61 @@ public class StudyHallService {
     public List<StudyHallLocationResponse> searchStudyHallsByName(String name) {
         List<StudyHall> studyHalls = studyHallRepository.findByNameContainingIgnoreCaseAndIsDeletedFalse(name);
         return studyHalls.stream()
-                .map(StudyHallLocationResponse::from)
+                .map(this::convertToLocationResponse)
                 .toList();
     }
 
     /**
-     * 주소를 좌표로 변환하여 스터디홀 생성 시 사용
+     * 주소를 좌표로 변환
      */
-    @Transactional
     public Location convertAddressToLocation(String address) {
-        Location location = kakaoMapService.addressToCoordinates(address);
-        if (location == null) {
-            throw new LocationServiceException("주소를 좌표로 변환할 수 없습니다: " + address);
+        try {
+            Optional<Location> locationOpt = kakaoMapService.addressToCoordinates(address);
+            return locationOpt.orElseThrow(() ->
+                    new LocationServiceException("주소를 좌표로 변환할 수 없습니다: " + address));
+        } catch (Exception e) {
+            log.error("Error mapping study hall result", e);
+            throw new LocationServiceException("주소 변환 중 오류가 발생했습니다: " + address);
         }
-        return location;
+    }
+
+    // === Private Helper Methods ===
+
+    /**
+     * 좌표 유효성 검증
+     */
+    private void validateCoordinates(Double latitude, Double longitude) {
+        if (latitude != null && (latitude < -90 || latitude > 90)) {
+            throw new IllegalArgumentException("위도는 -90에서 90 사이여야 합니다.");
+        }
+        if (longitude != null && (longitude < -180 || longitude > 180)) {
+            throw new IllegalArgumentException("경도는 -180에서 180 사이여야 합니다.");
+        }
+    }
+
+    /**
+     * BoundingBox 계산
+     */
+    private BoundingBox calculateBoundingBox(StudyHallSearchRequest request) {
+        double kmPerDegreeLat = 111.0;
+        double kmPerDegreeLng = 111.0 * Math.cos(Math.toRadians(request.getLatitude()));
+
+        double deltaLat = request.getRadius() / kmPerDegreeLat;
+        double deltaLng = request.getRadius() / kmPerDegreeLng;
+
+        return BoundingBox.builder()
+                .minLat(request.getLatitude() - deltaLat)
+                .maxLat(request.getLatitude() + deltaLat)
+                .minLng(request.getLongitude() - deltaLng)
+                .maxLng(request.getLongitude() + deltaLng)
+                .build();
+    }
+
+    /**
+     * StudyHall을 LocationResponse로 변환
+     */
+    private StudyHallLocationResponse convertToLocationResponse(StudyHall studyHall) {
+        return StudyHallLocationResponse.from(studyHall);
     }
 
     /**
@@ -224,5 +254,17 @@ public class StudyHallService {
                 .totalRooms(0) // 기본값, 필요시 별도 조회
                 .availableRooms(0) // 기본값, 필요시 별도 조회
                 .build();
+    }
+
+    /**
+     * BoundingBox 내부 클래스
+     */
+    @lombok.Builder
+    @lombok.Getter
+    private static class BoundingBox {
+        private final double minLat;
+        private final double maxLat;
+        private final double minLng;
+        private final double maxLng;
     }
 }

@@ -5,6 +5,6 @@ import org.springframework.http.HttpStatus;
 
 public class LocationServiceException extends BaseCustomException {
     public LocationServiceException(String message) {
-        super(HttpStatus.BAD_REQUEST, "위치 서비스 오류: " + message, 400);
+        super(HttpStatus.BAD_REQUEST, "위치 서비스 오류: " + message);
     }
 }

@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.example.hugmeexp.domain.studyRoom.util.DistanceCalculator;
 
 @Getter
 @Builder(toBuilder = true)
@@ -70,28 +71,15 @@ public class Location {
     }
 
     /**
-     * 두 위치 간의 거리 계산 (Haversine formula)
+     * 두 위치 간의 거리 계산
      * @param other 다른 위치
      * @return 거리 (km)
      */
     public Double calculateDistanceTo(Location other) {
-        if (other == null || other.latitude == null || other.longitude == null) {
-            return null;
-        }
-
-        final double EARTH_RADIUS = 6371; // 지구 반지름 (km)
-
-        double latDistance = Math.toRadians(other.latitude - this.latitude);
-        double lonDistance = Math.toRadians(other.longitude - this.longitude);
-
-        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
-                + Math.cos(Math.toRadians(this.latitude)) * Math.cos(Math.toRadians(other.latitude))
-                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
-
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        double distance = EARTH_RADIUS * c;
-
-        return Math.round(distance * 100.0) / 100.0; // 소수점 둘째 자리까지
+        return DistanceCalculator.calculateDistance(
+                this.latitude, this.longitude,
+                other.latitude, other.longitude
+        );
     }
 
     /**
