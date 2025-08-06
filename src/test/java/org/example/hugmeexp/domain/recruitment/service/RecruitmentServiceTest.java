@@ -207,14 +207,15 @@ public class RecruitmentServiceTest {
                 .build();
 
         int page = 0;
+        int size = 80;
         List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
-        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 80);
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, size);
 
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(expectedPage);
 
         // When
-        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page, size);
 
         // Then
         assertEquals(expectedPage.getContent(), result.getContent());
@@ -231,14 +232,15 @@ public class RecruitmentServiceTest {
         RecruitmentSearchConditionDTO condition = RecruitmentSearchConditionDTO.builder().build();
 
         int page = 0;
+        int size = 80;
         List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
-        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 80);
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, size);
 
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(expectedPage);
 
         // When
-        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page, size);
 
         // Then
         assertEquals(expectedPage.getContent(), result.getContent());
@@ -260,14 +262,15 @@ public class RecruitmentServiceTest {
                 .build();
 
         int page = 0;
+        int size = 80;
         List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
-        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 80);
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, size);
 
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(expectedPage);
 
         // When
-        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page, size);
 
         // Then
         assertEquals(expectedPage.getContent(), result.getContent());
@@ -291,14 +294,15 @@ public class RecruitmentServiceTest {
                 .build();
 
         int page = 0;
+        int size = 80;
         List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
-        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 80);
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, size);
 
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(expectedPage);
 
         // When
-        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page, size);
 
         // Then
         assertEquals(expectedPage.getContent(), result.getContent());
@@ -318,14 +322,15 @@ public class RecruitmentServiceTest {
                 .build();
 
         int page = 0;
+        int size = 80;
         List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
-        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 80);
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, size);
 
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(expectedPage);
 
         // When
-        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page, size);
 
         // Then
         assertEquals(expectedPage.getContent(), result.getContent());
@@ -345,14 +350,15 @@ public class RecruitmentServiceTest {
                 .build();
 
         int page = 0;
+        int size = 80;
         List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
-        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 80);
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, size);
 
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(expectedPage);
 
         // When
-        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page, size);
 
         // Then
         assertEquals(expectedPage.getContent(), result.getContent());
@@ -372,14 +378,15 @@ public class RecruitmentServiceTest {
                 .build();
 
         int page = 0;
+        int size = 80;
         List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
-        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 80);
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, size);
 
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(expectedPage);
 
         // When
-        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page, size);
 
         // Then
         assertEquals(expectedPage.getContent(), result.getContent());
@@ -395,6 +402,7 @@ public class RecruitmentServiceTest {
         // Given
         RecruitmentSearchConditionDTO condition = RecruitmentSearchConditionDTO.builder().build();
         int page = 0;
+        int size = 80;
 
         // 130개의 아이템을 생성 (80개만 반환되어야 함)
         List<RecruitmentResponseDTO> mockItems = new ArrayList<>();
@@ -418,7 +426,7 @@ public class RecruitmentServiceTest {
             .thenReturn(mockPage);
 
         // When
-        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page, size);
 
         // Then
         assertEquals(80, result.getContent().size()); // 페이지당 80개 항목
@@ -436,6 +444,7 @@ public class RecruitmentServiceTest {
         // Given
         RecruitmentSearchConditionDTO condition = RecruitmentSearchConditionDTO.builder().build();
         int page = 0;
+        int size = 80;
 
         // 여러 날짜의 수정일을 가진 아이템 생성
         List<RecruitmentResponseDTO> mockItems = new ArrayList<>();
@@ -448,12 +457,12 @@ public class RecruitmentServiceTest {
             ));
         }
 
-        Page<RecruitmentResponseDTO> mockPage = createMockResponsePage(mockItems, page, 80);
+        Page<RecruitmentResponseDTO> mockPage = createMockResponsePage(mockItems, page, size);
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(mockPage);
 
         // When
-        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page, size);
 
         // Then
         List<RecruitmentResponseDTO> content = result.getContent();
@@ -473,6 +482,7 @@ public class RecruitmentServiceTest {
         // Given
         RecruitmentSearchConditionDTO condition = RecruitmentSearchConditionDTO.builder().build();
         int page = 0;
+        int size = 80;
 
         // 만료된 공고와 유효한 공고를 모두 포함하는 목록 생성
         List<RecruitmentResponseDTO> allItems = new ArrayList<>();
@@ -501,12 +511,12 @@ public class RecruitmentServiceTest {
         }
 
         // 레포지토리는 이미 만료된 공고를 필터링한 결과를 반환해야 함
-        Page<RecruitmentResponseDTO> mockPage = createMockResponsePage(validItems, page, 80);
+        Page<RecruitmentResponseDTO> mockPage = createMockResponsePage(validItems, page, size);
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(mockPage);
 
         // When
-        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page, size);
 
         // Then
         assertEquals(5, result.getContent().size()); // 유효한 공고만 5개
@@ -531,6 +541,7 @@ public class RecruitmentServiceTest {
                 .experienceMax(5)
                 .build();
         int page = 0;
+        int size = 80;
 
         // 다양한 경력 범위를 가진 공고 생성
         List<RecruitmentResponseDTO> allItems = new ArrayList<>();
@@ -582,12 +593,12 @@ public class RecruitmentServiceTest {
         List<RecruitmentResponseDTO> matchingItems = List.of(overlapping1, exact, overlapping2);
 
         // 레포지토리는 이미 경력 범위로 필터링한 결과를 반환해야 함
-        Page<RecruitmentResponseDTO> mockPage = createMockResponsePage(matchingItems, page, 80);
+        Page<RecruitmentResponseDTO> mockPage = createMockResponsePage(matchingItems, page, size);
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(mockPage);
 
         // When
-        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page, size);
 
         // Then
         assertEquals(3, result.getContent().size()); // 조건에 맞는 공고 3개
@@ -1088,14 +1099,15 @@ public class RecruitmentServiceTest {
                 .build();
 
         int page = 0;
+        int size = 80;
         List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
-        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 80);
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, size);
 
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(expectedPage);
 
         // When
-        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page, size);
 
         // Then
         assertEquals(expectedPage.getContent(), result.getContent());
@@ -1114,14 +1126,15 @@ public class RecruitmentServiceTest {
                 .build();
 
         int page = 0;
+        int size = 80;
         List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
-        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 80);
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, size);
 
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(expectedPage);
 
         // When
-        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page, size);
 
         // Then
         assertEquals(expectedPage.getContent(), result.getContent());
@@ -1147,14 +1160,15 @@ public class RecruitmentServiceTest {
                 .build();
 
         int page = 0;
+        int size = 80;
         List<RecruitmentResponseDTO> expectedContent = createMockResponseList();
-        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, 80);
+        Page<RecruitmentResponseDTO> expectedPage = createMockResponsePage(expectedContent, page, size);
 
         when(recruitmentRepository.findBySearchConditions(any(RecruitmentSearchConditionDTO.class), any(Pageable.class)))
             .thenReturn(expectedPage);
 
         // When
-        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page);
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(condition, page, size);
 
         // Then
         assertEquals(expectedPage.getContent(), result.getContent());

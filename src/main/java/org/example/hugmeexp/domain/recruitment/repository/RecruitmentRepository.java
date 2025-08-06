@@ -23,6 +23,8 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
      * @param cond 검색 조건 DTO
      * @param pageable 페이징 정보
      * @return 필터링된 채용 공고 목록 (RecruitmentResponseDTO)
+     *
+     * 사용자가 지도를 드래그하여 선택한 사각형 범위 내에 있는 공고만 필터링
      */
     @Query(
         value = """
@@ -45,9 +47,9 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
                 (:#{#cond.education} IS NULL OR r.education = :#{#cond.education}) AND
                 (:#{#cond.workLocation} IS NULL OR r.workLocation LIKE CONCAT('%', :#{#cond.workLocation}, '%')) AND
                 (
-                    :#{#cond.topLeftLat} IS NULL OR 
-                    :#{#cond.topLeftLng} IS NULL OR 
-                    :#{#cond.bottomRightLat} IS NULL OR 
+                    :#{#cond.topLeftLat} IS NULL OR
+                    :#{#cond.topLeftLng} IS NULL OR
+                    :#{#cond.bottomRightLat} IS NULL OR
                     :#{#cond.bottomRightLng} IS NULL OR
                     (
                         r.latitude BETWEEN LEAST(:#{#cond.topLeftLat}, :#{#cond.bottomRightLat}) AND GREATEST(:#{#cond.topLeftLat}, :#{#cond.bottomRightLat}) AND
@@ -83,9 +85,9 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
                 (:#{#cond.education} IS NULL OR r.education = :#{#cond.education}) AND
                 (:#{#cond.workLocation} IS NULL OR r.workLocation LIKE CONCAT('%', :#{#cond.workLocation}, '%')) AND
                 (
-                    :#{#cond.topLeftLat} IS NULL OR 
-                    :#{#cond.topLeftLng} IS NULL OR 
-                    :#{#cond.bottomRightLat} IS NULL OR 
+                    :#{#cond.topLeftLat} IS NULL OR
+                    :#{#cond.topLeftLng} IS NULL OR
+                    :#{#cond.bottomRightLat} IS NULL OR
                     :#{#cond.bottomRightLng} IS NULL OR
                     (
                         r.latitude BETWEEN LEAST(:#{#cond.topLeftLat}, :#{#cond.bottomRightLat}) AND GREATEST(:#{#cond.topLeftLat}, :#{#cond.bottomRightLat}) AND
@@ -169,62 +171,4 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
         "WHERE r.recruitmentSourceId = :recruitmentSourceId")
     Optional<Recruitment> findByRecruitmentSourceId(String recruitmentSourceId);
 
-    /**
-     * 검색 조건에 맞는 채용 공고의 ID 목록을 조회합니다.
-     * 페이징 없이 모든 ID를 가져옵니다.
-     *
-     * @param cond 검색 조건 DTO
-     * @return 필터링된 채용 공고 ID 목록
-     */
-    @Query(value = """
-        SELECT r.id
-        FROM Recruitment r
-        LEFT JOIN r.techStacks ts
-        LEFT JOIN r.tags t
-        WHERE r.dueDate > CURRENT_TIMESTAMP AND
-            (:#{#cond.salaryMin} IS NULL OR r.salaryMin >= :#{#cond.salaryMin}) AND
-            (:#{#cond.salaryMax} IS NULL OR r.salaryMax <= :#{#cond.salaryMax}) AND
-            (
-              (:#{#cond.experienceMin} IS NULL OR :#{#cond.experienceMax} IS NULL)
-              OR
-              (r.experienceMax >= :#{#cond.experienceMin} AND r.experienceMin <= :#{#cond.experienceMax})
-            ) AND
-            (:#{#cond.education} IS NULL OR r.education = :#{#cond.education}) AND
-            (:#{#cond.workLocation} IS NULL OR r.workLocation LIKE %:#{#cond.workLocation}%) AND
-            (
-                :#{#cond.topLeftLat} IS NULL OR 
-                :#{#cond.topLeftLng} IS NULL OR 
-                :#{#cond.bottomRightLat} IS NULL OR 
-                :#{#cond.bottomRightLng} IS NULL OR
-                (
-                    r.latitude BETWEEN LEAST(:#{#cond.topLeftLat}, :#{#cond.bottomRightLat}) AND GREATEST(:#{#cond.topLeftLat}, :#{#cond.bottomRightLat}) AND
-                    r.longitude BETWEEN LEAST(:#{#cond.topLeftLng}, :#{#cond.bottomRightLng}) AND GREATEST(:#{#cond.topLeftLng}, :#{#cond.bottomRightLng})
-                )
-            ) AND
-            (:#{#cond.techStacks} IS NULL OR ts.techItem.id IN :#{#cond.techStacks}) AND
-            (:#{#cond.tags} IS NULL OR t.tagItem.id IN :#{#cond.tags})
-        GROUP BY r.id
-        HAVING (:#{#cond.techStacks} IS NULL OR COUNT(DISTINCT ts.techItem.id) = :#{#cond.techStackCount}) AND
-            (:#{#cond.tags} IS NULL OR COUNT(DISTINCT t.tagItem.id) = :#{#cond.tagCount})
-        ORDER BY r.modifiedAt DESC
-        """)
-    List<Long> findIdsBySearchConditions(@Param("cond") RecruitmentSearchConditionDTO cond);
-
-    /**
-     * ID 목록에 해당하는 채용 공고를 조회합니다.
-     *
-     * @param ids ID 목록
-     * @return 채용 공고 목록
-     */
-    @Query("""
-        SELECT new org.example.hugmeexp.domain.recruitment.dto.RecruitmentResponseDTO(
-            r.id, r.recruitmentSourceId, r.title, c.companyName, c.companyImageUrl, r.dueDate,
-            r.experienceMin, r.experienceMax, r.workLocation, r.latitude, r.longitude, r.modifiedAt
-        )
-        FROM Recruitment r
-        JOIN r.company c
-        WHERE r.id IN :ids
-        ORDER BY r.modifiedAt DESC
-        """)
-    List<RecruitmentResponseDTO> findByIds(@Param("ids") List<Long> ids);
 }

@@ -37,7 +37,7 @@ public class RecruitmentController {
         description = """
             채용 목록에서 사용할 수 있는 다양한 필터 조건에 따라 공고를 조회합니다.
             
-            - 페이징: 한 페이지당 40개, page 파라미터는 0부터 시작
+            - 페이징: `page` (0부터 시작), `size` (한 페이지당 항목 수, 기본값 80)
             - 마감일이 지난 공고는 자동 제외됩니다
             - 수정일(modifiedAt) 기준 최신순 정렬
             - 경력 조건은 입력값과 겹치는 공고 전부 포함
@@ -56,9 +56,10 @@ public class RecruitmentController {
     @GetMapping
     public ResponseEntity<Response<List<RecruitmentResponseDTO>>> listRecruitments(
             @Valid @ModelAttribute RecruitmentSearchConditionDTO conditionDTO,
-            @RequestParam(defaultValue = "0") int page) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "80") int size) {
 
-        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(conditionDTO, page);
+        Page<RecruitmentResponseDTO> result = recruitmentService.listRecruitments(conditionDTO, page, size);
 
         Response<List<RecruitmentResponseDTO>> response = Response.<List<RecruitmentResponseDTO>>builder()
                 .message("채용 공고 목록 조회 성공")
