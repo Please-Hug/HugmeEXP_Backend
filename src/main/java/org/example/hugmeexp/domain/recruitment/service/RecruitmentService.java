@@ -92,6 +92,11 @@ public class RecruitmentService {
         } else {
             conditionDTO.setTagCount(null);
         }
+        
+        // 빈 키워드를 null로 변환
+        if (conditionDTO.getKeyword() != null && conditionDTO.getKeyword().trim().isEmpty()) {
+            conditionDTO.setKeyword(null);
+        }
     }
 
     /**
