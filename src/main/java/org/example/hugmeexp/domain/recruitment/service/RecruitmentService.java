@@ -66,9 +66,10 @@ public class RecruitmentService {
                 .tags((cond.getTags() == null || cond.getTags().isEmpty()) ? null : cond.getTags())
                 .techStackCount((cond.getTechStacks() == null || cond.getTechStacks().isEmpty()) ? null : (long) cond.getTechStacks().size())
                 .tagCount((cond.getTags() == null || cond.getTags().isEmpty()) ? null : (long) cond.getTags().size())
+                .keyword((cond.getKeyword() == null || cond.getKeyword().isBlank()) ? null : cond.getKeyword())
                 .build();
 
-        Pageable pageable = PageRequest.of(page, 40);
+        Pageable pageable = PageRequest.of(page, 80);
 
         return recruitmentRepository.findBySearchConditions(enrichedCond, pageable);
     }
