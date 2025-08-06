@@ -47,6 +47,7 @@ dependencies {
     //others
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
     //mysql
     runtimeOnly 'com.mysql:mysql-connector-j'
