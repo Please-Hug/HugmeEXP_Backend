@@ -100,11 +100,14 @@ public class StudyHallService {
     //Redis 동기화
     private void syncToRedis(StudyHall studyHall) {
         try {
-            redisGeoService.indexStudyHallLocation(studyHall);
-            autoCompleteService.indexSearchTerms(studyHall);
+            if (studyHall != null && studyHall.getId() != null) {
+                redisGeoService.indexStudyHallLocation(studyHall);
+                autoCompleteService.indexSearchTerms(studyHall);
+            }
         } catch (Exception e) {
             // Redis 실패해도 DB는 정상 처리됨, 조용히 로그만
-            log.debug("Redis 동기화 실패 (DB는 정상 처리됨) - StudyHall: {}", studyHall.getId());
+            log.debug("Redis 동기화 실패 (DB는 정상 처리됨) - StudyHall: {}",
+                    studyHall != null ? studyHall.getId() : "null");
         }
     }
 

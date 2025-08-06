@@ -33,6 +33,12 @@ class StudyHallServiceTest {
     @Mock
     private StudyHallRepository studyHallRepository;
 
+    @Mock
+    private KakaoMapService kakaoMapService;
+
+    @Mock
+    private StudyHallSearchService studyHallSearchService;
+
     @Test
     @DisplayName("스터디 홀 생성 성공")
     void createStudyHall_success() {
