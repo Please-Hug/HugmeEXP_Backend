@@ -183,22 +183,6 @@ public class StudyHallService {
     }
 
     /**
-     * 주소를 좌표로 변환
-     */
-    public Location convertAddressToLocation(String address) {
-        try {
-            Optional<Location> locationOpt = kakaoMapService.addressToCoordinates(address);
-            return locationOpt.orElseThrow(() ->
-                    new LocationServiceException("주소를 좌표로 변환할 수 없습니다: " + address));
-        } catch (Exception e) {
-            log.error("Error mapping study hall result", e);
-            throw new LocationServiceException("주소 변환 중 오류가 발생했습니다: " + address);
-        }
-    }
-
-    // === Private Helper Methods ===
-
-    /**
      * 좌표 유효성 검증
      */
     private void validateCoordinates(Double latitude, Double longitude) {
