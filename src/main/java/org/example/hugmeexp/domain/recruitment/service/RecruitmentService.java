@@ -58,24 +58,24 @@ public class RecruitmentService {
      * 검색 조건에 따라 필터링된 채용 공고를 페이지 단위로 반환합니다.
      * 필터링된 ID를 먼저 가져온 후 페이징을 적용하여 빈 결과 문제를 해결합니다.
      *
-     * @param conditionDTO 검색 조건 DTO
+     * @param cond 검색 조건 DTO
      * @param page 페이지 번호 (0부터 시작)
      * @return 필터링된 채용 공고 목록 (RecruitmentResponseDTO)
      */
-    public Page<RecruitmentResponseDTO> listRecruitments(RecruitmentSearchConditionDTO conditionDTO, int page) {
-        // 페이지 설정 (40개씩)
-        Pageable pageable = PageRequest.of(page, 40, Sort.by(Sort.Direction.DESC, "modifiedAt"));
-        
+    public Page<RecruitmentResponseDTO> listRecruitments(RecruitmentSearchConditionDTO cond, int page) {
+        // 페이지 설정 (80개씩)
+        Pageable pageable = PageRequest.of(page, 80, Sort.by(Sort.Direction.DESC, "modifiedAt"));
+
         // techStacks와 tags 카운트 설정
-        setCountFields(conditionDTO);
-        
+        setCountFields(cond);
+
         // 레포지토리에서 검색 조건에 맞는 결과 직접 조회
-        return recruitmentRepository.findBySearchConditions(conditionDTO, pageable);
+        return recruitmentRepository.findBySearchConditions(cond, pageable);
     }
-    
+
     /**
      * RecruitmentSearchConditionDTO의 techStackCount와 tagCount 필드를 설정합니다.
-     * 
+     *
      * @param conditionDTO 검색 조건 DTO
      */
     private void setCountFields(RecruitmentSearchConditionDTO conditionDTO) {
@@ -85,7 +85,7 @@ public class RecruitmentService {
         } else {
             conditionDTO.setTechStackCount(null);
         }
-        
+
         // tags 카운트 설정
         if (conditionDTO.getTags() != null && !conditionDTO.getTags().isEmpty()) {
             conditionDTO.setTagCount((long) conditionDTO.getTags().size());
@@ -93,20 +93,6 @@ public class RecruitmentService {
             conditionDTO.setTagCount(null);
         }
     }
-    
-    // createPageable 메서드는 listRecruitments 메서드의 간소화로 인해 더 이상 사용되지 않아 제거되었습니다.
-    
-    // getFilteredIds 메서드는 listRecruitments 메서드의 간소화로 인해 더 이상 사용되지 않아 제거되었습니다.
-    
-    // hasCoordinateFilter 메서드는 listRecruitments 메서드의 간소화로 인해 더 이상 사용되지 않아 제거되었습니다.
-    
-    // applyCoordinateFilter 메서드는 listRecruitments 메서드의 간소화로 인해 더 이상 사용되지 않아 제거되었습니다.
-    
-    // isWithinCoordinateBounds 메서드는 listRecruitments 메서드의 간소화로 인해 더 이상 사용되지 않아 제거되었습니다.
-    // 이전에는 좌표 범위 내에 있는지 확인하는 역할을 했으나, 현재는 레포지토리 쿼리에서 직접 좌표 필터링을 처리합니다.
-    
-    // createPageResult 메서드는 listRecruitments 메서드의 간소화로 인해 더 이상 사용되지 않아 제거되었습니다.
-    // 이전에는 필터링된 ID 목록에 페이징을 적용하는 역할을 했으나, 현재는 레포지토리에서 페이징이 포함된 결과를 바로 반환합니다.
 
     /**
      * 최신 채용 공고 목록을 조회합니다.

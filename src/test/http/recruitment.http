@@ -25,6 +25,10 @@ Authorization: Bearer {{accessToken}}
 GET {{baseUrl}}/recruitments?experienceMin=1&experienceMax=5&education=4&workLocation=경기도 성남시 분당구 판교로 235&salaryMin=3000
 Authorization: Bearer {{accessToken}}
 
+###
+GET {{baseUrl}}/recruitments?techStacks=1
+Authorization: Bearer {{accessToken}}
+
 ### 🗺️ 지도 기반 조회 - 좌표 설정 포함
 GET {{baseUrl}}/recruitments?topLeftLat=37.60&topLeftLng=126.90&bottomRightLat=37.30&bottomRightLng=127.10
 Authorization: Bearer {{accessToken}}

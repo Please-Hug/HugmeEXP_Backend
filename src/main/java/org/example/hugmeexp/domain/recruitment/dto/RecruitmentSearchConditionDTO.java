@@ -29,4 +29,6 @@ public class RecruitmentSearchConditionDTO {
     private Long techStackCount;
     private Long tagCount;
 
+    private String keyword;
+
 }

@@ -43,7 +43,7 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
                   (r.experienceMax >= :#{#cond.experienceMin} AND r.experienceMin <= :#{#cond.experienceMax})
                 ) AND
                 (:#{#cond.education} IS NULL OR r.education = :#{#cond.education}) AND
-                (:#{#cond.workLocation} IS NULL OR r.workLocation LIKE %:#{#cond.workLocation}%) AND
+                (:#{#cond.workLocation} IS NULL OR r.workLocation LIKE CONCAT('%', :#{#cond.workLocation}, '%')) AND
                 (
                     :#{#cond.topLeftLat} IS NULL OR 
                     :#{#cond.topLeftLng} IS NULL OR 
@@ -54,8 +54,12 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
                         r.longitude BETWEEN LEAST(:#{#cond.topLeftLng}, :#{#cond.bottomRightLng}) AND GREATEST(:#{#cond.topLeftLng}, :#{#cond.bottomRightLng})
                     )
                 ) AND
-                (:#{#cond.techStacks} IS NULL OR ts.id IN :#{#cond.techStacks}) AND
-                (:#{#cond.tags} IS NULL OR t.id IN :#{#cond.tags})
+                (:#{#cond.techStacks} IS NULL OR ts.techItem.id IN :#{#cond.techStacks}) AND
+                (:#{#cond.tags} IS NULL OR t.tagItem.id IN :#{#cond.tags}) AND
+                (:#{#cond.keyword} IS NULL OR
+                    LOWER(r.title) LIKE LOWER(CONCAT('%', :#{#cond.keyword}, '%')) OR
+                    LOWER(c.companyName) LIKE LOWER(CONCAT('%', :#{#cond.keyword}, '%'))
+                 )
             GROUP BY r.id, r.recruitmentSourceId, r.title, c.companyName, c.companyImageUrl, r.dueDate,
                 r.experienceMin, r.experienceMax, r.workLocation, r.latitude, r.longitude, r.modifiedAt
             HAVING (:#{#cond.techStacks} IS NULL OR COUNT(DISTINCT ts.id) = :#{#cond.techStackCount}) AND
@@ -65,6 +69,7 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
         countQuery = """
             SELECT COUNT(DISTINCT r.id)
             FROM Recruitment r
+            JOIN r.company c
             LEFT JOIN r.techStacks ts
             LEFT JOIN r.tags t
             WHERE r.dueDate > CURRENT_TIMESTAMP AND
@@ -76,7 +81,7 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
                      (r.experienceMax >= :#{#cond.experienceMin} AND r.experienceMin <= :#{#cond.experienceMax})
                 ) AND
                 (:#{#cond.education} IS NULL OR r.education = :#{#cond.education}) AND
-                (:#{#cond.workLocation} IS NULL OR r.workLocation LIKE %:#{#cond.workLocation}%) AND
+                (:#{#cond.workLocation} IS NULL OR r.workLocation LIKE CONCAT('%', :#{#cond.workLocation}, '%')) AND
                 (
                     :#{#cond.topLeftLat} IS NULL OR 
                     :#{#cond.topLeftLng} IS NULL OR 
@@ -87,8 +92,12 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
                         r.longitude BETWEEN LEAST(:#{#cond.topLeftLng}, :#{#cond.bottomRightLng}) AND GREATEST(:#{#cond.topLeftLng}, :#{#cond.bottomRightLng})
                     )
                 ) AND
-                (:#{#cond.techStacks} IS NULL OR ts.id IN :#{#cond.techStacks}) AND
-                (:#{#cond.tags} IS NULL OR t.id IN :#{#cond.tags})
+                (:#{#cond.techStacks} IS NULL OR ts.techItem.id IN :#{#cond.techStacks}) AND
+                (:#{#cond.tags} IS NULL OR t.tagItem.id IN :#{#cond.tags}) AND
+                (:#{#cond.keyword} IS NULL OR
+                    LOWER(r.title) LIKE LOWER(CONCAT('%', :#{#cond.keyword}, '%')) OR
+                    LOWER(c.companyName) LIKE LOWER(CONCAT('%', :#{#cond.keyword}, '%'))
+                )
     """)
     Page<RecruitmentResponseDTO> findBySearchConditions(@Param("cond") RecruitmentSearchConditionDTO cond, Pageable pageable);
 
@@ -153,13 +162,13 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
 
 
     @Query("SELECT r FROM Recruitment r " +
-            "LEFT JOIN FETCH r.techStacks ts " +
-            "LEFT JOIN FETCH ts.techItem " +
-            "LEFT JOIN FETCH r.tags t " +
-            "LEFT JOIN FETCH t.tagItem " +
-            "WHERE r.recruitmentSourceId = :recruitmentSourceId")
+        "LEFT JOIN FETCH r.techStacks ts " +
+        "LEFT JOIN FETCH ts.techItem " +
+        "LEFT JOIN FETCH r.tags t " +
+        "LEFT JOIN FETCH t.tagItem " +
+        "WHERE r.recruitmentSourceId = :recruitmentSourceId")
     Optional<Recruitment> findByRecruitmentSourceId(String recruitmentSourceId);
-    
+
     /**
      * 검색 조건에 맞는 채용 공고의 ID 목록을 조회합니다.
      * 페이징 없이 모든 ID를 가져옵니다.
