@@ -1,5 +1,6 @@
 package org.example.hugmeexp.domain.recruitment.dto;
 
+import com.querydsl.core.annotations.QueryProjection;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,6 +29,7 @@ public class RecruitmentResponseDTO {
     private LocalDateTime modifiedAt;
 
     // JPA 에서 사용되는 생성자
+    @QueryProjection
     public RecruitmentResponseDTO(Long id, String recruitmentSourceId, String title, String companyName, String companyImageUrl,
                                   LocalDateTime dueDate, Integer experienceMin, Integer experienceMax, String workLocation,
                                   BigDecimal latitude, BigDecimal longitude, LocalDateTime modifiedAt) {
