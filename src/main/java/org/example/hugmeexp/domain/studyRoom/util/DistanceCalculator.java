@@ -1,6 +1,6 @@
 package org.example.hugmeexp.domain.studyRoom.util;
 
-import org.example.hugmeexp.domain.studyRoom.entity.Location;
+import org.example.hugmeexp.domain.studyRoom.constants.StudyRoomConstants;
 
 /**
  * 거리 계산 전용 유틸리티 클래스
@@ -31,7 +31,7 @@ public class DistanceCalculator {
                 * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
 
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        double distance = EARTH_RADIUS * c;
+        double distance = StudyRoomConstants.EARTH_RADIUS_KM * c;
 
         return Math.round(distance * 100.0) / 100.0; // 소수점 둘째 자리까지
     }

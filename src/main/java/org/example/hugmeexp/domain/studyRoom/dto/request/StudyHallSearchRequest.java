@@ -7,14 +7,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.hugmeexp.domain.studyRoom.constants.StudyRoomConstants;
-import org.example.hugmeexp.domain.studyRoom.constants.StudyRoomEnums;
 import org.springframework.util.StringUtils;
 
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Objects;
-import java.util.Set;
 
 @Getter
 @Builder
@@ -48,14 +46,6 @@ public class StudyHallSearchRequest {
     @Max(value = 100, message = "최대 100개까지 조회 가능합니다.")
     @Builder.Default
     private Integer limit = StudyRoomConstants.DEFAULT_SEARCH_LIMIT;
-
-    @Schema(description = "정렬 기준", example = "DISTANCE_ASC")
-    @Builder.Default
-    private StudyRoomEnums.SearchSortType sortType = StudyRoomEnums.SearchSortType.DISTANCE_ASC;
-
-    @Schema(description = "검색 필터 목록")
-    @Builder.Default
-    private Set<StudyRoomEnums.SearchFilterType> filters = Set.of();
 
     @Schema(description = "최소 수용 인원", example = "1")
     @Min(value = 1, message = "최소 인원은 1명 이상이어야 합니다.")
@@ -148,13 +138,6 @@ public class StudyHallSearchRequest {
     }
 
     /**
-     * 필터 적용 여부 확인
-     */
-    public boolean hasFilters() {
-        return filters != null && !filters.isEmpty();
-    }
-
-    /**
      * 캐시 키 생성용 toString
      */
     @Override
@@ -164,33 +147,6 @@ public class StudyHallSearchRequest {
                 Objects.toString(latitude, ""),
                 Objects.toString(longitude, ""),
                 Objects.toString(radius, ""),
-                Objects.toString(limit, ""),
-                Objects.toString(sortType, ""),
-                Objects.toString(filters.hashCode(), ""));
-    }
-
-    // === Builder 확장 ===
-    public static class StudyHallSearchRequestBuilder {
-
-        public StudyHallSearchRequestBuilder nearbySearch(Double lat, Double lng, Double radiusKm) {
-            return this.latitude(lat)
-                    .longitude(lng)
-                    .radius(radiusKm)
-                    .sortType(StudyRoomEnums.SearchSortType.DISTANCE_ASC);
-        }
-
-        public StudyHallSearchRequestBuilder keywordSearch(String searchKeyword) {
-            return this.keyword(searchKeyword)
-                    .sortType(StudyRoomEnums.SearchSortType.NAME_ASC);
-        }
-
-        public StudyHallSearchRequestBuilder withCapacityRange(Integer min, Integer max) {
-            return this.minCapacity(min)
-                    .maxCapacity(max);
-        }
-
-        public StudyHallSearchRequestBuilder availableNow() {
-            return this.filters(Set.of(StudyRoomEnums.SearchFilterType.AVAILABLE_NOW));
-        }
+                Objects.toString(limit, ""));
     }
 }

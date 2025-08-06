@@ -1,4 +1,4 @@
-package org.example.hugmeexp.domain.studyRoom.reids.service;
+package org.example.hugmeexp.domain.studyRoom.service.redis;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

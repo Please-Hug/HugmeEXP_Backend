@@ -6,11 +6,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.hugmeexp.domain.studyRoom.constants.StudyRoomConstants;
 import org.example.hugmeexp.domain.studyRoom.dto.request.StudyHallSearchRequest;
 import org.example.hugmeexp.domain.studyRoom.dto.response.ReservationTimeResponse;
 import org.example.hugmeexp.domain.studyRoom.dto.response.StudyHallLocationResponse;
 import org.example.hugmeexp.domain.studyRoom.dto.response.StudyRoomDetailResponse;
 import org.example.hugmeexp.domain.studyRoom.dto.response.TimeSlotResponse;
+import org.example.hugmeexp.domain.studyRoom.service.KakaoMapService;
 import org.example.hugmeexp.domain.studyRoom.service.StudyHallSearchService;
 import org.example.hugmeexp.domain.studyRoom.service.StudyHallService;
 import org.example.hugmeexp.domain.studyRoom.service.StudyRoomService;
@@ -23,8 +25,6 @@ import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.util.List;
 
-// === 업데이트된 StudyRoomMapController (Redis 연동) ===
-
 @Tag(name = "StudyRoom - Search & Map", description = "Redis 기반 고성능 스터디룸 검색 및 지도 API")
 @Slf4j
 @RestController
@@ -35,6 +35,7 @@ public class StudyRoomMapController {
     private final StudyHallService studyHallService;
     private final StudyRoomService studyRoomService;
     private final StudyHallSearchService studyHallSearchService;
+    private final KakaoMapService kakaoMapService;
 
     @Operation(summary = "Redis Geo 기반 주변 검색",
             description = "Redis Geo를 활용한 위치 기반 검색")
@@ -50,15 +51,11 @@ public class StudyRoomMapController {
                             .build());
         }
 
-        long startTime = System.currentTimeMillis();
-
         List<StudyHallLocationResponse> results = studyHallSearchService
                 .searchNearbyStudyHallsWithRedis(request);
 
-        long duration = System.currentTimeMillis() - startTime;
-
-        String message = String.format("Redis Geo 검색 완료: %d개 결과 (%.2f초)",
-                results.size(), duration / 1000.0);
+        String message = String.format(StudyRoomConstants.SEARCH_RESULT_MESSAGE_FORMAT,
+                "Redis Geo 검색", results.size());
 
         return ResponseEntity.ok(Response.<List<StudyHallLocationResponse>>builder()
                 .message(message)
@@ -75,15 +72,10 @@ public class StudyRoomMapController {
             @Parameter(description = "제안 개수", example = "5")
             @RequestParam(defaultValue = "5") Integer limit) {
 
-        long startTime = System.currentTimeMillis();
-
         List<String> suggestions = studyHallSearchService
                 .getSmartAutocompleteSuggestions(query, limit);
 
-        long duration = System.currentTimeMillis() - startTime;
-
-        String message = String.format("⚡ Redis Trie 자동완성: %d개 제안 (%.2fms)",
-                suggestions.size(), (double) duration);
+        String message = String.format("%d개의 자동완성 제안을 찾았습니다.", suggestions.size());
 
         return ResponseEntity.ok(Response.<List<String>>builder()
                 .message(message)
@@ -100,21 +92,19 @@ public class StudyRoomMapController {
         try {
             List<StudyHallLocationResponse> results = studyHallSearchService.hybridSearch(request);
 
-            String searchType = request.isLocationBasedSearch() ? "위치 기반" :
-                    request.isKeywordBasedSearch() ? "키워드 기반" : "전체 조회";
-
-            String message = String.format("하이브리드 검색 (%s): %d개 결과",
-                    searchType, results.size());
+            String message = String.format(StudyRoomConstants.SEARCH_RESULT_MESSAGE_FORMAT,
+                    "하이브리드 검색", results.size());
 
             return ResponseEntity.ok(Response.<List<StudyHallLocationResponse>>builder()
                     .message(message)
                     .data(results)
                     .build());
 
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest()
+        } catch (Exception e) {
+            log.error("하이브리드 검색 중 오류 발생", e);
+            return ResponseEntity.internalServerError()
                     .body(Response.<List<StudyHallLocationResponse>>builder()
-                            .message("검색 요청이 올바르지 않습니다: " + e.getMessage())
+                            .message("검색 중 오류가 발생했습니다.")
                             .data(List.of())
                             .build());
         }
@@ -125,10 +115,10 @@ public class StudyRoomMapController {
     @Operation(summary = "모든 스터디홀 위치 조회", description = "지도에 표시할 모든 스터디홀의 위치 정보를 조회합니다.")
     @GetMapping("/map/halls")
     public ResponseEntity<Response<List<StudyHallLocationResponse>>> getAllStudyHallsForMap() {
-        List<StudyHallLocationResponse> studyHalls = studyHallService.getAllStudyHallsForMap();
+        List<StudyHallLocationResponse> studyHalls = kakaoMapService.getAllStudyHallsForMap();
 
         return ResponseEntity.ok(Response.<List<StudyHallLocationResponse>>builder()
-                .message("모든 스터디홀 위치 정보를 조회했습니다.")
+                .message(String.format("총 %d개의 스터디홀을 조회했습니다.", studyHalls.size()))
                 .data(studyHalls)
                 .build());
     }
@@ -150,11 +140,11 @@ public class StudyRoomMapController {
         log.info("기본 주변 검색 (DB) - lat: {}, lng: {}, radius: {}km",
                 request.getLatitude(), request.getLongitude(), request.getRadius());
 
-        List<StudyHallLocationResponse> nearbyHalls = studyHallService.searchNearbyStudyHalls(request);
+        List<StudyHallLocationResponse> nearbyHalls = studyHallSearchService.searchNearbyStudyHalls(request);
 
         return ResponseEntity.ok(Response.<List<StudyHallLocationResponse>>builder()
-                .message(String.format("반경 %.1fkm 내 스터디홀 %d개를 찾았습니다.",
-                        request.getRadius(), nearbyHalls.size()))
+                .message(String.format(StudyRoomConstants.SEARCH_RESULT_MESSAGE_FORMAT,
+                        "주변 검색", nearbyHalls.size()))
                 .data(nearbyHalls)
                 .build());
     }
@@ -167,10 +157,10 @@ public class StudyRoomMapController {
             @Parameter(description = "제안 개수", example = "5")
             @RequestParam(defaultValue = "5") Integer limit) {
 
-        List<String> suggestions = studyHallService.getSmartAutocompleteSuggestions(query, limit);
+        List<String> suggestions = studyHallSearchService.getSmartAutocompleteSuggestions(query, limit);
 
         return ResponseEntity.ok(Response.<List<String>>builder()
-                .message("자동완성 제안을 조회했습니다.")
+                .message(String.format("%d개의 자동완성 제안을 찾았습니다.", suggestions.size()))
                 .data(suggestions)
                 .build());
     }
@@ -183,7 +173,7 @@ public class StudyRoomMapController {
             @PathVariable Long studyHallId) {
 
         try {
-            StudyHallLocationResponse studyHall = studyHallService.getStudyHallDetail(studyHallId);
+            StudyHallLocationResponse studyHall = kakaoMapService.getStudyHallDetail(studyHallId);
             return ResponseEntity.ok(Response.<StudyHallLocationResponse>builder()
                     .message("스터디홀 상세 정보를 조회했습니다.")
                     .data(studyHall)
@@ -205,7 +195,7 @@ public class StudyRoomMapController {
             @RequestParam Double longitude) {
 
         try {
-            StudyHallLocationResponse studyHall = studyHallService.getStudyHallWithDistance(
+            StudyHallLocationResponse studyHall = kakaoMapService.getStudyHallWithDistance(
                     studyHallId, latitude, longitude);
             return ResponseEntity.ok(Response.<StudyHallLocationResponse>builder()
                     .message("스터디홀 정보와 거리를 계산했습니다.")
@@ -324,7 +314,7 @@ public class StudyRoomMapController {
     public ResponseEntity<Response<List<StudyHallLocationResponse>>> searchStudyHallsByAddress(
             @RequestParam String address) {
 
-        List<StudyHallLocationResponse> studyHalls = studyHallService.searchStudyHallsByAddress(address);
+        List<StudyHallLocationResponse> studyHalls = studyHallSearchService.searchStudyHallsByAddress(address);
         return ResponseEntity.ok(Response.<List<StudyHallLocationResponse>>builder()
                 .message(String.format("주소 '%s'로 %d개의 스터디홀을 찾았습니다.", address, studyHalls.size()))
                 .data(studyHalls)
@@ -336,7 +326,7 @@ public class StudyRoomMapController {
     public ResponseEntity<Response<List<StudyHallLocationResponse>>> searchStudyHallsByName(
             @RequestParam String name) {
 
-        List<StudyHallLocationResponse> studyHalls = studyHallService.searchStudyHallsByName(name);
+        List<StudyHallLocationResponse> studyHalls = studyHallSearchService.searchStudyHallsByName(name);
         return ResponseEntity.ok(Response.<List<StudyHallLocationResponse>>builder()
                 .message(String.format("이름 '%s'로 %d개의 스터디홀을 찾았습니다.", name, studyHalls.size()))
                 .data(studyHalls)

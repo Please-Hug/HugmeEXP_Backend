@@ -4,7 +4,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.hugmeexp.domain.studyRoom.dto.response.StudyHallLocationResponse;
 import org.example.hugmeexp.domain.studyRoom.entity.Location;
+import org.example.hugmeexp.domain.studyRoom.entity.StudyHall;
+import org.example.hugmeexp.domain.studyRoom.exception.StudyHallNotFoundException;
+import org.example.hugmeexp.domain.studyRoom.repository.StudyHallRepository;
 import org.example.hugmeexp.domain.studyRoom.util.DistanceCalculator;
 import org.example.hugmeexp.global.common.config.KakaoMapConfig;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -16,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -25,6 +30,7 @@ public class KakaoMapService {
 
     private final KakaoMapConfig kakaoMapConfig;
     private final RestTemplate restTemplate;
+    private final StudyHallRepository studyHallRepository;
     @Qualifier("kakaoMapObjectMapper")
     private final ObjectMapper objectMapper;
 
@@ -105,7 +111,6 @@ public class KakaoMapService {
         }
     }
 
-
     /**
      * 두 지점 간의 거리 계산
      * @param lat1 첫 번째 지점의 위도
@@ -116,6 +121,48 @@ public class KakaoMapService {
      */
     public Double calculateDistance(Double lat1, Double lon1, Double lat2, Double lon2) {
         return DistanceCalculator.calculateDistance(lat1, lon1, lat2, lon2);
+    }
+
+    /**
+     * 특정 스터디홀의 상세 정보 조회
+     * @param studyHallId 스터디홀 ID
+     * @return 스터디홀 상세 정보
+     */
+    public StudyHallLocationResponse getStudyHallDetail(Long studyHallId) {
+        StudyHall studyHall = studyHallRepository.findByIdWithStudyRooms(studyHallId)
+                .orElseThrow(() -> new StudyHallNotFoundException(studyHallId));
+
+        return StudyHallLocationResponse.from(studyHall);
+    }
+
+    /**
+     * 특정 스터디홀의 위치와 현재 위치 간의 거리 계산
+     * @param studyHallId 스터디홀 ID
+     * @param currentLat 현재 위치의 위도
+     * @param currentLng 현재 위치의 경도
+     * @return 스터디홀 위치 정보와 거리
+     */
+    public StudyHallLocationResponse getStudyHallWithDistance(Long studyHallId, Double currentLat, Double currentLng) {
+        StudyHall studyHall = studyHallRepository.findByIdWithStudyRooms(studyHallId)
+                .orElseThrow(() -> new StudyHallNotFoundException(studyHallId));
+
+        Double distance = calculateDistance(
+                currentLat, currentLng,
+                studyHall.getLatitude(), studyHall.getLongitude()
+        );
+
+        return StudyHallLocationResponse.from(studyHall, distance);
+    }
+
+    /**
+     * 모든 스터디홀의 위치 정보를 조회하여 지도에 표시
+     * @return 스터디홀 위치 정보 리스트
+     */
+    public List<StudyHallLocationResponse> getAllStudyHallsForMap() {
+        List<StudyHall> studyHalls = studyHallRepository.findAllWithStudyRooms();
+        return studyHalls.stream()
+                .map(StudyHallLocationResponse::from)
+                .toList();
     }
 
 //    /** 카카오맵 API를 사용한 실제 경로 거리 계산 (향후 확장 가능)

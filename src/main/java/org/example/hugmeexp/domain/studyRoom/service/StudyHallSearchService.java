@@ -2,13 +2,14 @@ package org.example.hugmeexp.domain.studyRoom.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.hugmeexp.domain.studyRoom.constants.StudyRoomConstants;
 import org.example.hugmeexp.domain.studyRoom.dto.request.StudyHallSearchRequest;
 import org.example.hugmeexp.domain.studyRoom.dto.response.StudyHallLocationResponse;
 import org.example.hugmeexp.domain.studyRoom.entity.StudyHall;
 import org.example.hugmeexp.domain.studyRoom.projection.StudyHallWithDistanceProjection;
 import org.example.hugmeexp.domain.studyRoom.repository.StudyHallRepository;
-import org.example.hugmeexp.domain.studyRoom.reids.service.RedisAutoCompleteService;
-import org.example.hugmeexp.domain.studyRoom.reids.service.RedisGeoService;
+import org.example.hugmeexp.domain.studyRoom.service.redis.RedisAutoCompleteService;
+import org.example.hugmeexp.domain.studyRoom.service.redis.RedisGeoService;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -35,7 +37,7 @@ public class StudyHallSearchService {
     private final RedisAutoCompleteService autoCompleteService;
 
     /**
-     * Redis Geo를 활용한 위치 기반 검색 (성능 측정 제거)
+     * Redis Geo를 활용한 위치 기반 검색
      */
     @Cacheable(value = "nearbyHallsRedis", key = "#request.toString()", unless = "#result.isEmpty()")
     public List<StudyHallLocationResponse> searchNearbyStudyHallsWithRedis(StudyHallSearchRequest request) {
@@ -48,7 +50,7 @@ public class StudyHallSearchService {
             );
 
             if (!redisResults.isEmpty()) {
-                return applyAdditionalFilters(redisResults, request);
+                return redisResults;
             }
 
             // Redis에 데이터가 없으면 DB 검색 (Fallback)
@@ -61,7 +63,7 @@ public class StudyHallSearchService {
     }
 
     /**
-     * Redis Trie를 활용한 스마트 자동완성 (성능 측정 제거)
+     * Redis Trie를 활용한 스마트 자동완성
      */
     public List<String> getSmartAutocompleteSuggestions(String prefix, int limit) {
         try {
@@ -92,10 +94,82 @@ public class StudyHallSearchService {
         return getAllStudyHallsFromDB(request.getLimit());
     }
 
-    // === Private Helper Methods ===
+    public List<StudyHallLocationResponse> searchNearbyStudyHalls(StudyHallSearchRequest request) {
+        try {
+            List<StudyHallLocationResponse> redisResults = redisGeoService.findNearbyStudyHalls(
+                    request.getLatitude(),
+                    request.getLongitude(),
+                    request.getRadius(),
+                    request.getLimit()
+            );
 
+            if (!redisResults.isEmpty()) {
+                return redisResults;
+            }
+        } catch (Exception e) {
+            log.debug("Redis Geo 검색 실패, DB 검색으로 fallback");
+        }
+
+        // DB Fallback
+        return searchNearbyStudyHallsWithDB(request);
+    }
+
+    /**
+     * 기본 자동완성 제안 (2글자 이상)
+     */
+    private List<String> getBasicAutocompleteSuggestions(String prefix, int limit) {
+        if (!StringUtils.hasText(prefix) || prefix.length() < 2) {
+            return Collections.emptyList();
+        }
+
+        List<StudyHall> halls = studyHallRepository
+                .findByNameContainingIgnoreCaseAndIsDeletedFalse(prefix);
+
+        Set<String> suggestions = ConcurrentHashMap.newKeySet();
+
+        String lowerPrefix = prefix.toLowerCase();
+
+        for (StudyHall hall : halls) {
+            if (StringUtils.hasText(hall.getName()) &&
+                    hall.getName().toLowerCase().contains(lowerPrefix)) {
+                suggestions.add(hall.getName());
+            }
+
+            if (StringUtils.hasText(hall.getSimpleAddress()) &&
+                    hall.getSimpleAddress().toLowerCase().contains(lowerPrefix)) {
+                suggestions.add(hall.getSimpleAddress());
+            }
+
+            if (suggestions.size() >= limit) break;
+        }
+
+        return new ArrayList<>(suggestions);
+    }
+
+    public List<StudyHallLocationResponse> searchStudyHallsByAddress(String address) {
+        List<StudyHall> studyHalls = studyHallRepository.findByLocationAddressContainingIgnoreCase(address);
+        return studyHalls.stream()
+                .map(StudyHallLocationResponse::from)
+                .toList();
+    }
+
+    public List<StudyHallLocationResponse> searchStudyHallsByName(String name) {
+        // 검색어 기록
+        try {
+            autoCompleteService.recordSearch(name);
+        } catch (Exception e) {
+            log.debug("Redis 검색어 기록 실패");
+        }
+
+        List<StudyHall> studyHalls = studyHallRepository.findByNameContainingIgnoreCaseAndIsDeletedFalse(name);
+        return studyHalls.stream()
+                .map(StudyHallLocationResponse::from)
+                .toList();
+    }
+
+    // DB 기반 주변 검색 (Fallback용)
     private List<StudyHallLocationResponse> searchNearbyStudyHallsWithDB(StudyHallSearchRequest request) {
-        BoundingBox boundingBox = calculateBoundingBox(request);
+        StudyHallSearchService.BoundingBox boundingBox = calculateBoundingBox(request);
 
         List<StudyHallWithDistanceProjection> projections = studyHallRepository
                 .findNearbyStudyHallsWithProjection(
@@ -109,6 +183,8 @@ public class StudyHallSearchService {
                 .map(this::convertProjectionToResponse)
                 .collect(Collectors.toList());
     }
+
+    // === Private Helper Methods ===
 
     private List<StudyHallLocationResponse> searchByKeywordWithDB(StudyHallSearchRequest request) {
         String keyword = request.getKeyword();
@@ -154,41 +230,14 @@ public class StudyHallSearchService {
                 .collect(Collectors.toList());
     }
 
-    private List<StudyHallLocationResponse> applyAdditionalFilters(
-            List<StudyHallLocationResponse> results,
-            StudyHallSearchRequest request) {
-
-        // TODO: 추가 필터링 로직 (용량, 운영시간 등)
-        return results.stream()
-                .filter(hall -> matchesCapacityFilter(hall, request))
-                .collect(Collectors.toList());
-    }
-
-    private boolean matchesCapacityFilter(StudyHallLocationResponse hall, StudyHallSearchRequest request) {
-        // TODO: 용량 필터링 로직 구현
-        return true;
-    }
-
-    private String determineSearchType(StudyHallSearchRequest request) {
-        if (request.hasValidLocationInfo()) {
-            return "REDIS_GEO";
-        } else if (request.hasValidKeyword()) {
-            return "DB_KEYWORD";
-        } else {
-            return "DB_ALL";
-        }
-    }
-
-    private boolean isCacheHit(String searchType, long duration) {
-        // Redis나 캐시를 사용한 경우 일반적으로 50ms 이하
-        return (searchType.contains("REDIS") && duration < 50) || duration < 20;
-    }
-
+    /**
+     * 바운딩박스
+     * 주어진 위도, 경도, 반경을 기반으로 바운딩 박스를 계산합니다.
+     */
     private BoundingBox calculateBoundingBox(StudyHallSearchRequest request) {
-        double kmPerDegreeLat = 111.0;
-        double kmPerDegreeLng = 111.0 * Math.cos(Math.toRadians(request.getLatitude()));
+        double kmPerDegreeLng = StudyRoomConstants.KM_PER_DEGREE_LAT * Math.cos(Math.toRadians(request.getLatitude()));
 
-        double deltaLat = request.getRadius() / kmPerDegreeLat;
+        double deltaLat = request.getRadius() / StudyRoomConstants.KM_PER_DEGREE_LAT;
         double deltaLng = request.getRadius() / kmPerDegreeLng;
 
         return BoundingBox.builder()
@@ -198,7 +247,6 @@ public class StudyHallSearchService {
                 .maxLng(request.getLongitude() + deltaLng)
                 .build();
     }
-
     private StudyHallLocationResponse convertProjectionToResponse(StudyHallWithDistanceProjection projection) {
         return StudyHallLocationResponse.builder()
                 .id(projection.getId())

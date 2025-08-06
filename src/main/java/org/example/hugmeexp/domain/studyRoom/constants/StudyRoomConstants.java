@@ -11,6 +11,7 @@ public final class StudyRoomConstants {
     public static final LocalTime DEFAULT_OPEN_TIME = LocalTime.of(9, 0);
     public static final LocalTime DEFAULT_CLOSE_TIME = LocalTime.of(22, 0);
     public static final int DEFAULT_SLOT_DURATION_HOURS = 1;
+    public static final int TIME_SLOT_INTERVAL_MINUTES = 30; // 30분 단위 시간 슬롯
     public static final int MIN_RESERVATION_DURATION_HOURS = 1;
     public static final int MAX_RESERVATION_DURATION_HOURS = 8;
 

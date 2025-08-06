@@ -1,6 +1,7 @@
 package org.example.hugmeexp.domain.studyRoom.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.hugmeexp.domain.studyRoom.constants.StudyRoomConstants;
 import org.example.hugmeexp.domain.studyRoom.dto.request.StudyRoomRequest;
 import org.example.hugmeexp.domain.studyRoom.dto.response.ReservationTimeResponse;
 import org.example.hugmeexp.domain.studyRoom.dto.response.StudyRoomDetailResponse;
@@ -25,10 +26,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class StudyRoomService {
-
-    // 기본 운영시간
-    private static final LocalTime DEFAULT_OPEN_TIME = LocalTime.of(9, 0);
-    private static final LocalTime DEFAULT_CLOSE_TIME = LocalTime.of(22, 0);
 
     private final StudyRoomRepository studyRoomRepository;
     private final StudyHallRepository studyHallRepository;
@@ -135,8 +132,10 @@ public class StudyRoomService {
 
         StudyHall studyHall = studyRoom.getStudyHall();
 
-        LocalTime openTime = studyHall.getOpenTime() != null ? studyHall.getOpenTime() : DEFAULT_OPEN_TIME;
-        LocalTime closeTime = studyHall.getCloseTime() != null ? studyHall.getCloseTime() : DEFAULT_CLOSE_TIME;
+        LocalTime openTime = studyHall.getOpenTime() != null ?
+                studyHall.getOpenTime() : StudyRoomConstants.DEFAULT_OPEN_TIME;
+        LocalTime closeTime = studyHall.getCloseTime() != null ?
+                studyHall.getCloseTime() : StudyRoomConstants.DEFAULT_CLOSE_TIME;
 
         LocalDateTime startOfDay = date.atTime(openTime);
         LocalDateTime endOfDay = date.atTime(closeTime);
@@ -185,7 +184,7 @@ public class StudyRoomService {
 
         LocalDateTime currentTime = startOfDay;
         while (currentTime.isBefore(endOfDay)) {
-            LocalDateTime slotEnd = currentTime.plusHours(1);
+            LocalDateTime slotEnd = currentTime.plusMinutes(StudyRoomConstants.TIME_SLOT_INTERVAL_MINUTES);
             boolean isAvailable = isTimeSlotAvailable(currentTime, slotEnd, reservations);
             timeSlots.add(TimeSlotResponse.of(currentTime, slotEnd, isAvailable));
             currentTime = slotEnd;
@@ -196,13 +195,14 @@ public class StudyRoomService {
 
     private boolean checkRoomAvailability(Long studyRoomId) {
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime oneHourLater = now.plusHours(1);
+        LocalDateTime oneHourLater = now.plusHours(StudyRoomConstants.DEFAULT_SLOT_DURATION_HOURS);
 
         List<StudyRoomReservation> conflictingReservations = studyRoomReservationRepository
                 .findConflictingReservations(studyRoomId, now, oneHourLater);
 
         return conflictingReservations.isEmpty();
     }
+
 
     private int getCurrentReservationsCount(Long studyRoomId) {
         LocalDateTime now = LocalDateTime.now();
