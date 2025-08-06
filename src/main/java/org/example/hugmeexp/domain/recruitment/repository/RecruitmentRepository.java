@@ -47,9 +47,9 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
                 (:#{#cond.education} IS NULL OR r.education = :#{#cond.education}) AND
                 (:#{#cond.workLocation} IS NULL OR r.workLocation LIKE CONCAT('%', :#{#cond.workLocation}, '%')) AND
                 (
-                    :#{#cond.topLeftLat} IS NULL OR 
-                    :#{#cond.topLeftLng} IS NULL OR 
-                    :#{#cond.bottomRightLat} IS NULL OR 
+                    :#{#cond.topLeftLat} IS NULL OR
+                    :#{#cond.topLeftLng} IS NULL OR
+                    :#{#cond.bottomRightLat} IS NULL OR
                     :#{#cond.bottomRightLng} IS NULL OR
                     (
                         r.latitude BETWEEN LEAST(:#{#cond.topLeftLat}, :#{#cond.bottomRightLat}) AND GREATEST(:#{#cond.topLeftLat}, :#{#cond.bottomRightLat}) AND
@@ -85,9 +85,9 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
                 (:#{#cond.education} IS NULL OR r.education = :#{#cond.education}) AND
                 (:#{#cond.workLocation} IS NULL OR r.workLocation LIKE CONCAT('%', :#{#cond.workLocation}, '%')) AND
                 (
-                    :#{#cond.topLeftLat} IS NULL OR 
-                    :#{#cond.topLeftLng} IS NULL OR 
-                    :#{#cond.bottomRightLat} IS NULL OR 
+                    :#{#cond.topLeftLat} IS NULL OR
+                    :#{#cond.topLeftLng} IS NULL OR
+                    :#{#cond.bottomRightLat} IS NULL OR
                     :#{#cond.bottomRightLng} IS NULL OR
                     (
                         r.latitude BETWEEN LEAST(:#{#cond.topLeftLat}, :#{#cond.bottomRightLat}) AND GREATEST(:#{#cond.topLeftLat}, :#{#cond.bottomRightLat}) AND
@@ -194,9 +194,9 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
             (:#{#cond.education} IS NULL OR r.education = :#{#cond.education}) AND
             (:#{#cond.workLocation} IS NULL OR r.workLocation LIKE %:#{#cond.workLocation}%) AND
             (
-                :#{#cond.topLeftLat} IS NULL OR 
-                :#{#cond.topLeftLng} IS NULL OR 
-                :#{#cond.bottomRightLat} IS NULL OR 
+                :#{#cond.topLeftLat} IS NULL OR
+                :#{#cond.topLeftLng} IS NULL OR
+                :#{#cond.bottomRightLat} IS NULL OR
                 :#{#cond.bottomRightLng} IS NULL OR
                 (
                     r.latitude BETWEEN LEAST(:#{#cond.topLeftLat}, :#{#cond.bottomRightLat}) AND GREATEST(:#{#cond.topLeftLat}, :#{#cond.bottomRightLat}) AND
