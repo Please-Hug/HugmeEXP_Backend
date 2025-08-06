@@ -54,19 +54,24 @@ public class RedisConfig {
 
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+        // ObjectMapper를 생성하고, LocalDateTime 처리를 위한 모듈을 등록
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         objectMapper.activateDefaultTyping(
                 objectMapper.getPolymorphicTypeValidator(),
                 ObjectMapper.DefaultTyping.NON_FINAL
         );
 
-        // 제네릭 컬렉션을 위한 타입 헬퍼 클래스 사용
+        // 위에서 설정한 ObjectMapper로 직렬화(Serializer) 규칙을 생성
         GenericJackson2JsonRedisSerializer serializer =
                 new GenericJackson2JsonRedisSerializer(objectMapper);
 
+        // 만든 직렬화 규칙을 캐시 설정에 적용
         RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofMinutes(30))
-                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(serializer));
+                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer())) // Key 직렬화 규칙 추가
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(serializer)); // Value 직렬화 규칙 적용
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(config)

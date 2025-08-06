@@ -20,6 +20,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.Map;
 
 @Slf4j
@@ -43,7 +44,8 @@ public class StudyRoomReservationController {
                 .data(Map.of("reservationId", reservationId))
                 .build();
         
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        URI location = URI.create(String.format("/api/v1/studyroom/reservations/%d", reservationId));
+        return ResponseEntity.created(location).body(response);
     }
 
     @SecurityRequirement(name = "JWT")

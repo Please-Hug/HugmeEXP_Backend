@@ -4,6 +4,7 @@ import org.example.hugmeexp.domain.studyRoom.dto.request.ReservationCreateDto;
 import org.example.hugmeexp.domain.studyRoom.entity.StudyHall;
 import org.example.hugmeexp.domain.studyRoom.entity.StudyRoom;
 import org.example.hugmeexp.domain.studyRoom.entity.StudyRoomReservation;
+import org.example.hugmeexp.domain.studyRoom.entity.Location;
 import org.example.hugmeexp.domain.studyRoom.repository.StudyHallRepository;
 import org.example.hugmeexp.domain.studyRoom.repository.StudyRoomRepository;
 import org.example.hugmeexp.domain.studyRoom.repository.StudyRoomReservationRepository;
@@ -15,8 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -30,8 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-@TestPropertySource(locations = "classpath:application-test.properties")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@ActiveProfiles("test")
 @DisplayName("StudyRoom 예약 동시성 테스트")
 public class StudyRoomReservationConcurrencyTest {
 
@@ -66,8 +65,7 @@ public class StudyRoomReservationConcurrencyTest {
         // StudyHall 생성
         StudyHall studyHall = StudyHall.builder()
                 .name("테스트 스터디홀")
-                .simpleAddress("서울시 강남구")
-                .address("서울시 강남구 테스트로 123")
+                .location(Location.of(37.5665, 126.9780, "서울시 강남구 테스트로 123", "서울시 강남구"))
                 .build();
         studyHallRepository.save(studyHall);
 
