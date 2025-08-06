@@ -201,11 +201,11 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
                     r.longitude BETWEEN LEAST(:#{#cond.topLeftLng}, :#{#cond.bottomRightLng}) AND GREATEST(:#{#cond.topLeftLng}, :#{#cond.bottomRightLng})
                 )
             ) AND
-            (:#{#cond.techStacks} IS NULL OR ts.id IN :#{#cond.techStacks}) AND
-            (:#{#cond.tags} IS NULL OR t.id IN :#{#cond.tags})
+            (:#{#cond.techStacks} IS NULL OR ts.techItem.id IN :#{#cond.techStacks}) AND
+            (:#{#cond.tags} IS NULL OR t.tagItem.id IN :#{#cond.tags})
         GROUP BY r.id
-        HAVING (:#{#cond.techStacks} IS NULL OR COUNT(DISTINCT ts.id) = :#{#cond.techStackCount}) AND
-            (:#{#cond.tags} IS NULL OR COUNT(DISTINCT t.id) = :#{#cond.tagCount})
+        HAVING (:#{#cond.techStacks} IS NULL OR COUNT(DISTINCT ts.techItem.id) = :#{#cond.techStackCount}) AND
+            (:#{#cond.tags} IS NULL OR COUNT(DISTINCT t.tagItem.id) = :#{#cond.tagCount})
         ORDER BY r.modifiedAt DESC
         """)
     List<Long> findIdsBySearchConditions(@Param("cond") RecruitmentSearchConditionDTO cond);
