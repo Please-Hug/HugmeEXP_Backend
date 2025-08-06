@@ -170,36 +170,27 @@ public class StudyHallSearchRequest {
     }
 
     // === Builder 확장 ===
-
     public static class StudyHallSearchRequestBuilder {
 
         public StudyHallSearchRequestBuilder nearbySearch(Double lat, Double lng, Double radiusKm) {
-            this.latitude = lat;
-            this.longitude = lng;
-            this.radius = radiusKm;
-            this.sortType = StudyRoomEnums.SearchSortType.DISTANCE_ASC;
-            return this;
+            return this.latitude(lat)
+                    .longitude(lng)
+                    .radius(radiusKm)
+                    .sortType(StudyRoomEnums.SearchSortType.DISTANCE_ASC);
         }
 
         public StudyHallSearchRequestBuilder keywordSearch(String searchKeyword) {
-            this.keyword = searchKeyword;
-            this.sortType = StudyRoomEnums.SearchSortType.NAME_ASC;
-            return this;
+            return this.keyword(searchKeyword)
+                    .sortType(StudyRoomEnums.SearchSortType.NAME_ASC);
         }
 
         public StudyHallSearchRequestBuilder withCapacityRange(Integer min, Integer max) {
-            this.minCapacity = min;
-            this.maxCapacity = max;
-            return this;
+            return this.minCapacity(min)
+                    .maxCapacity(max);
         }
 
         public StudyHallSearchRequestBuilder availableNow() {
-            if (this.filters == null) {
-                this.filters = Set.of(StudyRoomEnums.SearchFilterType.AVAILABLE_NOW);
-            } else {
-                this.filters = Set.of(StudyRoomEnums.SearchFilterType.AVAILABLE_NOW);
-            }
-            return this;
+            return this.filters(Set.of(StudyRoomEnums.SearchFilterType.AVAILABLE_NOW));
         }
     }
 }

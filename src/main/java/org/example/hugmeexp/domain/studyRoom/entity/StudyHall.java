@@ -18,8 +18,15 @@ import java.util.Optional;
 @Entity
 @Table(name = "study_hall",
         indexes = {
-                @Index(name = "idx_study_hall_is_deleted", columnList = "isDeleted"),
-                @Index(name = "idx_study_hall_location", columnList = "latitude, longitude, isDeleted")
+                // 검색 최적화 인덱스
+                @Index(name = "idx_study_hall_search_optimized",
+                        columnList = "is_deleted, name, simple_address",
+                        unique = false),
+
+                // 위치 기반 검색 인덱스
+                @Index(name = "idx_study_hall_location_bounds",
+                        columnList = "latitude, longitude, is_deleted",
+                        unique = false)
         })
 @Builder
 @AllArgsConstructor
