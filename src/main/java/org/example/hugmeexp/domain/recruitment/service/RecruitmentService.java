@@ -21,6 +21,7 @@ import org.example.hugmeexp.domain.recruitment.repository.CompanyRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,23 +56,47 @@ public class RecruitmentService {
     /**
      * 채용 공고 목록을 조회합니다.
      * 검색 조건에 따라 필터링된 채용 공고를 페이지 단위로 반환합니다.
+     * 필터링된 ID를 먼저 가져온 후 페이징을 적용하여 빈 결과 문제를 해결합니다.
      *
      * @param cond 검색 조건 DTO
      * @param page 페이지 번호 (0부터 시작)
      * @return 필터링된 채용 공고 목록 (RecruitmentResponseDTO)
      */
     public Page<RecruitmentResponseDTO> listRecruitments(RecruitmentSearchConditionDTO cond, int page) {
-        RecruitmentSearchConditionDTO enrichedCond = cond.toBuilder()
-                .techStacks((cond.getTechStacks() == null || cond.getTechStacks().isEmpty()) ? null : cond.getTechStacks())
-                .tags((cond.getTags() == null || cond.getTags().isEmpty()) ? null : cond.getTags())
-                .techStackCount((cond.getTechStacks() == null || cond.getTechStacks().isEmpty()) ? null : (long) cond.getTechStacks().size())
-                .tagCount((cond.getTags() == null || cond.getTags().isEmpty()) ? null : (long) cond.getTags().size())
-                .keyword((cond.getKeyword() == null || cond.getKeyword().isBlank()) ? null : cond.getKeyword())
-                .build();
+        // 페이지 설정 (80개씩)
+        Pageable pageable = PageRequest.of(page, 80, Sort.by(Sort.Direction.DESC, "modifiedAt"));
 
-        Pageable pageable = PageRequest.of(page, 80);
+        // techStacks와 tags 카운트 설정
+        setCountFields(cond);
 
-        return recruitmentRepository.findBySearchConditions(enrichedCond, pageable);
+        // 레포지토리에서 검색 조건에 맞는 결과 직접 조회
+        return recruitmentRepository.findBySearchConditions(cond, pageable);
+    }
+
+    /**
+     * RecruitmentSearchConditionDTO의 techStackCount와 tagCount 필드를 설정합니다.
+     *
+     * @param conditionDTO 검색 조건 DTO
+     */
+    private void setCountFields(RecruitmentSearchConditionDTO conditionDTO) {
+        // techStacks 카운트 설정
+        if (conditionDTO.getTechStacks() != null && !conditionDTO.getTechStacks().isEmpty()) {
+            conditionDTO.setTechStackCount((long) conditionDTO.getTechStacks().size());
+        } else {
+            conditionDTO.setTechStackCount(null);
+        }
+
+        // tags 카운트 설정
+        if (conditionDTO.getTags() != null && !conditionDTO.getTags().isEmpty()) {
+            conditionDTO.setTagCount((long) conditionDTO.getTags().size());
+        } else {
+            conditionDTO.setTagCount(null);
+        }
+        
+        // 빈 키워드를 null로 변환
+        if (conditionDTO.getKeyword() != null && conditionDTO.getKeyword().trim().isEmpty()) {
+            conditionDTO.setKeyword(null);
+        }
     }
 
     /**

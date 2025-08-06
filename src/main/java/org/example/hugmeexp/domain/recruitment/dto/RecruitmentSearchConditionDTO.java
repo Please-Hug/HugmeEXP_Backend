@@ -10,6 +10,7 @@ import java.util.List;
 @NoArgsConstructor
 @Setter
 @Builder(toBuilder = true)
+@ToString
 public class RecruitmentSearchConditionDTO {
 
     private Integer salaryMin;
