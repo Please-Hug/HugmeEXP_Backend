@@ -60,11 +60,12 @@ public class RecruitmentService {
      *
      * @param cond 검색 조건 DTO
      * @param page 페이지 번호 (0부터 시작)
+     * @param size 페이지 크기 (기본값: 80)
      * @return 필터링된 채용 공고 목록 (RecruitmentResponseDTO)
      */
-    public Page<RecruitmentResponseDTO> listRecruitments(RecruitmentSearchConditionDTO cond, int page) {
+    public Page<RecruitmentResponseDTO> listRecruitments(RecruitmentSearchConditionDTO cond, int page, int size) {
         // 페이지 설정 (80개씩)
-        Pageable pageable = PageRequest.of(page, 80, Sort.by(Sort.Direction.DESC, "modifiedAt"));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "modifiedAt"));
 
         // techStacks와 tags 카운트 설정
         setCountFields(cond);

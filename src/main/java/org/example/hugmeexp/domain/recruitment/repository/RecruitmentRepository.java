@@ -23,6 +23,8 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
      * @param cond 검색 조건 DTO
      * @param pageable 페이징 정보
      * @return 필터링된 채용 공고 목록 (RecruitmentResponseDTO)
+     *
+     * 사용자가 지도를 드래그하여 선택한 사각형 범위 내에 있는 공고만 필터링
      */
     @Query(
         value = """
