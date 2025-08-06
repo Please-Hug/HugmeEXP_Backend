@@ -44,10 +44,16 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
                 ) AND
                 (:#{#cond.education} IS NULL OR r.education = :#{#cond.education}) AND
                 (:#{#cond.workLocation} IS NULL OR r.workLocation LIKE %:#{#cond.workLocation}%) AND
-                ((:#{#cond.topLeftLat} IS NULL OR :#{#cond.bottomRightLat} IS NULL) OR 
-                 (r.latitude <= :#{#cond.topLeftLat} AND r.latitude >= :#{#cond.bottomRightLat})) AND
-                ((:#{#cond.topLeftLng} IS NULL OR :#{#cond.bottomRightLng} IS NULL) OR 
-                 (r.longitude >= :#{#cond.topLeftLng} AND r.longitude <= :#{#cond.bottomRightLng})) AND
+                (
+                    :#{#cond.topLeftLat} IS NULL OR 
+                    :#{#cond.topLeftLng} IS NULL OR 
+                    :#{#cond.bottomRightLat} IS NULL OR 
+                    :#{#cond.bottomRightLng} IS NULL OR
+                    (
+                        r.latitude BETWEEN LEAST(:#{#cond.topLeftLat}, :#{#cond.bottomRightLat}) AND GREATEST(:#{#cond.topLeftLat}, :#{#cond.bottomRightLat}) AND
+                        r.longitude BETWEEN LEAST(:#{#cond.topLeftLng}, :#{#cond.bottomRightLng}) AND GREATEST(:#{#cond.topLeftLng}, :#{#cond.bottomRightLng})
+                    )
+                ) AND
                 (:#{#cond.techStacks} IS NULL OR ts.id IN :#{#cond.techStacks}) AND
                 (:#{#cond.tags} IS NULL OR t.id IN :#{#cond.tags})
             GROUP BY r.id, r.recruitmentSourceId, r.title, c.companyName, c.companyImageUrl, r.dueDate,
@@ -71,10 +77,16 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
                 ) AND
                 (:#{#cond.education} IS NULL OR r.education = :#{#cond.education}) AND
                 (:#{#cond.workLocation} IS NULL OR r.workLocation LIKE %:#{#cond.workLocation}%) AND
-                ((:#{#cond.topLeftLat} IS NULL OR :#{#cond.bottomRightLat} IS NULL) OR 
-                 (r.latitude <= :#{#cond.topLeftLat} AND r.latitude >= :#{#cond.bottomRightLat})) AND
-                ((:#{#cond.topLeftLng} IS NULL OR :#{#cond.bottomRightLng} IS NULL) OR 
-                 (r.longitude >= :#{#cond.topLeftLng} AND r.longitude <= :#{#cond.bottomRightLng})) AND
+                (
+                    :#{#cond.topLeftLat} IS NULL OR 
+                    :#{#cond.topLeftLng} IS NULL OR 
+                    :#{#cond.bottomRightLat} IS NULL OR 
+                    :#{#cond.bottomRightLng} IS NULL OR
+                    (
+                        r.latitude BETWEEN LEAST(:#{#cond.topLeftLat}, :#{#cond.bottomRightLat}) AND GREATEST(:#{#cond.topLeftLat}, :#{#cond.bottomRightLat}) AND
+                        r.longitude BETWEEN LEAST(:#{#cond.topLeftLng}, :#{#cond.bottomRightLng}) AND GREATEST(:#{#cond.topLeftLng}, :#{#cond.bottomRightLng})
+                    )
+                ) AND
                 (:#{#cond.techStacks} IS NULL OR ts.id IN :#{#cond.techStacks}) AND
                 (:#{#cond.tags} IS NULL OR t.id IN :#{#cond.tags})
     """)
