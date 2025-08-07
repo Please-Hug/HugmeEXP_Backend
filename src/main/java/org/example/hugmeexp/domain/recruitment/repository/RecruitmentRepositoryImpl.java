@@ -31,7 +31,6 @@ public class RecruitmentRepositoryImpl implements RecruitmentRepositoryCustom {
         QTechStack ts = QTechStack.techStack;
         QTag t = QTag.tag;
 
-        // Group By 후 having 절에서 사용할 count 컬럼
         NumberExpression<Long> techStackCount = ts.id.count();
         NumberExpression<Long> tagCount = t.id.count();
 
@@ -44,23 +43,10 @@ public class RecruitmentRepositoryImpl implements RecruitmentRepositoryCustom {
                 .join(r.company, c)
                 .leftJoin(r.techStacks, ts)
                 .leftJoin(r.tags, t)
-                .where(
-                        r.dueDate.gt(LocalDateTime.now()),
-                        salaryMinGoe(cond.getSalaryMin()),
-                        salaryMaxLoe(cond.getSalaryMax()),
-                        experienceBetween(cond.getExperienceMin(), cond.getExperienceMax()),
-                        educationEq(cond.getEducation()),
-                        workLocationLike(cond.getWorkLocation()),
-                        withinBounds(cond),
-                        keywordLike(cond.getKeyword()),
-                        techStacksIn(cond.getTechStacks()),
-                        tagsIn(cond.getTags())
-                )
+                .where(buildWhereClause(r,cond))
                 .groupBy(r.id)
-                .having(
-                        techStackCountEq(techStackCount, cond.getTechStacks(), cond.getTechStackCount()),
-                        tagCountEq(tagCount, cond.getTags(), cond.getTagCount())
-                )
+                .having(buildHavingClause(techStackCount, cond.getTechStacks(), cond.getTechStackCount(),
+                        tagCount, cond.getTags(), cond.getTagCount()))
                 .orderBy(r.modifiedAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -72,24 +58,31 @@ public class RecruitmentRepositoryImpl implements RecruitmentRepositoryCustom {
                 .join(r.company, c)
                 .leftJoin(r.techStacks, ts)
                 .leftJoin(r.tags, t)
-                .where(
-                        r.dueDate.gt(LocalDateTime.now()),
-                        salaryMinGoe(cond.getSalaryMin()),
-                        salaryMaxLoe(cond.getSalaryMax()),
-                        experienceBetween(cond.getExperienceMin(), cond.getExperienceMax()),
-                        educationEq(cond.getEducation()),
-                        workLocationLike(cond.getWorkLocation()),
-                        withinBounds(cond),
-                        keywordLike(cond.getKeyword()),
-                        techStacksIn(cond.getTechStacks()),
-                        tagsIn(cond.getTags())
-                )
+                .where(buildWhereClause(r,cond))
                 .fetchOne();
 
-        return new PageImpl<>(content, pageable, total);
+        return new PageImpl<>(content, pageable, total != null ? total : 0);
     }
 
-    // 조건 메서드들
+    private BooleanExpression buildWhereClause(QRecruitment r,RecruitmentSearchConditionDTO cond) {
+        return r.dueDate.gt(LocalDateTime.now())
+                .and(salaryMinGoe(cond.getSalaryMin()))
+                .and(salaryMaxLoe(cond.getSalaryMax()))
+                .and(experienceBetween(cond.getExperienceMin(), cond.getExperienceMax()))
+                .and(educationEq(cond.getEducation()))
+                .and(workLocationLike(cond.getWorkLocation()))
+                .and(withinBounds(cond))
+                .and(keywordLike(cond.getKeyword()))
+                .and(techStacksIn(cond.getTechStacks()))
+                .and(tagsIn(cond.getTags()));
+    }
+
+    private BooleanExpression buildHavingClause(NumberExpression<Long> techStackCountExpr, List<Long> techStacks, Long techStackCount,
+                                                NumberExpression<Long> tagCountExpr, List<Long> tags, Long tagCount) {
+        BooleanExpression techExpr = techStacks != null && techStackCount != null ? techStackCountExpr.eq(techStackCount) : null;
+        BooleanExpression tagExpr = tags != null && tagCount != null ? tagCountExpr.eq(tagCount) : null;
+        return techExpr != null ? (tagExpr != null ? techExpr.and(tagExpr) : techExpr) : tagExpr;
+    }
 
     private BooleanExpression salaryMinGoe(Integer min) {
         return min != null ? QRecruitment.recruitment.salaryMin.goe(min) : null;
@@ -115,8 +108,7 @@ public class RecruitmentRepositoryImpl implements RecruitmentRepositoryCustom {
 
     private BooleanExpression withinBounds(RecruitmentSearchConditionDTO cond) {
         if (cond.getTopLeftLat() == null || cond.getTopLeftLng() == null ||
-                cond.getBottomRightLat() == null || cond.getBottomRightLng() == null)
-            return null;
+                cond.getBottomRightLat() == null || cond.getBottomRightLng() == null) return null;
 
         BigDecimal minLat = cond.getTopLeftLat().min(cond.getBottomRightLat());
         BigDecimal maxLat = cond.getTopLeftLat().max(cond.getBottomRightLat());
@@ -139,13 +131,5 @@ public class RecruitmentRepositoryImpl implements RecruitmentRepositoryCustom {
 
     private BooleanExpression tagsIn(List<Long> tags) {
         return tags != null && !tags.isEmpty() ? QTag.tag.tagItem.id.in(tags) : null;
-    }
-
-    private BooleanExpression techStackCountEq(NumberExpression<Long> countExpr, List<Long> techStacks, Long count) {
-        return techStacks != null && count != null ? countExpr.eq(count) : null;
-    }
-
-    private BooleanExpression tagCountEq(NumberExpression<Long> countExpr, List<Long> tags, Long count) {
-        return tags != null && count != null ? countExpr.eq(count) : null;
     }
 }
