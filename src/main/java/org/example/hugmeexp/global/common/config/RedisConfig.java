@@ -41,8 +41,8 @@ public class RedisConfig {
      * 기본 RedisTemplate - Geo, Hash 작업용
      */
     @Bean
-    public RedisTemplate<String, Object> redisTemplate() {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
+    public RedisTemplate<String, String> customStringRedisTemplate() {
+        RedisTemplate<String, String> template = new RedisTemplate<>();
         template.setConnectionFactory(redisConnectionFactory());
 
         // 기존 ObjectMapper 사용
@@ -52,35 +52,11 @@ public class RedisConfig {
         template.setValueSerializer(jsonSerializer);
         template.setHashKeySerializer(new StringRedisSerializer());
         template.setHashValueSerializer(jsonSerializer);
-
-        return template;
-    }
-
-    /**
-     * StudyRoom 도메인용 RedisTemplate - 날짜 포맷 적용
-     */
-    @Bean("studyRoomRedisTemplate")
-    public RedisTemplate<String, Object> studyRedisTemplate() {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(redisConnectionFactory());
-
-        // Study 도메인용 ObjectMapper (날짜 포맷 적용)
-        ObjectMapper studyObjectMapper = new ObjectMapper();
-        studyObjectMapper.registerModule(new JavaTimeModule());
-        studyObjectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        studyObjectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        studyObjectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
-
-        GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer(studyObjectMapper);
-
-        template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(jsonSerializer);
         template.setHashKeySerializer(new StringRedisSerializer());
-        template.setHashValueSerializer(jsonSerializer);
+        template.setHashValueSerializer(new StringRedisSerializer());
 
         return template;
     }
-
 
     /**
      * StringRedisTemplate - 자동완성(Trie) 작업용
