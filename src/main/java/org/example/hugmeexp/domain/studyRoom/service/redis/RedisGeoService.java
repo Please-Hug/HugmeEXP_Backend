@@ -51,13 +51,12 @@ public class RedisGeoService {
             redisTemplate.opsForGeo().add(GEO_KEY, location, studyHall.getId().toString());
 
             // 상세 정보 별도 저장 (Hash 구조) - 위치 관련 데이터만
-            Map<String, Object> hallData = Map.of(
-                    "id", studyHall.getId(),
-                    "name", studyHall.getName(),
-                    "simpleAddress", studyHall.getSimpleAddress() != null ? studyHall.getSimpleAddress() : "",
-                    "thumbnail", studyHall.getThumbnail() != null ? studyHall.getThumbnail() : "",
-                    "totalRooms", studyHall.getTotalRoomsCount()
-            );
+            Map<String, Object> hallData = new HashMap<>();
+            hallData.put("id", studyHall.getId());
+            hallData.put("name", studyHall.getName() != null ? studyHall.getName() : "");
+            hallData.put("simpleAddress", studyHall.getSimpleAddress() != null ? studyHall.getSimpleAddress() : "");
+            hallData.put("thumbnail", studyHall.getThumbnail() != null ? studyHall.getThumbnail() : "");
+            hallData.put("totalRooms", studyHall.getTotalRoomsCount() != null ? studyHall.getTotalRoomsCount() : 0);
 
             redisTemplate.opsForHash().putAll(HALL_DATA_KEY + studyHall.getId(), hallData);
 
