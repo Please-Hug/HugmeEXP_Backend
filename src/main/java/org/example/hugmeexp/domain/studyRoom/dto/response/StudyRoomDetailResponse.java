@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.example.hugmeexp.domain.studyRoom.entity.StudyHall;
 import org.example.hugmeexp.domain.studyRoom.entity.StudyRoom;
 
 import java.time.LocalTime;
@@ -35,6 +36,26 @@ public class StudyRoomDetailResponse {
     private int currentReservations;
 
     public static StudyRoomDetailResponse from(StudyRoom studyRoom) {
+
+        StudyHall studyHall = studyRoom.getStudyHall();
+
+        // Null 체크 + 기본값
+        if (studyHall == null) {
+            return StudyRoomDetailResponse.builder()
+                    .id(studyRoom.getId())
+                    .name(studyRoom.getName())
+                    .maxNum(studyRoom.getMaxNum())
+                    .thumbnail(studyRoom.getThumbnail())
+                    // StudyHall 정보는 기본값으로 설정
+                    .studyHallId(null)
+                    .studyHallName("정보 없음")
+                    .description("스터디홀 정보를 불러올 수 없습니다.")
+                    .available(false)
+                    .currentReservations(0)
+                    .build();
+        }
+
+
         return StudyRoomDetailResponse.builder()
                 .id(studyRoom.getId())
                 .name(studyRoom.getName())

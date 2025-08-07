@@ -1,6 +1,7 @@
 package org.example.hugmeexp.domain.studyRoom.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.hugmeexp.domain.studyRoom.constants.StudyRoomConstants;
 import org.example.hugmeexp.domain.studyRoom.dto.request.StudyRoomRequest;
 import org.example.hugmeexp.domain.studyRoom.dto.response.ReservationTimeResponse;
 import org.example.hugmeexp.domain.studyRoom.dto.response.StudyRoomDetailResponse;
@@ -69,9 +70,7 @@ public class StudyRoomService {
         StudyRoom studyRoom = studyRoomRepository.findByIdAndIsDeletedFalse(roomId)
                 .orElseThrow(() -> new StudyRoomNotFoundException(roomId));
 
-        if (!studyRoom.getStudyHall().getId().equals(parentStudyHall.getId())) {
-            throw new StudyRoomNotFoundException(roomId);
-        }
+        validateRoomBelongsToHall(studyRoom, parentStudyHall);
 
         studyRoom.update(requestDto);
         return studyRoom;
@@ -88,9 +87,7 @@ public class StudyRoomService {
         StudyRoom studyRoom = studyRoomRepository.findByIdAndIsDeletedFalse(roomId)
                 .orElseThrow(() -> new StudyRoomNotFoundException(roomId));
 
-        if (!studyRoom.getStudyHall().getId().equals(parentStudyHall.getId())) {
-            throw new StudyRoomNotFoundException(roomId);
-        }
+        validateRoomBelongsToHall(studyRoom, parentStudyHall);
 
         studyRoom.delete();
     }
@@ -134,8 +131,11 @@ public class StudyRoomService {
                 .orElseThrow(() -> new StudyRoomNotFoundException(studyRoomId));
 
         StudyHall studyHall = studyRoom.getStudyHall();
-        LocalTime openTime = studyHall.getOpenTime() != null ? studyHall.getOpenTime() : LocalTime.of(9, 0);
-        LocalTime closeTime = studyHall.getCloseTime() != null ? studyHall.getCloseTime() : LocalTime.of(22, 0);
+
+        LocalTime openTime = studyHall.getOpenTime() != null ?
+                studyHall.getOpenTime() : StudyRoomConstants.DEFAULT_OPEN_TIME;
+        LocalTime closeTime = studyHall.getCloseTime() != null ?
+                studyHall.getCloseTime() : StudyRoomConstants.DEFAULT_CLOSE_TIME;
 
         LocalDateTime startOfDay = date.atTime(openTime);
         LocalDateTime endOfDay = date.atTime(closeTime);
@@ -143,17 +143,7 @@ public class StudyRoomService {
         List<StudyRoomReservation> reservations = studyRoomReservationRepository
                 .findAllByStudyRoomAndReservationStartBetween(studyRoom, startOfDay, endOfDay);
 
-        List<TimeSlotResponse> timeSlots = new ArrayList<>();
-
-        LocalDateTime currentTime = startOfDay;
-        while (currentTime.isBefore(endOfDay)) {
-            LocalDateTime slotEnd = currentTime.plusHours(1);
-            boolean isAvailable = isTimeSlotAvailable(currentTime, slotEnd, reservations);
-            timeSlots.add(TimeSlotResponse.of(currentTime, slotEnd, isAvailable));
-            currentTime = slotEnd;
-        }
-
-        return timeSlots;
+        return generateTimeSlots(startOfDay, endOfDay, reservations);
     }
 
     /**
@@ -176,15 +166,43 @@ public class StudyRoomService {
                 .toList();
     }
 
+    /**
+     * 스터디룸이 해당 스터디홀에 속하는지 검증
+     */
+    private void validateRoomBelongsToHall(StudyRoom studyRoom, StudyHall studyHall) {
+        if (!studyRoom.getStudyHall().getId().equals(studyHall.getId())) {
+            throw new StudyRoomNotFoundException(studyRoom.getId());
+        }
+    }
+
+    /**
+     * 시간대별 슬롯 생성
+     */
+    private List<TimeSlotResponse> generateTimeSlots(LocalDateTime startOfDay, LocalDateTime endOfDay,
+                                                     List<StudyRoomReservation> reservations) {
+        List<TimeSlotResponse> timeSlots = new ArrayList<>();
+
+        LocalDateTime currentTime = startOfDay;
+        while (currentTime.isBefore(endOfDay)) {
+            LocalDateTime slotEnd = currentTime.plusMinutes(StudyRoomConstants.TIME_SLOT_INTERVAL_MINUTES);
+            boolean isAvailable = isTimeSlotAvailable(currentTime, slotEnd, reservations);
+            timeSlots.add(TimeSlotResponse.of(currentTime, slotEnd, isAvailable));
+            currentTime = slotEnd;
+        }
+
+        return timeSlots;
+    }
+
     private boolean checkRoomAvailability(Long studyRoomId) {
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime oneHourLater = now.plusHours(1);
+        LocalDateTime oneHourLater = now.plusHours(StudyRoomConstants.DEFAULT_SLOT_DURATION_HOURS);
 
         List<StudyRoomReservation> conflictingReservations = studyRoomReservationRepository
                 .findConflictingReservations(studyRoomId, now, oneHourLater);
 
         return conflictingReservations.isEmpty();
     }
+
 
     private int getCurrentReservationsCount(Long studyRoomId) {
         LocalDateTime now = LocalDateTime.now();

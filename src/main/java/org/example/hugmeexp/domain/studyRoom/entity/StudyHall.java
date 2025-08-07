@@ -16,7 +16,18 @@ import java.util.Optional;
 
 @Getter
 @Entity
-@Table(name = "study_hall", indexes = @Index(name = "idx_study_hall_is_deleted", columnList = "isDeleted"))
+@Table(name = "study_hall",
+        indexes = {
+                // 검색 최적화 인덱스
+                @Index(name = "idx_study_hall_search_optimized",
+                        columnList = "is_deleted, name, simple_address",
+                        unique = false),
+
+                // 위치 기반 검색 인덱스
+                @Index(name = "idx_study_hall_location_bounds",
+                        columnList = "latitude, longitude, is_deleted",
+                        unique = false)
+        })
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -70,40 +81,27 @@ public class StudyHall extends BaseEntity {
         Optional.ofNullable(requestDto.getOpenTime()).ifPresent(openTime -> this.openTime = openTime);
         Optional.ofNullable(requestDto.getCloseTime()).ifPresent(closeTime -> this.closeTime = closeTime);
 
-        // Location 업데이트
+        // Location 정보 업데이트
         if (requestDto.getLatitude() != null || requestDto.getLongitude() != null ||
                 requestDto.getAddress() != null || requestDto.getSimpleAddress() != null) {
 
-            if (this.location == null) {
-                this.location = new Location();
-            }
+            // 현재 값들 추출 (null-safe)
+            Double latitude = requestDto.getLatitude() != null ? requestDto.getLatitude() :
+                    (this.location != null ? this.location.getLatitude() : null);
+            Double longitude = requestDto.getLongitude() != null ? requestDto.getLongitude() :
+                    (this.location != null ? this.location.getLongitude() : null);
+            String address = requestDto.getAddress() != null ? requestDto.getAddress() :
+                    (this.location != null ? this.location.getAddress() : null);
+            String simpleAddress = requestDto.getSimpleAddress() != null ? requestDto.getSimpleAddress() :
+                    (this.location != null ? this.location.getSimpleAddress() : null);
 
-            this.location = Location.of(
-                    requestDto.getLatitude() != null ? requestDto.getLatitude() : this.location.getLatitude(),
-                    requestDto.getLongitude() != null ? requestDto.getLongitude() : this.location.getLongitude(),
-                    requestDto.getAddress() != null ? requestDto.getAddress() : this.location.getAddress(),
-                    requestDto.getSimpleAddress() != null ? requestDto.getSimpleAddress() : this.location.getSimpleAddress()
-            );
+            // Location 객체 업데이트
+            this.location = Location.of(latitude, longitude, address, simpleAddress);
         }
     }
 
     public void delete() {
         this.isDeleted = true;
-    }
-
-    // 비즈니스 메서드들
-    public Double calculateDistanceFrom(Location otherLocation) {
-        if (this.location == null) {
-            return null;
-        }
-        return otherLocation.calculateDistanceTo(this.location);
-    }
-
-    public int getAvailableRoomsCount() {
-        if (studyRooms == null) {
-            return 0;
-        }
-        return studyRooms.size();
     }
 
     public int getTotalRoomsCount() {
@@ -114,25 +112,22 @@ public class StudyHall extends BaseEntity {
         if (openTime == null || closeTime == null) {
             return false;
         }
+
         LocalTime now = LocalTime.now();
-        return now.isAfter(openTime) && now.isBefore(closeTime);
-    }
 
-    public void updateLocation(Location newLocation) {
-        this.location = newLocation;
-    }
-
-    public void updateInfo(String name, String description, String thumbnail) {
-        if (name != null && !name.isBlank()) {
-            this.name = name;
+        // 24시간 운영인 경우 (예: 00:00 - 00:00)
+        if (openTime.equals(closeTime)) {
+            return true;
         }
-        this.description = description;
-        this.thumbnail = thumbnail;
-    }
 
-    public void updateOperatingHours(LocalTime openTime, LocalTime closeTime) {
-        this.openTime = openTime;
-        this.closeTime = closeTime;
+        // 일반적인 경우 (예: 09:00 - 18:00)
+        if (openTime.isBefore(closeTime)) {
+            return now.isAfter(openTime) && now.isBefore(closeTime);
+        }
+        // 다음날로 넘어가는 경우 (예: 22:00 - 02:00)
+        else {
+            return now.isAfter(openTime) || now.isBefore(closeTime);
+        }
     }
 
     // Location 관련 Getter 메서드들

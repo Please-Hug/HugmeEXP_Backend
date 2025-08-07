@@ -91,4 +91,13 @@ public interface StudyHallRepository extends JpaRepository<StudyHall, Long> {
      */
     @Query("SELECT sh FROM StudyHall sh WHERE sh.location.address LIKE %:address% AND sh.isDeleted = false")
     List<StudyHall> findByLocationAddressContainingIgnoreCase(@Param("address") String address);
+
+    /**
+     * Redis 동기화용 - N+1 문제 해결을 위한 최적화된 조회
+     * fetch join으로 한 번의 쿼리로 StudyHall과 StudyRoom을 모두 조회
+     */
+    @Query("SELECT sh FROM StudyHall sh " +
+            "LEFT JOIN FETCH sh.studyRooms sr " +
+            "WHERE sh.isDeleted = false")
+    List<StudyHall> findAllWithStudyRoomsForSync();
 }

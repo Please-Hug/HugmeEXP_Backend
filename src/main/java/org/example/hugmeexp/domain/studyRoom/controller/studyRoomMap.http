@@ -16,12 +16,59 @@ Content-Type: application/json
     client.global.set("accessToken", accessToken);
 %}
 
-### 🗺️ 1. 모든 스터디홀 위치 조회 (지도용)
+### 🚀 1. Redis Geo 기반 주변 검색
+### ===== 새로운 Redis 기반 API 테스트 =====
+POST {{baseUrl}}/search/nearby-redis
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "latitude": 37.4979,
+  "longitude": 127.0276,
+  "radius": 5.0,
+  "limit": 10
+}
+
+### 🔍 2. Redis Trie 기반 스마트 자동완성
+GET {{baseUrl}}/search/autocomplete-redis?query=강남&limit=5
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+### 🔍 3. Redis Trie 자동완성 - 다양한 키워드 테스트
+GET {{baseUrl}}/search/autocomplete-redis?query=스터디&limit=10
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+### 🎯 4. 하이브리드 검색 - 위치 기반
+POST {{baseUrl}}/search/hybrid
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "latitude": 37.5563,
+  "longitude": 126.9245,
+  "radius": 3.0,
+  "limit": 5
+}
+
+### 🎯 5. 하이브리드 검색 - 키워드 기반
+POST {{baseUrl}}/search/hybrid
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "keyword": "강남역",
+  "limit": 10
+}
+
+
+### 6. 모든 스터디홀 위치 조회 (Legacy - 지도용)
+### ===== 🗺️ 기존 Legacy API (호환성 유지) =====
 GET {{baseUrl}}/map/halls
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
-### 2. 현재 위치 기반 주변 스터디홀 검색 (강남역 기준)
+### 7. 기본 주변 검색 (Legacy - Redis 장애시 Fallback)
 POST {{baseUrl}}/map/nearby
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
@@ -33,7 +80,82 @@ Authorization: Bearer {{accessToken}}
   "limit": 10
 }
 
-### 테스트: 넓은 반경 (서울 전체)
+### 8. 기본 자동완성 (Legacy - Redis 장애시 Fallback)
+GET {{baseUrl}}/search/autocomplete?query=강남&limit=5
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+
+### 9. 특정 스터디홀 상세 정보 조회
+### ===== 📍 상세 정보 API =====
+GET {{baseUrl}}/halls/1
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+### 10. 거리 계산 포함 스터디홀 조회
+GET {{baseUrl}}/halls/1/distance?latitude=37.5563&longitude=126.9245
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+### 11. 주소로 스터디홀 검색 (Legacy)
+GET {{baseUrl}}/search/address?address=강남
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+### 12. 이름으로 스터디홀 검색 (Legacy)
+GET {{baseUrl}}/search/name?name=스터디카페
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+### 13. 특정 스터디홀의 모든 스터디룸 조회
+### ===== 🏠 스터디룸 관련 API =====
+GET {{baseUrl}}/halls/1/rooms
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+### 14. 특정 스터디룸 상세 정보 조회
+GET {{baseUrl}}/rooms/1
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+
+### 15. 예약 가능한 시간 조회 (오늘)
+### ===== ⏰ 예약 시간 관련 API =====
+### NOTE: 날짜를 현재 날짜로 업데이트하여 사용하세요
+GET {{baseUrl}}/rooms/1/available-times?date=2025-08-07
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+### 16. 예약 가능한 시간 조회 (내일)
+GET {{baseUrl}}/rooms/1/available-times?date=2025-08-08
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+### 17. 특정 날짜의 예약 현황 조회 (오늘)
+GET {{baseUrl}}/rooms/1/reservations?date=2025-08-07
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+### 18. 특정 날짜의 예약 현황 조회 (내일)
+GET {{baseUrl}}/rooms/1/reservations?date=2025-08-08
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+
+### 19. 넓은 반경 Redis 검색
+### ===== 🧪 다양한 시나리오 테스트 =====
+POST {{baseUrl}}/search/nearby-redis
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "latitude": 37.5665,
+  "longitude": 126.9780,
+  "radius": 50.0,
+  "limit": 20
+}
+
+### 20. 넓은 반경 DB 검색 (Fallback 테스트)
 POST {{baseUrl}}/map/nearby
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
@@ -45,64 +167,13 @@ Authorization: Bearer {{accessToken}}
   "limit": 20
 }
 
-### 3. 현재 위치 기반 주변 스터디홀 검색 (홍대입구역 기준)
-POST {{baseUrl}}/map/nearby
+### 21. 짧은 키워드 자동완성
+GET {{baseUrl}}/search/autocomplete-redis?query=서&limit=5
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
-{
-  "latitude": 37.5563,
-  "longitude": 126.9245,
-  "radius": 3.0,
-  "limit": 5
-}
-
-### 4. 특정 스터디홀 상세 정보 조회
-GET {{baseUrl}}/halls/1
-Content-Type: application/json
-Authorization: Bearer {{accessToken}}
-
-### 5. 현재 위치로부터 특정 스터디홀까지의 거리 계산
-GET {{baseUrl}}/halls/1/distance?latitude=37.5563&longitude=126.9245
-Content-Type: application/json
-Authorization: Bearer {{accessToken}}
-
-### 6. 주소로 스터디홀 검색
-GET {{baseUrl}}/search/address?address=강남
-Content-Type: application/json
-Authorization: Bearer {{accessToken}}
-
-### 7. 이름으로 스터디홀 검색
-GET {{baseUrl}}/search/name?name=스터디카페
-Content-Type: application/json
-Authorization: Bearer {{accessToken}}
-
-### 8. 넓은 반경으로 주변 스터디홀 검색 (서울 중심가 기준)
-POST {{baseUrl}}/map/nearby
-Content-Type: application/json
-Authorization: Bearer {{accessToken}}
-
-{
-  "latitude": 37.5665,
-  "longitude": 126.9780,
-  "radius": 15.0,
-  "limit": 20
-}
-
-### 9. 좁은 반경으로 주변 스터디홀 검색 (정확한 위치 기준)
-POST {{baseUrl}}/map/nearby
-Content-Type: application/json
-Authorization: Bearer {{accessToken}}
-
-{
-  "latitude": 37.5007,
-  "longitude": 127.0366,
-  "radius": 1.0,
-  "limit": 3
-}
-
-### 10. 다른 지역 스터디홀 검색 (잠실 기준)
-POST {{baseUrl}}/map/nearby
+### 22. 다른 지역 하이브리드 검색
+POST {{baseUrl}}/search/hybrid
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
@@ -113,63 +184,18 @@ Authorization: Bearer {{accessToken}}
   "limit": 5
 }
 
-### 🏢 11. 특정 스터디홀의 모든 스터디룸 조회
-GET {{baseUrl}}/halls/1/rooms
+### 23. 다른 스터디홀 정보 조회 (ID: 2)
+### ===== 🔍 기타 검색 테스트 =====
+GET {{baseUrl}}/halls/2
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
-### 📍 12. 특정 스터디룸 상세 정보 조회
-GET {{baseUrl}}/rooms/1
-Content-Type: application/json
-Authorization: Bearer {{accessToken}}
-
-### ⏰ 13. 특정 스터디룸의 예약 가능한 시간 조회 (오늘)
-#### NOTE: 날짜를 현재 날짜로 업데이트하여 사용하세요
-GET {{baseUrl}}/rooms/1/available-times?date=2024-12-26
-Content-Type: application/json
-Authorization: Bearer {{accessToken}}
-
-### ⏰ 14. 특정 스터디룸의 예약 가능한 시간 조회 (내일)
-GET {{baseUrl}}/rooms/1/available-times?date=2024-12-27
-Content-Type: application/json
-Authorization: Bearer {{accessToken}}
-
-### 📅 15. 특정 날짜의 스터디룸 예약 현황 조회 (오늘)
-GET {{baseUrl}}/rooms/1/reservations?date=2024-12-26
-Content-Type: application/json
-Authorization: Bearer {{accessToken}}
-
-### 📅 16. 특정 날짜의 스터디룸 예약 현황 조회 (내일)
-GET {{baseUrl}}/rooms/1/reservations?date=2024-12-27
-Content-Type: application/json
-Authorization: Bearer {{accessToken}}
-
-### 🔍 17. 다른 스터디홀의 스터디룸들 조회 (ID: 2)
+### 24. 다른 스터디홀의 스터디룸 목록 (ID: 2)
 GET {{baseUrl}}/halls/2/rooms
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
-### 🔍 18. 다른 스터디룸 상세 정보 조회 (ID: 2)
+### 25. 다른 스터디룸 상세 정보 (ID: 2)
 GET {{baseUrl}}/rooms/2
-Content-Type: application/json
-Authorization: Bearer {{accessToken}}
-
-### ⏰ 19. 다른 스터디룸의 예약 가능 시간 조회
-GET {{baseUrl}}/rooms/2/available-times?date=2024-12-26
-Content-Type: application/json
-Authorization: Bearer {{accessToken}}
-
-### 📅 20. 다른 스터디룸의 예약 현황 조회
-GET {{baseUrl}}/rooms/2/reservations?date=2024-12-26
-Content-Type: application/json
-Authorization: Bearer {{accessToken}}
-
-### 📊 21. 주말 예약 가능 시간 조회 (토요일)
-GET {{baseUrl}}/rooms/1/available-times?date=2024-12-28
-Content-Type: application/json
-Authorization: Bearer {{accessToken}}
-
-### 📊 22. 주말 예약 현황 조회 (일요일)
-GET {{baseUrl}}/rooms/1/reservations?date=2024-12-29
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
