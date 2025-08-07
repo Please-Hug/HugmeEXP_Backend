@@ -114,38 +114,6 @@ public class StudyHallSearchService {
         return searchNearbyStudyHallsWithDB(request);
     }
 
-    /**
-     * 기본 자동완성 제안 (2글자 이상)
-     */
-    private List<String> getBasicAutocompleteSuggestions(String prefix, int limit) {
-        if (!StringUtils.hasText(prefix) || prefix.length() < 2) {
-            return Collections.emptyList();
-        }
-
-        List<StudyHall> halls = studyHallRepository
-                .findByNameContainingIgnoreCaseAndIsDeletedFalse(prefix);
-
-        Set<String> suggestions = ConcurrentHashMap.newKeySet();
-
-        String lowerPrefix = prefix.toLowerCase();
-
-        for (StudyHall hall : halls) {
-            if (StringUtils.hasText(hall.getName()) &&
-                    hall.getName().toLowerCase().contains(lowerPrefix)) {
-                suggestions.add(hall.getName());
-            }
-
-            if (StringUtils.hasText(hall.getSimpleAddress()) &&
-                    hall.getSimpleAddress().toLowerCase().contains(lowerPrefix)) {
-                suggestions.add(hall.getSimpleAddress());
-            }
-
-            if (suggestions.size() >= limit) break;
-        }
-
-        return new ArrayList<>(suggestions);
-    }
-
     public List<StudyHallLocationResponse> searchStudyHallsByAddress(String address) {
         List<StudyHall> studyHalls = studyHallRepository.findByLocationAddressContainingIgnoreCase(address);
         return studyHalls.stream()

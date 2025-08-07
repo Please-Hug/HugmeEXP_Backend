@@ -42,8 +42,8 @@ public class StudyRoomMapController {
     @PostMapping("/search/nearby-redis")
     public ResponseEntity<Response<List<StudyHallLocationResponse>>> searchNearbyWithRedis(
             @Valid @RequestBody StudyHallSearchRequest request) {
-
-        if (!request.hasValidLocationInfo()) {
+        try{
+            if (!request.hasValidLocationInfo()) {
             return ResponseEntity.badRequest()
                     .body(Response.<List<StudyHallLocationResponse>>builder()
                             .message("유효한 위치 정보가 필요합니다.")
@@ -51,16 +51,24 @@ public class StudyRoomMapController {
                             .build());
         }
 
-        List<StudyHallLocationResponse> results = studyHallSearchService
-                .searchNearbyStudyHallsWithRedis(request);
+            List<StudyHallLocationResponse> results = studyHallSearchService
+                    .searchNearbyStudyHallsWithRedis(request);
 
-        String message = String.format(StudyRoomConstants.SEARCH_RESULT_MESSAGE_FORMAT,
-                "Redis Geo 검색", results.size());
+            String message = String.format(StudyRoomConstants.SEARCH_RESULT_MESSAGE_FORMAT,
+                    "Redis Geo 검색", results.size());
 
-        return ResponseEntity.ok(Response.<List<StudyHallLocationResponse>>builder()
-                .message(message)
-                .data(results)
-                .build());
+            return ResponseEntity.ok(Response.<List<StudyHallLocationResponse>>builder()
+                    .message(message)
+                    .data(results)
+                    .build());
+        } catch (Exception e){
+            log.error("Redis Geo 검색 중 오류 발생", e);
+            return ResponseEntity.internalServerError()
+                    .body(Response.<List<StudyHallLocationResponse>>builder()
+                            .message("검색 중 오류가 발생했습니다.")
+                            .data(List.of())
+                            .build());
+        }
     }
 
     @Operation(summary = "Redis Trie 기반 스마트 자동완성",

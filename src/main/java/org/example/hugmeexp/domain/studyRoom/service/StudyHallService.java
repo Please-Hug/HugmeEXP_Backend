@@ -76,7 +76,7 @@ public class StudyHallService {
         StudyHall studyHall = findStudyHallById(studyHallId);
         studyHall.update(requestDto);
 
-        StudyHall updatedHall = studyHallRepository.save(studyHall);
+        StudyHall updatedHall = studyHall;
 
         // Redis 동기화 (조용히 처리)
         syncToRedis(updatedHall);

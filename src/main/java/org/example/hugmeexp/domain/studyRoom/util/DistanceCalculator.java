@@ -8,8 +8,6 @@ import org.example.hugmeexp.domain.studyRoom.constants.StudyRoomConstants;
  */
 public class DistanceCalculator {
 
-    private static final double EARTH_RADIUS = 6371; // 지구 반지름 (km)
-
     /**
      * Haversine formula를 사용한 두 지점 간 거리 계산
      * @param lat1 첫 번째 지점의 위도

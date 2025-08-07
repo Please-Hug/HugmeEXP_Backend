@@ -11,7 +11,7 @@ public final class StudyRoomConstants {
     public static final LocalTime DEFAULT_OPEN_TIME = LocalTime.of(9, 0);
     public static final LocalTime DEFAULT_CLOSE_TIME = LocalTime.of(22, 0);
     public static final int DEFAULT_SLOT_DURATION_HOURS = 1;
-    public static final int TIME_SLOT_INTERVAL_MINUTES = 30; // 30분 단위 시간 슬롯
+    public static final int TIME_SLOT_INTERVAL_MINUTES = 60; // 60분 단위 시간 슬롯
     public static final int MIN_RESERVATION_DURATION_HOURS = 1;
     public static final int MAX_RESERVATION_DURATION_HOURS = 8;
 
@@ -23,14 +23,14 @@ public final class StudyRoomConstants {
     public static final int MAX_SEARCH_LIMIT = 100;
 
     // === 좌표 관련 상수 ===
-    public static final double KOREA_MIN_LATITUDE = 32.0;
-    public static final double KOREA_MAX_LATITUDE = 39.0;
-    public static final double KOREA_MIN_LONGITUDE = 123.0;
-    public static final double KOREA_MAX_LONGITUDE = 132.0;
+    public static final double KOREA_MIN_LATITUDE = 33.10;
+    public static final double KOREA_MAX_LATITUDE = 38.23;
+    public static final double KOREA_MIN_LONGITUDE = 124.63;
+    public static final double KOREA_MAX_LONGITUDE = 131.87;
 
     // === 거리 계산 상수 ===
     public static final double EARTH_RADIUS_KM = 6371.0;
-    public static final double KM_PER_DEGREE_LAT = 111.0;
+    public static final double KM_PER_DEGREE_LAT = 111.32;
 
     // === 캐시 관련 상수 ===
     public static final String STUDY_HALLS_CACHE = "studyHalls";

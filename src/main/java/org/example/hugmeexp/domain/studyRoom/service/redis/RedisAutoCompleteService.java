@@ -141,7 +141,7 @@ public class RedisAutoCompleteService {
     private String normalizeKeyword(String keyword) {
         return keyword.toLowerCase()
                 .trim()
-                .replaceAll("[^가-힣a-z0-9\\s]", "") // 특수문자 제거
+                .replaceAll("[^가-힣a-z0-9\s]", "") // 특수문자 제거
                 .replaceAll("\\s+", " "); // 공백 정규화
     }
 

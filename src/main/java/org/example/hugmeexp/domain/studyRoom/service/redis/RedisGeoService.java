@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.studyRoom.dto.response.StudyHallLocationResponse;
 import org.example.hugmeexp.domain.studyRoom.entity.StudyHall;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.geo.*;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -24,6 +25,7 @@ import java.util.Map;
 @Slf4j
 public class RedisGeoService {
 
+    @Qualifier("studyRoomRedisTemplate")
     private final RedisTemplate<String, Object> redisTemplate;
     private static final String GEO_KEY = "studyhalls:locations";
     private static final String HALL_DATA_KEY = "studyhalls:data:";

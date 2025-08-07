@@ -142,7 +142,7 @@ public class StudyHallSearchRequest {
      */
     @Override
     public String toString() {
-        return String.format("search_%s_%s_%s_%s_%s_%s_%s",
+        return String.format("search_%s_%s_%s_%s_%s",
                 Objects.toString(keyword, ""),
                 Objects.toString(latitude, ""),
                 Objects.toString(longitude, ""),
