@@ -1,5 +1,6 @@
 package org.example.hugmeexp.domain.recruitment.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,8 +22,10 @@ public class RecruitmentDetailResponseDTO {
     private String companyName;
     private String companyImageUrl;
     private String companyAddress;
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate establishmentDate;
     private String companyDescription;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime dueDate;
     private Integer experienceMin;
     private Integer experienceMax;

@@ -1,5 +1,7 @@
 package org.example.hugmeexp.domain.recruitment.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.querydsl.core.annotations.QueryProjection;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,6 +20,7 @@ public class RecruitmentResponseDTO {
     private String title;
     private String companyName;
     private String companyImageUrl;
+    @JsonFormat( pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime dueDate;
     private Integer experienceMin;
     private Integer experienceMax;
@@ -25,9 +28,11 @@ public class RecruitmentResponseDTO {
     private BigDecimal latitude; // 위도
     private BigDecimal longitude; // 경도
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime modifiedAt;
 
     // JPA 에서 사용되는 생성자
+    @QueryProjection
     public RecruitmentResponseDTO(Long id, String recruitmentSourceId, String title, String companyName, String companyImageUrl,
                                   LocalDateTime dueDate, Integer experienceMin, Integer experienceMax, String workLocation,
                                   BigDecimal latitude, BigDecimal longitude, LocalDateTime modifiedAt) {
