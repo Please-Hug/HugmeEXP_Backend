@@ -1,5 +1,6 @@
 package org.example.hugmeexp.domain.recruitment.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -63,6 +64,7 @@ public class RecruitmentRequestDTO {
     @NotNull
     private SourceType source;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime dueDate;
 
     @NotNull
