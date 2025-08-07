@@ -2,6 +2,7 @@ package org.example.hugmeexp.domain.studyRoom.service.redis;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.hugmeexp.domain.studyRoom.constants.StudyRoomConstants;
 import org.example.hugmeexp.domain.studyRoom.dto.response.StudyHallLocationResponse;
 import org.example.hugmeexp.domain.studyRoom.entity.StudyHall;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -11,22 +12,22 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.domain.geo.Metrics;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
- * Redis Geo 서비스: 스터디홀 위치 정보를 Redis Geo에 저장하고 검색하는 서비스
+ * Redis Geo 서비스: 위치 기반 검색 전용
+ *
+ * 🎯 사용 범위: 지도 검색, 주변 스터디홀 찾기
+ * 🔧 사용 Redis Bean: geoRedisTemplate (위치 데이터 최적화)
  */
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class RedisGeoService {
 
-    @Qualifier("studyRoomRedisTemplate")
+    @Qualifier("geoRedisTemplate") // Geo 전용 RedisTemplate 사용
     private final RedisTemplate<String, Object> redisTemplate;
+
     private static final String GEO_KEY = "studyhalls:locations";
     private static final String HALL_DATA_KEY = "studyhalls:data:";
 
@@ -43,11 +44,18 @@ public class RedisGeoService {
                 return;
             }
 
+            // 한국 지역 범위 검증
+            if (lat < StudyRoomConstants.KOREA_MIN_LATITUDE || lat > StudyRoomConstants.KOREA_MAX_LATITUDE ||
+                    lng < StudyRoomConstants.KOREA_MIN_LONGITUDE || lng > StudyRoomConstants.KOREA_MAX_LONGITUDE) {
+                log.warn("스터디홀 {}의 위치가 유효 범위를 벗어났습니다: lat={}, lng={}", studyHall.getId(), lat, lng);
+                return;
+            }
+
             // Geo 정보 저장
             Point location = new Point(lng, lat);
             redisTemplate.opsForGeo().add(GEO_KEY, location, studyHall.getId().toString());
 
-            // 상세 정보 별도 저장 (Hash 구조)
+            // 상세 정보 별도 저장 (Hash 구조) - 위치 관련 데이터만
             Map<String, Object> hallData = Map.of(
                     "id", studyHall.getId(),
                     "name", studyHall.getName(),
@@ -106,7 +114,8 @@ public class RedisGeoService {
                             .longitude(coordinates.getX())
                             .thumbnail((String) hallData.get("thumbnail"))
                             .distance(Math.round(distance * 100.0) / 100.0) // 소수점 2자리
-                            .totalRooms((Integer) hallData.get("totalRooms"))
+                            .totalRooms(hallData.get("totalRooms") != null ?
+                                    Integer.parseInt(hallData.get("totalRooms").toString()) : 0)
                             .build();
 
                     results.add(response);
@@ -142,6 +151,12 @@ public class RedisGeoService {
         try {
             // 기존 데이터 삭제
             redisTemplate.delete(GEO_KEY);
+
+            // 기존 Hash 데이터도 모두 삭제
+            Set<String> hashKeys = redisTemplate.keys(HALL_DATA_KEY + "*");
+            if (hashKeys != null && !hashKeys.isEmpty()) {
+                redisTemplate.delete(hashKeys);
+            }
 
             // 새 데이터 색인
             for (StudyHall hall : studyHalls) {

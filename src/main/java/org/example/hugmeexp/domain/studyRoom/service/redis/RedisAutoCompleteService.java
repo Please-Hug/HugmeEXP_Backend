@@ -3,6 +3,7 @@ package org.example.hugmeexp.domain.studyRoom.service.redis;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hugmeexp.domain.studyRoom.entity.StudyHall;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -12,20 +13,25 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Redis Trie 자동완성 서비스
+ * Redis Trie 자동완성 서비스: 검색어 자동완성 전용
+ *
+ * 사용 범위: 검색어 자동완성, 인기 검색어
+ * 사용 Redis Bean: trieStringRedisTemplate (String 데이터 전용)
  */
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class RedisAutoCompleteService {
 
+    @Qualifier("trieStringRedisTemplate") // Trie 전용 StringRedisTemplate 사용
     private final StringRedisTemplate stringRedisTemplate;
+
     private static final String AUTOCOMPLETE_PREFIX = "autocomplete:";
     private static final String POPULAR_KEYWORDS_KEY = "popular_keywords";
 
     /**
      * 검색어 인덱싱 (Trie 구조)
+     * 순수 검색어 데이터만 처리 - LocalDateTime과 무관
      */
     public void indexSearchTerms(StudyHall studyHall) {
         try {
@@ -56,6 +62,7 @@ public class RedisAutoCompleteService {
 
     /**
      * 자동완성 제안 조회
+     * 문자열 데이터만 처리 - 단순하고 빠른 조회
      */
     public List<String> getAutocompleteSuggestions(String prefix, int limit) {
         if (prefix == null || prefix.length() < 2) {
@@ -72,9 +79,8 @@ public class RedisAutoCompleteService {
                 return getPopularKeywords(limit);
             }
 
-            // 인기도 순으로 정렬하여 반환
+            // 단순히 Set에서 limit만큼 반환 (성능 최적화)
             return suggestions.stream()
-                    .sorted(this::compareByPopularity)
                     .limit(limit)
                     .collect(Collectors.toList());
 
@@ -86,6 +92,7 @@ public class RedisAutoCompleteService {
 
     /**
      * 검색어 인기도 기록
+     * 순수 문자열 데이터 처리
      */
     public void recordSearch(String keyword) {
         try {
@@ -145,27 +152,16 @@ public class RedisAutoCompleteService {
                 .replaceAll("\\s+", " "); // 공백 정규화
     }
 
-    private int compareByPopularity(String a, String b) {
-        // ZSet에서 점수 조회하여 인기도 비교
-        Double scoreA = stringRedisTemplate.opsForZSet().score(POPULAR_KEYWORDS_KEY, normalizeKeyword(a));
-        Double scoreB = stringRedisTemplate.opsForZSet().score(POPULAR_KEYWORDS_KEY, normalizeKeyword(b));
-
-        return Double.compare(
-                scoreB != null ? scoreB : 0.0,
-                scoreA != null ? scoreA : 0.0
-        );
-    }
+    // compareByPopularity 메서드 제거 - 단순한 Set 기반 조회로 성능 최적화
 
     /**
      * 전체 자동완성 데이터 재구축
+     * SCAN을 사용하여 성능 최적화
      */
     public void rebuildAutocompleteIndex(List<StudyHall> studyHalls) {
         try {
-            // 기존 자동완성 데이터 삭제
-            Set<String> keys = stringRedisTemplate.keys(AUTOCOMPLETE_PREFIX + "*");
-            if (keys != null && !keys.isEmpty()) {
-                stringRedisTemplate.delete(keys);
-            }
+            // 기존 자동완성 데이터 삭제 - SCAN 사용으로 성능 개선
+            deleteAutocompleteKeys();
 
             // 새 데이터 인덱싱
             for (StudyHall hall : studyHalls) {
@@ -176,6 +172,28 @@ public class RedisAutoCompleteService {
 
         } catch (Exception e) {
             log.error("자동완성 인덱스 재구축 실패", e);
+        }
+    }
+
+    /**
+     * SCAN을 사용하여 자동완성 키들을 안전하게 삭제
+     * Redis 성능에 미치는 영향을 최소화
+     */
+    private void deleteAutocompleteKeys() {
+        try (var cursor = stringRedisTemplate.scan(
+                org.springframework.data.redis.core.ScanOptions.scanOptions()
+                        .match(AUTOCOMPLETE_PREFIX + "*")
+                        .count(1000)
+                        .build())) {
+
+            while (cursor.hasNext()) {
+                stringRedisTemplate.delete(cursor.next());
+            }
+
+            log.debug("SCAN을 사용한 자동완성 키 삭제 완료");
+
+        } catch (Exception e) {
+            log.error("자동완성 키 삭제 중 오류 발생", e);
         }
     }
 }

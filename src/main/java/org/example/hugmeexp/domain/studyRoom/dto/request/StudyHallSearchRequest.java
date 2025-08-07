@@ -138,15 +138,26 @@ public class StudyHallSearchRequest {
     }
 
     /**
-     * 캐시 키 생성용 toString
+     * 캐시 키 생성 - 가독성과 디버깅을 위한 구조화된 키
+     *
+     * 예시: "nearbyHalls:lat:37.4979:lng:127.0276:radius:5.0:limit:10"
+     *      "keywordSearch:강남역:limit:20"
      */
-    @Override
-    public String toString() {
-        return String.format("search_%s_%s_%s_%s_%s",
-                Objects.toString(keyword, ""),
-                Objects.toString(latitude, ""),
-                Objects.toString(longitude, ""),
-                Objects.toString(radius, ""),
-                Objects.toString(limit, ""));
+    public String getCacheKey() {
+        if (hasValidLocationInfo()) {
+            return String.format("nearbyHalls:lat:%s:lng:%s:radius:%s:limit:%s",
+                    Objects.toString(latitude, ""),
+                    Objects.toString(longitude, ""),
+                    Objects.toString(radius, ""),
+                    Objects.toString(limit, ""));
+        }
+
+        if (hasValidKeyword()) {
+            return String.format("keywordSearch:%s:limit:%s",
+                    Objects.toString(keyword, ""),
+                    Objects.toString(limit, ""));
+        }
+
+        return String.format("allHalls:limit:%s", Objects.toString(limit, ""));
     }
 }

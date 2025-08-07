@@ -42,14 +42,14 @@ public class StudyRoomMapController {
     @PostMapping("/search/nearby-redis")
     public ResponseEntity<Response<List<StudyHallLocationResponse>>> searchNearbyWithRedis(
             @Valid @RequestBody StudyHallSearchRequest request) {
-        try{
+        try {
             if (!request.hasValidLocationInfo()) {
-            return ResponseEntity.badRequest()
-                    .body(Response.<List<StudyHallLocationResponse>>builder()
-                            .message("유효한 위치 정보가 필요합니다.")
-                            .data(List.of())
-                            .build());
-        }
+                return ResponseEntity.badRequest()
+                        .body(Response.<List<StudyHallLocationResponse>>builder()
+                                .message("유효한 위치 정보가 필요합니다.")
+                                .data(List.of())
+                                .build());
+            }
 
             List<StudyHallLocationResponse> results = studyHallSearchService
                     .searchNearbyStudyHallsWithRedis(request);
@@ -61,7 +61,7 @@ public class StudyRoomMapController {
                     .message(message)
                     .data(results)
                     .build());
-        } catch (Exception e){
+        } catch (Exception e) {
             log.error("Redis Geo 검색 중 오류 발생", e);
             return ResponseEntity.internalServerError()
                     .body(Response.<List<StudyHallLocationResponse>>builder()
@@ -80,15 +80,32 @@ public class StudyRoomMapController {
             @Parameter(description = "제안 개수", example = "5")
             @RequestParam(defaultValue = "5") Integer limit) {
 
-        List<String> suggestions = studyHallSearchService
-                .getSmartAutocompleteSuggestions(query, limit);
+        try {
+            if (query == null || query.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(Response.<List<String>>builder()
+                                .message("검색어를 입력해주세요.")
+                                .data(List.of())
+                                .build());
+            }
 
-        String message = String.format("%d개의 자동완성 제안을 찾았습니다.", suggestions.size());
+            List<String> suggestions = studyHallSearchService
+                    .getSmartAutocompleteSuggestions(query, limit);
 
-        return ResponseEntity.ok(Response.<List<String>>builder()
-                .message(message)
-                .data(suggestions)
-                .build());
+            String message = String.format("%d개의 자동완성 제안을 찾았습니다.", suggestions.size());
+
+            return ResponseEntity.ok(Response.<List<String>>builder()
+                    .message(message)
+                    .data(suggestions)
+                    .build());
+        } catch (Exception e) {
+            log.error("자동완성 검색 중 오류 발생 - query: {}", query, e);
+            return ResponseEntity.internalServerError()
+                    .body(Response.<List<String>>builder()
+                            .message("자동완성 검색 중 오류가 발생했습니다.")
+                            .data(List.of())
+                            .build());
+        }
     }
 
     @Operation(summary = "하이브리드 검색",
@@ -136,25 +153,34 @@ public class StudyRoomMapController {
     @PostMapping("/map/nearby")
     public ResponseEntity<Response<List<StudyHallLocationResponse>>> searchNearbyStudyHalls(
             @Valid @RequestBody StudyHallSearchRequest request) {
+        try {
+            if (!request.hasValidLocationInfo()) {
+                return ResponseEntity.badRequest()
+                        .body(Response.<List<StudyHallLocationResponse>>builder()
+                                .message("유효한 위치 정보가 필요합니다.")
+                                .data(List.of())
+                                .build());
+            }
 
-        if (!request.hasValidLocationInfo()) {
-            return ResponseEntity.badRequest()
+            log.info("기본 주변 검색 (DB) - lat: {}, lng: {}, radius: {}km",
+                    request.getLatitude(), request.getLongitude(), request.getRadius());
+
+            List<StudyHallLocationResponse> nearbyHalls = studyHallSearchService.searchNearbyStudyHalls(request);
+
+            return ResponseEntity.ok(Response.<List<StudyHallLocationResponse>>builder()
+                    .message(String.format(StudyRoomConstants.SEARCH_RESULT_MESSAGE_FORMAT,
+                            "주변 검색", nearbyHalls.size()))
+                    .data(nearbyHalls)
+                    .build());
+        } catch (Exception e) {
+            log.error("DB 기반 주변 검색 중 오류 발생", e);
+            return ResponseEntity.internalServerError()
                     .body(Response.<List<StudyHallLocationResponse>>builder()
-                            .message("유효한 위치 정보가 필요합니다.")
+                            .message("검색 중 오류가 발생했습니다.")
                             .data(List.of())
                             .build());
         }
 
-        log.info("기본 주변 검색 (DB) - lat: {}, lng: {}, radius: {}km",
-                request.getLatitude(), request.getLongitude(), request.getRadius());
-
-        List<StudyHallLocationResponse> nearbyHalls = studyHallSearchService.searchNearbyStudyHalls(request);
-
-        return ResponseEntity.ok(Response.<List<StudyHallLocationResponse>>builder()
-                .message(String.format(StudyRoomConstants.SEARCH_RESULT_MESSAGE_FORMAT,
-                        "주변 검색", nearbyHalls.size()))
-                .data(nearbyHalls)
-                .build());
     }
 
     @Operation(summary = "기본 자동완성 (Legacy)", description = "기존 DB 기반 자동완성 (Redis 장애시 Fallback용)")
@@ -322,11 +348,28 @@ public class StudyRoomMapController {
     public ResponseEntity<Response<List<StudyHallLocationResponse>>> searchStudyHallsByAddress(
             @RequestParam String address) {
 
-        List<StudyHallLocationResponse> studyHalls = studyHallSearchService.searchStudyHallsByAddress(address);
-        return ResponseEntity.ok(Response.<List<StudyHallLocationResponse>>builder()
-                .message(String.format("주소 '%s'로 %d개의 스터디홀을 찾았습니다.", address, studyHalls.size()))
-                .data(studyHalls)
-                .build());
+        try {
+            if (address == null || address.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(Response.<List<StudyHallLocationResponse>>builder()
+                                .message("검색할 주소를 입력해주세요.")
+                                .data(List.of())
+                                .build());
+            }
+
+            List<StudyHallLocationResponse> studyHalls = studyHallSearchService.searchStudyHallsByAddress(address);
+            return ResponseEntity.ok(Response.<List<StudyHallLocationResponse>>builder()
+                    .message(String.format("주소 '%s'로 %d개의 스터디홀을 찾았습니다.", address, studyHalls.size()))
+                    .data(studyHalls)
+                    .build());
+        } catch (Exception e) {
+            log.error("주소 검색 중 오류 발생 - address: {}", address, e);
+            return ResponseEntity.internalServerError()
+                    .body(Response.<List<StudyHallLocationResponse>>builder()
+                            .message("검색 중 오류가 발생했습니다.")
+                            .data(List.of())
+                            .build());
+        }
     }
 
     @Operation(summary = "이름으로 스터디홀 검색 (Legacy)")
@@ -341,4 +384,3 @@ public class StudyRoomMapController {
                 .build());
     }
 }
-

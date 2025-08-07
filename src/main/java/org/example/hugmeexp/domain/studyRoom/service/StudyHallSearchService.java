@@ -39,7 +39,7 @@ public class StudyHallSearchService {
     /**
      * Redis Geo를 활용한 위치 기반 검색
      */
-    @Cacheable(value = "nearbyHallsRedis", key = "#request.toString()", unless = "#result.isEmpty()")
+    @Cacheable(value = "nearbyHallsRedis", key = "#request.cacheKey", unless = "#result.isEmpty()")
     public List<StudyHallLocationResponse> searchNearbyStudyHallsWithRedis(StudyHallSearchRequest request) {
         try {
             List<StudyHallLocationResponse> redisResults = redisGeoService.findNearbyStudyHalls(
@@ -50,6 +50,7 @@ public class StudyHallSearchService {
             );
 
             if (!redisResults.isEmpty()) {
+                log.debug("Redis Geo 검색 성공 - 캐시 키: {}", request.getCacheKey());
                 return redisResults;
             }
 
@@ -57,7 +58,7 @@ public class StudyHallSearchService {
             return searchNearbyStudyHallsWithDB(request);
 
         } catch (Exception e) {
-            log.debug("Redis Geo 검색 실패, DB 검색으로 Fallback");
+            log.debug("Redis Geo 검색 실패, DB 검색으로 Fallback - 캐시 키: {}", request.getCacheKey());
             return searchNearbyStudyHallsWithDB(request);
         }
     }
