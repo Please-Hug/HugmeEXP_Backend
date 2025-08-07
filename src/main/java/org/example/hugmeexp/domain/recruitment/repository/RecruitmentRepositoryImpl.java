@@ -31,9 +31,27 @@ public class RecruitmentRepositoryImpl implements RecruitmentRepositoryCustom {
         QTechStack ts = QTechStack.techStack;
         QTag t = QTag.tag;
 
-        NumberExpression<Long> techStackCount = ts.id.count();
-        NumberExpression<Long> tagCount = t.id.count();
+        // 1. 페이징 적용된 ID 리스트 먼저 조회
+        List<Long> ids = queryFactory
+                .select(r.id)
+                .from(r)
+                .join(r.company, c)
+                .leftJoin(r.techStacks, ts)
+                .leftJoin(r.tags, t)
+                .where(buildWhereClause(r, cond))
+                .groupBy(r.id)
+                .having(buildHavingClause(ts.id.count(), cond.getTechStacks(), cond.getTechStackCount(),
+                        t.id.count(), cond.getTags(), cond.getTagCount()))
+                .orderBy(r.modifiedAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
 
+        if (ids.isEmpty()) {
+            return new PageImpl<>(List.of(), pageable, 0);
+        }
+
+        // 2. 실제 내용 조회 (페이징은 적용하지 않음)
         List<RecruitmentResponseDTO> content = queryFactory
                 .select(new QRecruitmentResponseDTO(
                         r.id, r.recruitmentSourceId, r.title, c.companyName, c.companyImageUrl, r.dueDate,
@@ -43,26 +61,22 @@ public class RecruitmentRepositoryImpl implements RecruitmentRepositoryCustom {
                 .join(r.company, c)
                 .leftJoin(r.techStacks, ts)
                 .leftJoin(r.tags, t)
-                .where(buildWhereClause(r,cond))
-                .groupBy(r.id)
-                .having(buildHavingClause(techStackCount, cond.getTechStacks(), cond.getTechStackCount(),
-                        tagCount, cond.getTags(), cond.getTagCount()))
-                .orderBy(r.modifiedAt.desc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
+                .where(r.id.in(ids))
                 .fetch();
 
+        // 3. 총 개수 조회 (조건만 적용)
         Long total = queryFactory
                 .select(r.id.countDistinct())
                 .from(r)
                 .join(r.company, c)
                 .leftJoin(r.techStacks, ts)
                 .leftJoin(r.tags, t)
-                .where(buildWhereClause(r,cond))
+                .where(buildWhereClause(r, cond))
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total != null ? total : 0);
     }
+
 
     private BooleanExpression buildWhereClause(QRecruitment r,RecruitmentSearchConditionDTO cond) {
         return r.dueDate.gt(LocalDateTime.now())
