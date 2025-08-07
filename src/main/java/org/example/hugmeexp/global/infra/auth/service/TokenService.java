@@ -15,10 +15,10 @@ import java.time.Duration;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TokenService
-{
+public class TokenService {
+
     private final RedisSessionService redisSessionService;
-    private final RedisTemplate redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
     private final JwtTokenProvider jwtTokenProvider;
 
     // 리프레시 토큰 저장
