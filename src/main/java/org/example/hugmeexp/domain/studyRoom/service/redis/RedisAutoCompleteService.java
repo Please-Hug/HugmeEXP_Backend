@@ -15,15 +15,15 @@ import java.util.stream.Collectors;
 /**
  * Redis Trie 자동완성 서비스: 검색어 자동완성 전용
  *
- * 사용 범위: 검색어 자동완성, 인기 검색어
- * 사용 Redis Bean: trieStringRedisTemplate (String 데이터 전용)
+ * 🎯 사용 범위: 검색어 자동완성, 인기 검색어
+ * 🔧 사용 Redis Bean: trieStringRedisTemplate (String 데이터 전용)
  */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class RedisAutoCompleteService {
 
-    @Qualifier("trieStringRedisTemplate") // Trie 전용 StringRedisTemplate 사용
+    @Qualifier("trieStringRedisTemplate") // StudyRoom 전용 StringRedisTemplate 사용
     private final StringRedisTemplate stringRedisTemplate;
 
     private static final String AUTOCOMPLETE_PREFIX = "autocomplete:";
@@ -151,8 +151,6 @@ public class RedisAutoCompleteService {
                 .replaceAll("[^가-힣a-z0-9\s]", "") // 특수문자 제거
                 .replaceAll("\\s+", " "); // 공백 정규화
     }
-
-    // compareByPopularity 메서드 제거 - 단순한 Set 기반 조회로 성능 최적화
 
     /**
      * 전체 자동완성 데이터 재구축

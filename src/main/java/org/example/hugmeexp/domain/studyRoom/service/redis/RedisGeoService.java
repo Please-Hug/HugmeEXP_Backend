@@ -2,7 +2,6 @@ package org.example.hugmeexp.domain.studyRoom.service.redis;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.hugmeexp.domain.studyRoom.constants.StudyRoomConstants;
 import org.example.hugmeexp.domain.studyRoom.dto.response.StudyHallLocationResponse;
 import org.example.hugmeexp.domain.studyRoom.entity.StudyHall;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -12,7 +11,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.domain.geo.Metrics;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Redis Geo 서비스: 위치 기반 검색 전용
@@ -25,7 +27,7 @@ import java.util.*;
 @Slf4j
 public class RedisGeoService {
 
-    @Qualifier("geoRedisTemplate") // Geo 전용 RedisTemplate 사용
+    @Qualifier("geoRedisTemplate") // StudyRoom 전용 RedisTemplate 사용
     private final RedisTemplate<String, Object> redisTemplate;
 
     private static final String GEO_KEY = "studyhalls:locations";
@@ -41,13 +43,6 @@ public class RedisGeoService {
 
             if (lat == null || lng == null) {
                 log.warn("스터디홀 {}의 위치 정보가 없습니다.", studyHall.getId());
-                return;
-            }
-
-            // 한국 지역 범위 검증
-            if (lat < StudyRoomConstants.KOREA_MIN_LATITUDE || lat > StudyRoomConstants.KOREA_MAX_LATITUDE ||
-                    lng < StudyRoomConstants.KOREA_MIN_LONGITUDE || lng > StudyRoomConstants.KOREA_MAX_LONGITUDE) {
-                log.warn("스터디홀 {}의 위치가 유효 범위를 벗어났습니다: lat={}, lng={}", studyHall.getId(), lat, lng);
                 return;
             }
 
@@ -114,8 +109,7 @@ public class RedisGeoService {
                             .longitude(coordinates.getX())
                             .thumbnail((String) hallData.get("thumbnail"))
                             .distance(Math.round(distance * 100.0) / 100.0) // 소수점 2자리
-                            .totalRooms(hallData.get("totalRooms") != null ?
-                                    Integer.parseInt(hallData.get("totalRooms").toString()) : 0)
+                            .totalRooms((Integer) hallData.get("totalRooms"))
                             .build();
 
                     results.add(response);
@@ -151,12 +145,6 @@ public class RedisGeoService {
         try {
             // 기존 데이터 삭제
             redisTemplate.delete(GEO_KEY);
-
-            // 기존 Hash 데이터도 모두 삭제
-            Set<String> hashKeys = redisTemplate.keys(HALL_DATA_KEY + "*");
-            if (hashKeys != null && !hashKeys.isEmpty()) {
-                redisTemplate.delete(hashKeys);
-            }
 
             // 새 데이터 색인
             for (StudyHall hall : studyHalls) {
